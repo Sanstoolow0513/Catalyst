@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "type": "module",
   "devDependencies": {
     "electron": "^36.2.1"
   },
@@ -19,6 +20,7 @@
     "open": "^10.1.2",
     "prompt-sync": "^4.2.0",
     "puppeteer": "^24.9.0",
-    "querystring": "^0.2.1"
+    "querystring": "^0.2.1",
+    "yaml": "^2.8.0"
   }
 }
