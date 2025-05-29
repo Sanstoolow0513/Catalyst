@@ -1,1 +1,4 @@
 /node_modules
+/clash/config
+/clash/keys.txt
+/vclib
