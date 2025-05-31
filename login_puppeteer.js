@@ -1,4 +1,11 @@
 const puppeteer = require("puppeteer");
+const { setGlobalProxy } = require("./clash/clash_controller");
+
+// 初始化代理
+(async () => {
+    await setGlobalProxy();
+})();
+
 
 async function encryput(page) {
   await page.waitForSelector("#username", { visible: true });
