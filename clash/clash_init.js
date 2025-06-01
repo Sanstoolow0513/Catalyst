@@ -1,6 +1,7 @@
 import path from "path";
 import axios from "axios";
-import process from "process";
+import process, { config } from "process";
+import yaml from "js-yaml";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFile, writeFile } from "fs/promises";
@@ -8,7 +9,8 @@ import { spawn } from "child_process";
 
 // 代理设置相关常量
 const PROXY_SERVER = "127.0.0.1:7890";
-const PROXY_OVERRIDE = "localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;192.168.*";
+const PROXY_OVERRIDE =
+  "localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;192.168.*";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,15 +23,56 @@ async function fetchConfig(url, configPath) {
     const response = await axios.get(url, { responseType: "text" });
     await writeFile(configPath, response.data);
     console.log("配置文件已成功保存到", configPath);
+    // config = await yaml.load(readFile(configPath, "utf-8"));
   } catch (error) {
     console.error("获取配置文件时发生错误:", error.message);
   }
 }
 
+async function clearSystemProxy() {
+  return new Promise((resolve) => {
+    const ps = spawn("powershell.exe", [
+      "-Command",
+      `
+        # 禁用代理
+        Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyEnable -value 0
+        
+        # 刷新代理设置
+        $signature = @"
+[DllImport("wininet.dll", SetLastError = true, CharSet=CharSet.Auto)]
+public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int lpdwBufferLength);
+"@
+        $type = Add-Type -MemberDefinition $signature -Name wininet -Namespace pinvoke -PassThru
+        $null = $type::InternetSetOption([IntPtr]::Zero, 39, [IntPtr]::Zero, 0)  # 39 = INTERNET_OPTION_SETTINGS_CHANGED
+        $null = $type::InternetSetOption([IntPtr]::Zero, 37, [IntPtr]::Zero, 0)  # 37 = INTERNET_OPTION_REFRESH
+      `,
+    ]);
+
+    ps.stdout.on("data", (data) => {
+      console.log(`[PowerShell]: ${data}`);
+    });
+
+    ps.stderr.on("data", (data) => {
+      console.error(`[PowerShell error]: ${data}`);
+    });
+
+    ps.on("close", (code) => {
+      if (code === 0) {
+        console.log("PowerShell脚本执行成功");
+        resolve(true);
+      } else {
+        console.error(`PowerShell脚本执行失败，退出码: ${code}`);
+        resolve(false);
+      }
+    });
+  });
+}
+
 async function setSystemProxy() {
   return new Promise((resolve) => {
     const ps = spawn("powershell.exe", [
-      "-Command", `
+      "-Command",
+      `
         # 设置代理注册表项
         Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyEnable -value 1
         Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyServer -value "${PROXY_SERVER}"
@@ -43,18 +86,18 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
         $type = Add-Type -MemberDefinition $signature -Name wininet -Namespace pinvoke -PassThru
         $null = $type::InternetSetOption([IntPtr]::Zero, 39, [IntPtr]::Zero, 0)  # 39 = INTERNET_OPTION_SETTINGS_CHANGED
         $null = $type::InternetSetOption([IntPtr]::Zero, 37, [IntPtr]::Zero, 0)  # 37 = INTERNET_OPTION_REFRESH
-      `
+      `,
     ]);
 
-    ps.stdout.on('data', (data) => {
+    ps.stdout.on("data", (data) => {
       console.log(`[PowerShell]: ${data}`);
     });
 
-    ps.stderr.on('data', (data) => {
+    ps.stderr.on("data", (data) => {
       console.error(`[PowerShell error]: ${data}`);
     });
 
-    ps.on('close', (code) => {
+    ps.on("close", (code) => {
       if (code === 0) {
         console.log("PowerShell脚本执行成功");
         resolve(true);
@@ -69,7 +112,11 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
 (async () => {
   const data = await readFile(urlPath, "utf-8");
   await fetchConfig(data.trim(), configPath);
-  
+
+  const temp = yaml.load(await readFile(configPath, "utf-8"));
+  const proxyport = temp.port;
+  console.log("proxyport:" , proxyport);
+
   console.log("启动 Clash 服务...");
   const clashProcess = spawn(mihomoPath, ["-d", path.dirname(configPath)]);
   console.log("clash.pid:", clashProcess.pid);
@@ -83,17 +130,19 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
   });
 
   // 等待Clash启动完成
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
   console.log("设置系统代理...");
   const proxySet = await setSystemProxy();
-  
+
   if (proxySet) {
     console.log("代理设置成功");
   } else {
     console.log("代理设置失败，请手动设置:");
     console.log("打开Windows设置 -> 网络和Internet -> 代理");
-    console.log(`地址: ${PROXY_SERVER.split(':')[0]}, 端口: ${PROXY_SERVER.split(':')[1]}`);
+    console.log(
+      `地址: ${PROXY_SERVER.split(":")[0]}, 端口: ${PROXY_SERVER.split(":")[1]}`
+    );
     console.log(`例外列表: ${PROXY_OVERRIDE}`);
   }
 
@@ -105,11 +154,13 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
     }
   });
 
-  process.on("SIGINT", () => {
+  process.on("SIGINT", async () => {
     console.log("\n正在关闭服务...");
     if (!clashProcess.killed) {
       clashProcess.kill("SIGINT");
     }
+    console.log("正在清除系统代理设置...");
+    await clearSystemProxy();
     process.exit();
   });
 })();
