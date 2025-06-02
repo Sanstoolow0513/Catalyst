@@ -2,9 +2,10 @@ import path from "path";
 import axios from "axios";
 import process, { config } from "process";
 import yaml from "js-yaml";
+import readline from "readline";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { readFile, writeFile } from "fs/promises";
+import { readFile, writeFile, mkdir } from "fs/promises";
 import { spawn } from "child_process";
 
 // 代理设置相关常量
@@ -18,17 +19,21 @@ const urlPath = path.join(__dirname, "url.txt");
 const configPath = path.join(__dirname, "config.yaml", "config.yaml");
 const mihomoPath = path.join(__dirname, "mihomo.exe");
 
-async function fetchConfig(url, configPath) {
+async function fetchConfig(url, __dirname) {
   try {
+    const encodedUrl = Buffer.from(url)
+      .toString("base64")
+      .replace(/[\\/:*?"<>|]/g, "_");
     const response = await axios.get(url, { responseType: "text" });
-    await writeFile(configPath, response.data);
-    console.log("配置文件已成功保存到", configPath);
-    // config = await yaml.load(readFile(configPath, "utf-8"));
+    const tempDir = path.join(__dirname, encodedUrl, "config.yaml");
+    const tempDirDir = path.join(__dirname, encodedUrl);
+    await mkdir(tempDirDir, { recursive: true });
+    await writeFile(tempDir, response.data);
+    console.log("配置文件已成功保存到", tempDir);
   } catch (error) {
     console.error("获取配置文件时发生错误:", error.message);
   }
 }
-
 async function clearSystemProxy() {
   return new Promise((resolve) => {
     const ps = spawn("powershell.exe", [
@@ -109,15 +114,30 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
   });
 }
 
-(async () => {
+async () => {
+  // await fetchConfig(data.trim(), configPath);
+  /**
+   * todos : 主要是多配置的实现，现在已经完成未调试
+   * ! 数据传递他问题
+   */
   const data = await readFile(urlPath, "utf-8");
-  await fetchConfig(data.trim(), configPath);
-
+  const urlArray = data
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  for (const url of urlArray) {
+    console.log("正在获取配置文件:", url);
+    fetchConfig(url, __dirname).catch((err) =>
+      console.error(`配置获取失败 ${url}:`, err.message)
+    );
+  }
   const temp = yaml.load(await readFile(configPath, "utf-8"));
   const proxyport = temp.port;
-  console.log("proxyport:" , proxyport);
+  const externalcontroller = temp["external-controller"];
+  console.log("proxyport:", proxyport);
 
   console.log("启动 Clash 服务...");
+
   const clashProcess = spawn(mihomoPath, ["-d", path.dirname(configPath)]);
   console.log("clash.pid:", clashProcess.pid);
 
@@ -146,8 +166,6 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
     console.log(`例外列表: ${PROXY_OVERRIDE}`);
   }
 
-  console.log("按 Ctrl+C 退出...");
-
   process.on("exit", () => {
     if (!clashProcess.killed) {
       clashProcess.kill("SIGKILL");
@@ -163,4 +181,5 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
     await clearSystemProxy();
     process.exit();
   });
-})();
+};
+// ();
