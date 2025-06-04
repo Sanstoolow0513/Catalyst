@@ -1,5 +1,7 @@
 *.yaml
 *.exe
+*.db
+*.metadb
 /node_modules
 /clash/config.yaml
 /clash/url.txt
