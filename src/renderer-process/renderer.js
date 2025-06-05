@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+import { ipcRenderer } from 'electron';
 
 const dragDropArea = document.getElementById('drag-drop-area');
 const fileInputHidden = document.getElementById('file-input-hidden');
@@ -142,12 +142,10 @@ clearListButton.addEventListener('click', () => {
 downloadSelectedButton.addEventListener('click', () => {
     const selectedFilesForDownload = filesToProcess.filter(f => f.selected && f.status === 'pending');
     if (selectedFilesForDownload.length > 0) {
-        // We need to send serializable data, not full File objects if they are large or complex.
-        // For downloads, we primarily need the URL and a way to identify the file back.
         const filesPayload = selectedFilesForDownload.map(f => ({
             id: f.id,
             name: f.name,
-            url: f.url // Make sure URL is set for each file
+            url: f.url
         }));
 
         if (filesPayload.some(f => !f.url)) {
@@ -167,7 +165,7 @@ ipcRenderer.on('download-progress', (event, { id, progress, name }) => {
     if (fileEntry) {
         fileEntry.status = 'downloading';
         fileEntry.progress = progress;
-        renderFileList(); // Re-render to update status and progress text
+        renderFileList();
     }
     updateOverallProgress();
 });
@@ -178,24 +176,65 @@ ipcRenderer.on('download-complete', (event, { id, localPath, name }) => {
         fileEntry.status = 'completed';
         fileEntry.progress = 100;
         fileEntry.localPath = localPath;
-        fileEntry.selected = false; // Deselect after completion
+        fileEntry.selected = false;
         renderFileList();
     }
     statusMessage.textContent = `文件 "${name}" 下载完成。`;
     updateOverallProgress();
-    updateDownloadButtonState(); // Re-enable if other pending files are selected
+    updateDownloadButtonState();
 });
 
 ipcRenderer.on('download-error', (event, { id, error, name }) => {
     const fileEntry = filesToProcess.find(f => f.id === id);
     if (fileEntry) {
         fileEntry.status = 'error';
-        fileEntry.selected = false; // Deselect on error
+        fileEntry.selected = false;
         renderFileList();
     }
     statusMessage.textContent = `下载 "${name}" 失败: ${error}`;
     updateOverallProgress();
     updateDownloadButtonState();
+});
+
+// 开发工具安装事件
+document.querySelectorAll('.install-btn[data-tool]').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const tool = e.target.dataset.tool;
+        ipcRenderer.send('install-dev-tool', tool);
+        e.target.disabled = true;
+        e.target.textContent = '安装中...';
+    });
+});
+
+// IDE安装事件
+document.querySelectorAll('.install-btn[data-ide]').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const ide = e.target.dataset.ide;
+        ipcRenderer.send('install-ide', ide);
+        e.target.disabled = true;
+        e.target.textContent = '安装中...';
+    });
+});
+
+// 安装状态更新
+ipcRenderer.on('install-status', (event, { type, name, status, message }) => {
+    let button;
+    if (type === 'tool') {
+        button = document.querySelector(`.install-btn[data-tool="${name}"]`);
+    } else if (type === 'ide') {
+        button = document.querySelector(`.install-btn[data-ide="${name}"]`);
+    }
+    
+    if (button) {
+        if (status === 'success') {
+            button.textContent = '已安装';
+            button.classList.add('btn-success');
+        } else {
+            button.textContent = '安装失败';
+            button.classList.add('btn-error');
+            console.error(`安装${name}失败: ${message}`);
+        }
+    }
 });
 
 function updateOverallProgress() {

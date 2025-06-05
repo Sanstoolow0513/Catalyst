@@ -1,13 +1,13 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "ele",
   "version": "1.0.0",
-  "main": "main.js",
+  "main": "./src/main-process/main.js",
   "scripts": {
     "dev": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build:login": "pkg login_puppeteer.js --targets node18-win-x64 --output login_puppeteer.exe"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "qmr",
   "license": "ISC",
   "description": "",
   "type": "module",

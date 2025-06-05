@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>多功能系统工具</title>
+    <link rel="stylesheet" href="./styles/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>多功能系统工具</h1>
+            <nav class="tabs">
+                <button class="tab-btn active" data-tab="system-info">系统信息</button>
+                <button class="tab-btn" data-tab="resource-monitor">资源监控</button>
+                <button class="tab-btn" data-tab="clash-proxy">Clash代理</button>
+                <button class="tab-btn" data-tab="dev-tools">开发工具</button>
+                <button class="tab-btn" data-tab="ide-installer">IDE安装</button>
+                <button class="tab-btn" data-tab="file-downloader">文件下载</button>
+            </nav>
+        </header>
+
+        <main>
+            <!-- 系统信息面板 -->
+            <section id="system-info" class="tab-content active">
+                <div class="card">
+                    <h2>系统信息</h2>
+                    <div id="system-info-container" class="info-grid">
+                        <!-- 系统信息将通过JavaScript动态填充 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 资源监控面板 -->
+            <section id="resource-monitor" class="tab-content">
+                <div class="card">
+                    <h2>资源监控</h2>
+                    <div class="monitor-grid">
+                        <div class="monitor-card">
+                            <h3>CPU使用率</h3>
+                            <div class="progress-bar-bg">
+                                <div id="cpu-progress" class="progress-bar" style="width: 0%;">0%</div>
+                            </div>
+                        </div>
+                        <div class="monitor-card">
+                            <h3>内存使用率</h3>
+                            <div class="progress-bar-bg">
+                                <div id="mem-progress" class="progress-bar" style="width: 极狐 0%;">0%</div>
+                            </div>
+                        </div>
+                        <极狐 div class="monitor-card">
+                            <h3>GPU使用率</h3>
+                            <div class="progress-bar-bg">
+                                <div id="gpu-progress" class="progress-bar" style="width: 0%;">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Clash代理面板 -->
+            <section id="clash-proxy" class="tab-content">
+                <div class="card">
+                    <h2>Clash代理</h2>
+                    <div id="clash-status" class="info-grid">
+                        <!-- Clash状态信息将通过JavaScript动态填充 -->
+                    </div>
+                    <div class="btn-group">
+                        <button id="start-clash-btn" class="btn btn-primary">启动Clash</button>
+                        <button id="stop-clash-btn" class="btn btn-warning">停止Clash</button>
+                        <button id="refresh-nodes-btn" class="btn btn-secondary">刷新节点</button>
+                    </div>
+                    
+                    <div id="node-list-container" style="margin-top: 20px;">
+                        <h3>节点列表</h3>
+                        <ul id="node-list" class="node-list">
+                            <!-- 节点将通过JavaScript动态添加 -->
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 开发工具面板 -->
+            <section id="dev极狐-tools" class="tab-content">
+                <div class="card">
+                    <h2>开发工具安装</h2>
+                    <div class="tool-grid">
+                        <div class="tool-card">
+                            <h3>Visual C++ 运行库</h3>
+                            <button class="btn btn-primary install-btn" data-tool="vc">安装</button>
+                        </div>
+                        <div class="tool-card">
+                            <h3>Node.js</h3>
+                            <button class="btn btn-primary install-btn" data-tool="node">安装</button>
+                        </div>
+                        <div class="tool-card">
+                            <h3>Java JDK</h3>
+                            <button class="btn btn-primary install-btn" data-tool="jdk">安装</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- IDE安装面板 -->
+            <section id="ide-installer" class="tab-content">
+                <div class="card">
+                    <h2>IDE安装</h2>
+                    <div class="tool-grid">
+                        <div class="tool-card">
+                            <h3>Visual Studio Code</h3>
+                            <button class="btn btn-primary install-btn" data-ide="vscode">安装</button>
+                        </div>
+                        <div class="tool-card">
+                            <h3>CLion</h3>
+                            <button class="btn btn-primary install-btn" data-ide="clion">安装</button>
+                        </div>
+                        <div class="tool-card">
+                            <h3>Visual Studio</h3>
+                            <button class="btn btn-primary install-btn" data-ide="vs">安装</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 文件下载面板 (保留原有功能) -->
+            <section id="file-downloader" class="tab-content">
+                <div class="card">
+                    <h2>将文件拖拽到此处</h2>
+                    <p>或者 <button id="browse-files-button" class="btn btn-secondary">选择文件</button></p>
+                    <input type="file" id="file-input-hidden" multiple style="display: none;">
+                </div>
+
+                <div class="card">
+                    <h2>待下载文件</h2>
+                    <ul id="file-list">
+                        <!-- 文件项将通过 JavaScript 动态添加 -->
+                    </ul>
+                    <button id="clear-list-button" class="btn btn-warning" style="display: none;">清空列表</button>
+                </div>
+
+                <button id="download-selected-button" class="btn btn-primary" disabled>下载选中文件</button>
+
+                <div class="card">
+                    <h2>下载进度</h2>
+                    <div id="overall-progress-bar-container" class="progress-bar-bg">
+                        <div id="overall-progress-bar" style="width: 0%;">0%</div>
+                    </div>
+                    <p id="status-message">请拖拽文件或选择文件开始。</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="renderer.js"></script>
+    <script src="sysmonitor.js"></script>
+    <script src="clash_ui.js" type="module"></script>
+    
+    <script>
+        // 标签页切换功能
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // 移除所有活动标签和内容
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // 激活当前标签和内容
+                button.classList.add('active');
+                const tabId = button.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

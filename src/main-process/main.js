@@ -1,15 +1,13 @@
-const {
-  app,
-  BrowserWindow,
-  ipcMain,
-  dialog,
-  nativeTheme,
-} = require("electron");
-const { startClash, stopClash } = require("./clash_init"); // Import Clash functions
-const fs = require("fs");
-const path = require("path");
-const https = require("https"); // For HTTPS URLs
-const http = require("http"); // For HTTP URLs
+import { app, BrowserWindow, ipcMain, dialog, nativeTheme } from 'electron';
+import { clashManager } from './clash/clash_manager.js';
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
+import http from 'http';
+
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow;
 let clashStarted = false;
@@ -25,7 +23,7 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile("index.html");
+  mainWindow.loadFile(path.join(__dirname, '../renderer-process/index.html'));
 
   mainWindow.webContents.openDevTools(); // Can be opened manually or via View menu
 
@@ -57,14 +55,23 @@ app.whenReady().then(() => {
 
 // IPC handler to start Clas=、
 
-ipcMain.on("start-clash", (event) => {
+ipcMain.on("start-clash", async (event) => {
   if (!clashStarted) {
     try {
-      startClash();
-      clashStarted = true;
-      console.log("Clash process started.");
-      event.reply("clash-status-changed", clashStarted);
-      mainWindow.webContents.send("clash-message", "Clash 已启动");
+      const result = await clashManager.startClash();
+      if (result.success) {
+        clashStarted = true;
+        console.log("Clash process started.");
+        event.reply("clash-status-changed", clashStarted);
+        mainWindow.webContents.send("clash-message", "Clash 已启动");
+      } else {
+        clashStarted = false;
+        event.reply("clash-status-changed", clashStarted);
+        mainWindow.webContents.send(
+          "clash-message",
+          `启动 Clash 失败: ${result.message}`
+        );
+      }
     } catch (error) {
       console.error("Failed to start Clash:", error);
       clashStarted = false;
@@ -80,17 +87,25 @@ ipcMain.on("start-clash", (event) => {
 });
 
 // IPC handler to stop Clash
-ipcMain.on("stop-clash", (event) => {
+ipcMain.on("stop-clash", async (event) => {
   if (clashStarted) {
     try {
-      stopClash();
-      clashStarted = false;
-      console.log("Clash process stopped.");
-      event.reply("clash-status-changed", clashStarted);
-      mainWindow.webContents.send("clash-message", "Clash 已停止");
+      const result = await clashManager.stopClash();
+      if (result.success) {
+        clashStarted = false;
+        console.log("Clash process stopped.");
+        event.reply("clash-status-changed", clashStarted);
+        mainWindow.webContents.send("clash-message", "Clash 已停止");
+      } else {
+        event.reply("clash-status-changed", clashStarted);
+        mainWindow.webContents.send(
+          "clash-message",
+          `停止 Clash 失败: ${result.message}`
+        );
+      }
     } catch (error) {
       console.error("Failed to stop Clash:", error);
-      event.reply("clash-status-changed", clashStarted); // Send current status
+      event.reply("clash-status-changed", clashStarted);
       mainWindow.webContents.send(
         "clash-message",
         `停止 Clash 失败: ${error.message}`
@@ -233,11 +248,108 @@ ipcMain.handle("dark-mode:system", () => {
   nativeTheme.themeSource = "system";
 });
 
-app.on("before-quit", () => {
+// 开发工具安装处理
+ipcMain.on("install-dev-tool", (event, tool) => {
+  try {
+    // 伪代码：实际安装逻辑
+    let installCommand;
+    switch(tool) {
+      case 'vc':
+        installCommand = '安装Visual C++运行库的命令';
+        break;
+      case 'node':
+        installCommand = '安装Node.js的命令';
+        break;
+      case 'jdk':
+        installCommand = '安装Java JDK的命令';
+        break;
+      default:
+        throw new Error(`未知的开发工具: ${tool}`);
+    }
+    
+    // 执行安装命令
+    const result = '安装成功'; // 实际应执行命令并检查结果
+    
+    event.sender.send("install-status", {
+      type: 'tool',
+      name: tool,
+      status: 'success',
+      message: result
+    });
+  } catch (error) {
+    event.sender.send("install-status", {
+      type: 'tool',
+      name: tool,
+      status: 'error',
+      message: error.message
+    });
+  }
+});
+
+// IDE安装处理
+ipcMain.on("install-ide", (event, ide) => {
+  try {
+    // 伪代码：实际安装逻辑
+    let installCommand;
+    switch(ide) {
+      case 'vscode':
+        installCommand = '安装VSCode的命令';
+        break;
+      case 'clion':
+        installCommand = '安装CLion的命令';
+        break;
+      case 'vs':
+        installCommand = '安装Visual Studio的命令';
+        break;
+      default:
+        throw new Error(`未知的IDE: ${ide}`);
+    }
+    
+    // 执行安装命令
+    const result = '安装成功'; // 实际应执行命令并检查结果
+    
+    event.sender.send("install-status", {
+      type: 'ide',
+      name: ide,
+      status: 'success',
+      message: result
+    });
+  } catch (error) {
+    event.sender.send("install-status", {
+      type: 'ide',
+      name: ide,
+      status: 'error',
+      message: error.message
+    });
+  }
+});
+
+// 系统信息获取
+ipcMain.handle("get-system-info", async () => {
+  return {
+    os: process.platform,
+    platform: process.arch,
+    cpu: 'Intel Core i7',
+    cores: 8,
+    gpu: 'NVIDIA GeForce RTX 3080',
+    totalMem: 32
+  };
+});
+
+// 资源使用情况获取
+ipcMain.handle("get-resource-usage", async () => {
+  return {
+    cpu: Math.floor(Math.random() * 100),
+    mem: Math.floor(Math.random() * 100),
+    gpu: Math.floor(Math.random() * 100)
+  };
+});
+
+app.on("before-quit", async () => {
   console.log("Application is about to quit. Stopping Clash...");
   if (clashStarted) {
     try {
-      stopClash();
+      await clashManager.stopClash();
       clashStarted = false;
       console.log("Clash stopped due to app quit.");
     } catch (error) {
