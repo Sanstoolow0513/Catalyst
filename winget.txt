@@ -1,0 +1,25 @@
+# 1. 定义 winget 最新版本的下载地址和文件名
+$wingetUrl = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+$wingetFile = "winget.msixbundle"
+
+# 2. 定义 winget 依赖项 (Microsoft.UI.Xaml) 的下载地址和文件名
+$dependencyUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/latest/download/Microsoft.UI.Xaml.2.8.msix"
+$dependencyFile = "dependency.msix"
+
+# 3. 下载 winget 安装包
+Invoke-WebRequest -Uri $wingetUrl -OutFile $wingetFile
+
+# 4. 下载依赖项安装包
+Invoke-WebRequest -Uri $dependencyUrl -OutFile $dependencyFile
+
+# 5. 安装依赖项 (如果已存在则会跳过)
+Add-AppxPackage -Path $dependencyFile
+
+# 6. 安装 winget 主程序
+Add-AppxPackage -Path $wingetFile
+
+# 7. (可选) 清理下载的安装文件
+Remove-Item $wingetFile
+Remove-Item $dependencyFile
+
+Write-Host "Winget 安装完成! 请关闭并重新打开一个新的终端窗口来使用 winget 命令。" -ForegroundColor Green
