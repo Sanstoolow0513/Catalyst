@@ -3,20 +3,86 @@ import axios from "axios";
 import process from "process";
 import yaml from "js-yaml";
 import readline from "readline";
+import AdmZip from "adm-zip";
+import zlib from "zlib";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { spawn } from "child_process";
+import { log } from "console";
 
-// 代理设置相关常量
+// proxy parameters
 const PROXY_SERVER = "127.0.0.1:7890";
 const PROXY_OVERRIDE =
   "localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;192.168.*";
 
 const __filename = fileURLToPath(import.meta.url);
+
+/**
+ * 解压 .gz 文件到指定路径
+ * @param {string} gzFilePath - .gz 文件路径
+ * @param {string} outputFilePath - 解压后的文件路径
+ * @returns {Promise<void>}
+ */
+async function decompressGzFile(gzFilePath, outputFilePath) {
+  return new Promise((resolve, reject) => {
+    const input = fs.createReadStream(gzFilePath);
+    const output = fs.createWriteStream(outputFilePath);
+    const gunzip = zlib.createGunzip();
+
+    input.pipe(gunzip).pipe(output);
+
+    output.on("finish", () => {
+      console.log(`文件已成功解压到 ${outputFilePath}`);
+      resolve();
+    });
+
+    output.on("error", (error) => {
+      console.error("解压文件时发生错误:", error.message);
+      reject(error);
+    });
+  });
+}
+
+/**
+ * @param {string} 上级目录
+ * @returns {Promise<void>}
+ */
+async function downloadMihomoCore(targetPath) {
+  const version = "v1.19.10";
+  const platform = process.platform;
+  const arch = process.arch;
+
+  const gzFilePath = path.join(path.dirname(targetPath), "mihomo.gz");
+  const zipFilePath = path.join(path.dirname(targetPath), "mihomo.zip");
+
+  //https://github.com/MetaCubeX/mihomo/releases/download/v1.19.10/mihomo-darwin-amd64-v1.19.10.gz
+  //https://github.com/MetaCubeX/mihomo/releases/download/v1.19.10/mihomo-windows-amd64-v1.19.10.zip
+  let downloadUrl = `https://github.com/MetaCubeX/mihomo/releases/download/${version}/mihomo-windows-amd64-${version}.zip`;
+  console.log(`正在从 ${downloadUrl} 下载 mihomo 核心...`);
+  try {
+    const response = await axios.get(downloadUrl, {
+      responseType: "arraybuffer",
+    });
+    // await writeFile(gzFilePath, Buffer.from(response.data));
+    await writeFile(zipFilePath, Buffer.from(response.data));
+    // console.log(`mihomo 核心已成功下载到 ${gzFilePath}`);
+    console.log(`mihomo 核心已成功下载到 ${zipFilePath}`);
+    console.log("正在解压 mihomo 核心...");
+    // await decompressGzFile(gzFilePath, targetPath);
+    const zip = new AdmZip(zipFilePath);
+    zip.extractAllTo(path.dirname(targetPath), true);
+    console.log(`mihomo 核心已成功解压到 ${targetPath}`);
+  } catch (error) {
+    console.error("下载 mihomo 核心时发生错误:", error.message);
+    throw error;
+  }
+}
+
 const __dirname = path.dirname(__filename);
 const urlFilePath = path.join(__dirname, "url.txt");
-const clashConfigPath = path.join(__dirname, "config.yaml");
-const clashExecutablePath = path.join(__dirname, "mihomo.exe");
+const clashExecutablePath = path.join(__dirname, "mihomo-windows-amd64.exe");
+console.log(clashExecutablePath);
 
 /**
  * 下载Clash配置文件
@@ -31,11 +97,11 @@ async function fetchConfig(configUrl, baseDir) {
       .replace(/[\\/:*?"<>|]/g, "_");
     const configDirectory = path.join(baseDir, encodedUrlHash);
     const downloadedConfigPath = path.join(configDirectory, "config.yaml");
-    
+
     await mkdir(configDirectory, { recursive: true });
     const response = await axios.get(configUrl, { responseType: "text" });
     await writeFile(downloadedConfigPath, response.data);
-    
+
     console.log("配置文件已成功保存到", downloadedConfigPath);
     return downloadedConfigPath;
   } catch (error) {
@@ -45,6 +111,7 @@ async function fetchConfig(configUrl, baseDir) {
 }
 async function clearSystemProxy() {
   return new Promise((resolve) => {
+    console.log("ready to clear system proxy settings...");
     const ps = spawn("powershell.exe", [
       "-Command",
       `
@@ -83,6 +150,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
 }
 
 async function setSystemProxy() {
+  console.log("ready to set system proxy settings...");
   return new Promise((resolve) => {
     const ps = spawn("powershell.exe", [
       "-Command",
@@ -131,7 +199,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       .split("\n")
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
-    
+
     if (availableUrls.length === 0) {
       console.error("没有找到有效的配置文件URL，请检查url.txt文件");
       return;
@@ -169,21 +237,58 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
 
     const selectedConfigUrl = availableUrls[selectedIndex];
     console.log("正在获取配置文件:", selectedConfigUrl);
-    
+
     // 下载配置文件
-    const downloadedConfigPath = await fetchConfig(selectedConfigUrl, __dirname);
-    
+    const downloadedConfigPath = await fetchConfig(
+      selectedConfigUrl,
+      __dirname
+    );
+
+    // mihomo核心下载逻辑 ---
+    const coreExists = await readFile(clashExecutablePath)
+      .then(() => true)
+      .catch(() => false); // 检查核心可执行文件是否存在
+
+    if (!coreExists) {
+      console.log("未找到 mihomo 核心，正在尝试下载...");
+      try {
+        await downloadMihomoCore(clashExecutablePath);
+      } catch (downloadError) {
+        console.error(
+          "下载 mihomo 核心失败，请手动下载并放置到指定位置:",
+          clashExecutablePath
+        );
+      }
+    } else {
+      console.log("已找到 mihomo 核心，跳过下载。");
+    }
+
     // 读取并解析配置文件
     const configContent = await readFile(downloadedConfigPath, "utf-8");
     const clashConfig = yaml.load(configContent);
     const proxyPort = clashConfig.port;
     const externalController = clashConfig["external-controller"];
-    
+
     console.log("代理端口:", proxyPort);
     console.log("外部控制器:", externalController);
 
     console.log("启动 Clash 服务...");
-    const clashProcess = spawn(clashExecutablePath, ["-d", path.dirname(downloadedConfigPath)]);
+    // 在启动前再次检查核心文件是否存在
+    const finalCoreExists = await readFile(clashExecutablePath)
+      .then(() => true)
+      .catch(() => false);
+
+    if (!finalCoreExists) {
+      console.error(
+        "mihomo 核心不存在，无法启动服务。请确保核心文件已下载或放置在正确位置。"
+      );
+      return; // 如果核心文件不存在，则退出程序
+    }
+
+    const clashProcess = spawn(clashExecutablePath, [
+      "-d",
+      path.dirname(downloadedConfigPath),
+    ]);
     console.log("Clash进程ID:", clashProcess.pid);
 
     clashProcess.stdout.on("data", (data) => {
@@ -202,76 +307,87 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
 
     if (proxySetSuccess) {
       console.log("代理设置成功");
-      
+
       // 添加节点选择功能
       try {
         const selectGroup = clashConfig["proxy-groups"].find(
-          group => group.name === "🔰 选择节点"
+          (group) => group.name === "🔰 选择节点"
         );
-        
+
         if (selectGroup) {
           console.log("\n节点列表：");
           const proxiesInfo = [];
-          
+
           // 测试并显示节点延迟
           for (const proxyName of selectGroup.proxies) {
             if (proxyName === "DIRECT") continue;
-            
+
             try {
-              const proxy = clashConfig.proxies.find(p => p.name === proxyName);
+              const proxy = clashConfig.proxies.find(
+                (p) => p.name === proxyName
+              );
               if (!proxy) continue;
-              
+
               // 测试延迟
               const startTime = Date.now();
               await axios.get("http://www.gstatic.com/generate_204", {
                 proxy: {
                   host: "127.0.0.1",
-                  port: proxyPort
+                  port: proxyPort,
                 },
-                timeout: 5000
+                timeout: 5000,
               });
               const latency = Date.now() - startTime;
-              
+
               proxiesInfo.push({
                 name: proxyName,
                 server: proxy.server,
-                latency: latency
+                latency: latency,
               });
-              
+
               console.log(`${proxyName} - ${latency}ms`);
             } catch (error) {
               console.log(`${proxyName} - 超时`);
               proxiesInfo.push({
                 name: proxyName,
                 server: proxy.server,
-                latency: -1
+                latency: -1,
               });
             }
           }
-          
+
           // 创建新的readline接口用于节点选择
           const rlNode = readline.createInterface({
             input: process.stdin,
-            output: process.stdout
+            output: process.stdout,
           });
-          
+
           // 获取用户选择的节点
           const selectedNodeIndex = await new Promise((resolve) => {
-            rlNode.question("\n请选择要使用的节点编号（输入0取消）: ", (answer) => {
-              rlNode.close();
-              resolve(parseInt(answer) - 1);
-            });
+            rlNode.question(
+              "\n请选择要使用的节点编号（输入0取消）: ",
+              (answer) => {
+                rlNode.close();
+                resolve(parseInt(answer) - 1);
+              }
+            );
           });
-          
-          if (selectedNodeIndex >= 0 && selectedNodeIndex < proxiesInfo.length) {
+
+          if (
+            selectedNodeIndex >= 0 &&
+            selectedNodeIndex < proxiesInfo.length
+          ) {
             const selectedProxy = proxiesInfo[selectedNodeIndex];
             console.log(`正在切换到节点: ${selectedProxy.name}`);
-            
+
             // 通过API切换节点
-            await axios.put(`http://${externalController}/proxies/🔰 选择节点`, {
-              name: selectedProxy.name
-            });
-            
+            await axios.put(
+              `http://${externalController}/proxies/🔰 选择节点`,
+              {
+                name: selectedProxy.name,
+              }
+            );
+
             console.log("节点切换成功");
           }
         }
@@ -282,7 +398,9 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       console.log("代理设置失败，请手动设置:");
       console.log("打开Windows设置 -> 网络和Internet -> 代理");
       console.log(
-        `地址: ${PROXY_SERVER.split(":")[0]}, 端口: ${PROXY_SERVER.split(":")[1]}`
+        `地址: ${PROXY_SERVER.split(":")[0]}, 端口: ${
+          PROXY_SERVER.split(":")[1]
+        }`
       );
       console.log(`例外列表: ${PROXY_OVERRIDE}`);
     }
