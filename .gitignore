@@ -2,6 +2,6 @@
 *.exe
 *.db
 *.metadb
+*.zip
 /node_modules
-/clash/config.yaml
-/clash/url.txt
+/src/main-process/clash/url.txt
