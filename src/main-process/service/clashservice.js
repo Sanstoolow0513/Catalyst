@@ -2,10 +2,7 @@ import path from "path";
 import axios from "axios";
 import process from "process";
 import yaml from "js-yaml";
-import readline from "readline";
 import AdmZip from "adm-zip";
-import zlib from "zlib";
-import fs from "fs";
 import { fileURLToPath } from "url";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { spawn } from "child_process";
@@ -15,6 +12,9 @@ class ClashMS {
     this.urlFilePath = options.urlFilePath;
     this.configFilePath = options.configFilePath;
     this.clashCorePath = options.clashCorePath;
+    this.currentYaml = null;
+    this.PROXY_SERVER = options.PROXY_SERVER;
+    this.PROXY_OVERRIDE = options.PROXY_OVERRIDE;
     console.log("user.clashMS");
   }
   /**
@@ -43,27 +43,22 @@ class ClashMS {
         .filter((line) => line.length > 0);
 
       if (availableUrls.length === 0) {
-        console.error("没有找到有效的配置文件URL，请检查url.txt文件");
+        console.error("No url.txt document");
         return;
       }
-
-      availableUrls.forEach((url, index) => {
-        console.log("sss");
-        console.log(`${index + 1}. ${url}`);
-      });
-
-      const encodedUrlHash = Buffer.from(configUrl)
+      const encodedUrlHash = Buffer.from(urlListContent)
         .toString("base64")
         .replace(/[\\/:*?"<>|]/g, "_");
       const configDirectory = path.join(configFilePath, encodedUrlHash);
       const downloadedConfigPath = path.join(configDirectory, "config.yaml");
+      this.currentYaml = downloadedConfigPath;
+      console.log("now yaml:", this.currentYaml);
+      // await mkdir(configDirectory, { recursive: true });
+      // const response = await axios.get(configUrl, { responseType: "text" });
+      // await writeFile(downloadedConfigPath, response.data);
 
-      await mkdir(configDirectory, { recursive: true });
-      const response = await axios.get(configUrl, { responseType: "text" });
-      await writeFile(downloadedConfigPath, response.data);
-
-      console.log("配置文件已成功保存到", downloadedConfigPath);
-      return downloadedConfigPath;
+      // console.log("配置文件已成功保存到", downloadedConfigPath);
+      // return downloadedConfigPath;
     } catch (error) {
       console.error("获取配置文件时发生错误:", error.message);
       throw error;
@@ -105,6 +100,9 @@ class ClashMS {
       const ps = spawn("powershell.exe", [
         "-Command",
         `
+        # 设置输出编码为 UTF-8
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
         # 禁用代理
         Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyEnable -value 0
         
@@ -145,6 +143,9 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       const ps = spawn("powershell.exe", [
         "-Command",
         `
+        # 设置输出编码为 UTF-8
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
         # 设置代理注册表项
         Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyEnable -value 1
         Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyServer -value "${PROXY_SERVER}"
@@ -180,48 +181,24 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       });
     });
   }
-}
 
-/**
- * todos  这里我修改了逻辑：选择部分作为异步控制
- * @param {*} urlFilePath
- * @param {*} yamlFilePath
- * @returns
- */
-export async function fetchConfig(urlFilePath, configFilePath) {
-  try {
-    // 读取URL列表文件
-    const urlListContent = await readFile(urlFilePath, "utf-8");
-    const availableUrls = urlListContent
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
+  async startMihomo() {
+    const clashProcess = spawn(this.clashCorePath, [
+      "-d",
+      path.dirname(downloadedConfigPath),
+    ]);
+    console.log("Clash进程ID:", clashProcess.pid);
 
-    if (availableUrls.length === 0) {
-      console.error("没有找到有效的配置文件URL，请检查url.txt文件");
-      return;
-    }
-
-    availableUrls.forEach((url, index) => {
-      console.log("sss");
-      console.log(`${index + 1}. ${url}`);
+    clashProcess.stdout.on("data", (data) => {
+      console.log(`[clash]: ${data.toString().trim()}`);
     });
 
-    const encodedUrlHash = Buffer.from(configUrl)
-      .toString("base64")
-      .replace(/[\\/:*?"<>|]/g, "_");
-    const configDirectory = path.join(configFilePath, encodedUrlHash);
-    const downloadedConfigPath = path.join(configDirectory, "config.yaml");
+    clashProcess.stderr.on("data", (data) => {
+      console.error(`[clash error]: ${data.toString().trim()}`);
+    });
 
-    await mkdir(configDirectory, { recursive: true });
-    const response = await axios.get(configUrl, { responseType: "text" });
-    await writeFile(downloadedConfigPath, response.data);
-
-    console.log("配置文件已成功保存到", downloadedConfigPath);
-    return downloadedConfigPath;
-  } catch (error) {
-    console.error("获取配置文件时发生错误:", error.message);
-    throw error;
+    // 等待Clash启动
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 }
 

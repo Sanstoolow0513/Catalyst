@@ -22,14 +22,16 @@ const options = {
   urlFilePath: urlFilePath,
   configFilePath: configUpPath,
   clashCorePath: clashCorePath,
+  PROXY_SERVER: PROXY_SERVER,
+  PROXY_OVERRIDE: PROXY_OVERRIDE,
 };
-
 
 /**
  * todos: clashconfig_core_download->load config->mihomo status
  */
 const clash = new ClashMS(options);
 clash.initialize();
+// clash.fetchConfig()
 
 let mainWindow; // 主窗口实例
 function createWindow() {
