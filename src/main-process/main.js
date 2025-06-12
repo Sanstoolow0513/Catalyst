@@ -3,14 +3,35 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import { spawn } from "child_process";
-
+import ClashMS from "./service/clashservice.js";
+import { config } from "process";
 // parameters:
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const clash_initPath = path.join(__dirname, "clash", "clash_init.js");
+const PROXY_SERVER = "127.0.0.1:7890";
+const PROXY_OVERRIDE =
+  "localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;192.168.*";
+const urlFilePath = path.join(__dirname, "service", "url.txt");
+const configUpPath = path.join(__dirname, "service");
+const clashCorePath = path.join(
+  __dirname,
+  "service",
+  "mihomo-windows-amd64.exe"
+);
+const options = {
+  urlFilePath: urlFilePath,
+  configFilePath: configUpPath,
+  clashCorePath: clashCorePath,
+};
+
+
+/**
+ * todos: clashconfig_core_download->load config->mihomo status
+ */
+const clash = new ClashMS(options);
+clash.initialize();
 
 let mainWindow; // 主窗口实例
-
 function createWindow() {
   /* 创建主窗口 */
   mainWindow = new BrowserWindow({
@@ -27,7 +48,7 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, "../renderer-process/index.html"));
 
   /* 打开开发者工具 */
-  mainWindow.webContents.openDevTools(); // 可通过菜单手动打开
+  // mainWindow.webContents.openDevTools();
 
   /* 窗口关闭事件处理 */
   mainWindow.on("closed", () => {
@@ -37,66 +58,11 @@ function createWindow() {
 
 app.whenReady().then(() => {
   createWindow();
-
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
-});
-
-// IPC handler to start Clas=、
-/**
- * ! clash-message: 用于发送Clash相关消息到渲染进程
- * ! clash-error: 用于发送Clash相关错误到渲染进程
- */
-ipcMain.on("start-clash", async (event) => {
-  const clashProcess = spawn("node", [clash_initPath]);
-  // clashProcess.stdout.on("data", (data) => {
-  //   event.sender.send("clash-message", data.toString());
-  // });
-  // clashProcess.stderr.on("data", (data) => {
-  //   event.sender.send("clash-error", `error: ${data.toString()}`);
-  // });
-  // // 监听进程关闭事件
-  // clashProcess.on("close", (code) => {
-  //   event.sender.send("clash-log", `Clash 初始化进程已退出，退出码: ${code}`);
-  // });
-  clashProcess.stdout.on("data", (data) => {
-    mainWindow.webContents.send("clash-message", data.toString());
-  });
-  clashProcess.stderr.on("data", (data) => {
-    mainWindow.webContents.send("clash-error", `error: ${data.toString()}`);
-  });
-  clashProcess.on("close", (code) => {
-    mainWindow.webContents.send(
-      "clash-log",
-      `Clash 初始化进程已退出，退出码: ${code}`
-    );
-  });
-});
-
-// IPC处理：停止Clash代理
-ipcMain.on("stop-clash", async (event) => {});
-
-// 新增：获取可用URL列表
-ipcMain.handle("get-available-urls", async () => {
-  return clashService.getAvailableUrls();
-});
-
-// 新增：获取节点列表
-ipcMain.handle("get-node-list", async () => {
-  return clashService.getNodeList();
-});
-
-// 新增：测试节点延迟
-ipcMain.handle("test-node-latency", async (event, nodeName) => {
-  return clashService.testNodeLatency(nodeName);
-});
-
-// 新增：切换节点
-ipcMain.handle("switch-node", async (event, nodeName) => {
-  return clashService.switchNode(nodeName);
 });
 
 app.on("window-all-closed", () => {

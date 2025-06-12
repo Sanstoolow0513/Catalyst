@@ -9,7 +9,6 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { spawn } from "child_process";
-import { log } from "console";
 
 // proxy parameters
 const PROXY_SERVER = "127.0.0.1:7890";
@@ -82,7 +81,6 @@ async function downloadMihomoCore(targetPath) {
 const __dirname = path.dirname(__filename);
 const urlFilePath = path.join(__dirname, "url.txt");
 const clashExecutablePath = path.join(__dirname, "mihomo-windows-amd64.exe");
-console.log(clashExecutablePath);
 
 /**
  * 下载Clash配置文件
@@ -190,6 +188,18 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
     });
   });
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 (async () => {
   try {
