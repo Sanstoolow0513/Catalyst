@@ -9,6 +9,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { spawn } from "child_process";
+import { logger } from "../logger.js";
 
 // proxy parameters
 const PROXY_SERVER = "127.0.0.1:7890";
@@ -32,12 +33,12 @@ async function decompressGzFile(gzFilePath, outputFilePath) {
     input.pipe(gunzip).pipe(output);
 
     output.on("finish", () => {
-      console.log(`文件已成功解压到 ${outputFilePath}`);
+      logger.info(`文件已成功解压到 ${outputFilePath}`, "clash_init.js");
       resolve();
     });
 
     output.on("error", (error) => {
-      console.error("解压文件时发生错误:", error.message);
+      logger.error(`解压文件时发生错误: ${error.message}`, "clash_init.js");
       reject(error);
     });
   });
@@ -58,22 +59,21 @@ async function downloadMihomoCore(targetPath) {
   //https://github.com/MetaCubeX/mihomo/releases/download/v1.19.10/mihomo-darwin-amd64-v1.19.10.gz
   //https://github.com/MetaCubeX/mihomo/releases/download/v1.19.10/mihomo-windows-amd64-v1.19.10.zip
   let downloadUrl = `https://github.com/MetaCubeX/mihomo/releases/download/${version}/mihomo-windows-amd64-${version}.zip`;
-  console.log(`正在从 ${downloadUrl} 下载 mihomo 核心...`);
+  logger.info(`正在从 ${downloadUrl} 下载 mihomo 核心...`, "clash_init.js");
   try {
     const response = await axios.get(downloadUrl, {
       responseType: "arraybuffer",
     });
     // await writeFile(gzFilePath, Buffer.from(response.data));
     await writeFile(zipFilePath, Buffer.from(response.data));
-    // console.log(`mihomo 核心已成功下载到 ${gzFilePath}`);
-    console.log(`mihomo 核心已成功下载到 ${zipFilePath}`);
-    console.log("正在解压 mihomo 核心...");
+    logger.info(`mihomo 核心已成功下载到 ${zipFilePath}`, "clash_init.js");
+    logger.info("正在解压 mihomo 核心...", "clash_init.js");
     // await decompressGzFile(gzFilePath, targetPath);
     const zip = new AdmZip(zipFilePath);
     zip.extractAllTo(path.dirname(targetPath), true);
-    console.log(`mihomo 核心已成功解压到 ${targetPath}`);
+    logger.info(`mihomo 核心已成功解压到 ${targetPath}`, "clash_init.js");
   } catch (error) {
-    console.error("下载 mihomo 核心时发生错误:", error.message);
+    logger.error(`下载 mihomo 核心时发生错误: ${error.message}`, "clash_init.js");
     throw error;
   }
 }
@@ -100,19 +100,22 @@ async function fetchConfig(configUrl, baseDir) {
     const response = await axios.get(configUrl, { responseType: "text" });
     await writeFile(downloadedConfigPath, response.data);
 
-    console.log("配置文件已成功保存到", downloadedConfigPath);
+    logger.info(`配置文件已成功保存到 ${downloadedConfigPath}`, "clash_init.js");
     return downloadedConfigPath;
   } catch (error) {
-    console.error("获取配置文件时发生错误:", error.message);
+    logger.error(`获取配置文件时发生错误: ${error.message}`, "clash_init.js");
     throw error;
   }
 }
 async function clearSystemProxy() {
   return new Promise((resolve) => {
-    console.log("ready to clear system proxy settings...");
+    logger.info("准备清除系统代理设置...", "clash_init.js");
     const ps = spawn("powershell.exe", [
       "-Command",
       `
+        # 设置输出编码为 UTF-8
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        
         # 禁用代理
         Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyEnable -value 0
         
@@ -122,25 +125,25 @@ async function clearSystemProxy() {
 public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int lpdwBufferLength);
 "@
         $type = Add-Type -MemberDefinition $signature -Name wininet -Namespace pinvoke -PassThru
-        $null = $type::InternetSetOption([IntPtr]::Zero, 39, [IntPtr]::Zero, 0)  # 39 = INTERNET_OPTION_SETTINGS_CHANGED
-        $null = $type::InternetSetOption([IntPtr]::Zero, 37, [IntPtr]::Zero, 0)  # 37 = INTERNET_OPTION_REFRESH
+        $null = $type::InternetSetOption([IntPtr]::Zero, 39, [IntPtr]::Zero, 0)  // 39 = INTERNET_OPTION_SETTINGS_CHANGED
+        $null = $type::InternetSetOption([IntPtr]::Zero, 37, [IntPtr]::Zero, 0)  // 37 = INTERNET_OPTION_REFRESH
       `,
     ]);
 
     ps.stdout.on("data", (data) => {
-      console.log(`[PowerShell]: ${data}`);
+      logger.info(`[PowerShell]: ${data}`, "clash_init.js");
     });
 
     ps.stderr.on("data", (data) => {
-      console.error(`[PowerShell error]: ${data}`);
+      logger.error(`[PowerShell error]: ${data}`, "clash_init.js");
     });
 
     ps.on("close", (code) => {
       if (code === 0) {
-        console.log("PowerShell脚本执行成功");
+        logger.info("PowerShell脚本执行成功", "clash_init.js");
         resolve(true);
       } else {
-        console.error(`PowerShell脚本执行失败，退出码: ${code}`);
+        logger.error(`PowerShell脚本执行失败，退出码: ${code}`, "clash_init.js");
         resolve(false);
       }
     });
@@ -148,11 +151,14 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
 }
 
 async function setSystemProxy() {
-  console.log("ready to set system proxy settings...");
+  logger.info("准备设置系统代理...", "clash_init.js");
   return new Promise((resolve) => {
     const ps = spawn("powershell.exe", [
       "-Command",
       `
+        # 设置输出编码为 UTF-8
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        
         # 设置代理注册表项
         Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyEnable -value 1
         Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -name ProxyServer -value "${PROXY_SERVER}"
@@ -164,42 +170,30 @@ async function setSystemProxy() {
 public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int lpdwBufferLength);
 "@
         $type = Add-Type -MemberDefinition $signature -Name wininet -Namespace pinvoke -PassThru
-        $null = $type::InternetSetOption([IntPtr]::Zero, 39, [IntPtr]::Zero, 0)  # 39 = INTERNET_OPTION_SETTINGS_CHANGED
-        $null = $type::InternetSetOption([IntPtr]::Zero, 37, [IntPtr]::Zero, 0)  # 37 = INTERNET_OPTION_REFRESH
+        $null = $type::InternetSetOption([IntPtr]::Zero, 39, [IntPtr]::Zero, 0)  // 39 = INTERNET_OPTION_SETTINGS_CHANGED
+        $null = $type::InternetSetOption([IntPtr]::Zero, 37, [IntPtr]::Zero, 0)  // 37 = INTERNET_OPTION_REFRESH
       `,
     ]);
 
     ps.stdout.on("data", (data) => {
-      console.log(`[PowerShell]: ${data}`);
+      logger.info(`[PowerShell]: ${data}`, "clash_init.js");
     });
 
     ps.stderr.on("data", (data) => {
-      console.error(`[PowerShell error]: ${data}`);
+      logger.error(`[PowerShell error]: ${data}`, "clash_init.js");
     });
 
     ps.on("close", (code) => {
       if (code === 0) {
-        console.log("PowerShell脚本执行成功");
+        logger.info("PowerShell脚本执行成功", "clash_init.js");
         resolve(true);
       } else {
-        console.error(`PowerShell脚本执行失败，退出码: ${code}`);
+        logger.error(`PowerShell脚本执行失败，退出码: ${code}`, "clash_init.js");
         resolve(false);
       }
     });
   });
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 (async () => {
   try {
@@ -211,14 +205,14 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       .filter((line) => line.length > 0);
 
     if (availableUrls.length === 0) {
-      console.error("没有找到有效的配置文件URL，请检查url.txt文件");
+      logger.error("没有找到有效的配置文件URL，请检查url.txt文件", "clash_init.js");
       return;
     }
 
     // 显示URL选项
-    console.log("请选择配置文件编号：");
+    logger.info("请选择配置文件编号：", "clash_init.js");
     availableUrls.forEach((url, index) => {
-      console.log(`${index + 1}. ${url}`);
+      logger.info(`${index + 1}. ${url}`, "clash_init.js");
     });
 
     const rl = readline.createInterface({
@@ -241,12 +235,12 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       selectedIndex < 0 ||
       selectedIndex >= availableUrls.length
     ) {
-      console.error("无效的选择");
+      logger.error("无效的选择", "clash_init.js");
       return;
     }
 
     const selectedConfigUrl = availableUrls[selectedIndex];
-    console.log("正在获取配置文件:", selectedConfigUrl);
+    logger.info(`正在获取配置文件: ${selectedConfigUrl}`, "clash_init.js");
 
     // 下载配置文件
     const downloadedConfigPath = await fetchConfig(
@@ -260,17 +254,17 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       .catch(() => false); // 检查核心可执行文件是否存在
 
     if (!coreExists) {
-      console.log("未找到 mihomo 核心，正在尝试下载...");
+      logger.info("未找到 mihomo 核心，正在尝试下载...", "clash_init.js");
       try {
         await downloadMihomoCore(clashExecutablePath);
       } catch (downloadError) {
-        console.error(
-          "下载 mihomo 核心失败，请手动下载并放置到指定位置:",
-          clashExecutablePath
+        logger.error(
+          `下载 mihomo 核心失败，请手动下载并放置到指定位置: ${clashExecutablePath}`,
+          "clash_init.js"
         );
       }
     } else {
-      console.log("已找到 mihomo 核心，跳过下载。");
+      logger.info("已找到 mihomo 核心，跳过下载。", "clash_init.js");
     }
 
     // 读取并解析配置文件
@@ -279,18 +273,19 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
     const proxyPort = clashConfig.port;
     const externalController = clashConfig["external-controller"];
 
-    console.log("代理端口:", proxyPort);
-    console.log("外部控制器:", externalController);
+    logger.info(`代理端口: ${proxyPort}`, "clash_init.js");
+    logger.info(`外部控制器: ${externalController}`, "clash_init.js");
 
-    console.log("启动 Clash 服务...");
+    logger.info("启动 Clash 服务...", "clash_init.js");
     // 在启动前再次检查核心文件是否存在
     const finalCoreExists = await readFile(clashExecutablePath)
       .then(() => true)
       .catch(() => false);
 
     if (!finalCoreExists) {
-      console.error(
-        "mihomo 核心不存在，无法启动服务。请确保核心文件已下载或放置在正确位置。"
+      logger.error(
+        "mihomo 核心不存在，无法启动服务。请确保核心文件已下载或放置在正确位置。",
+        "clash_init.js"
       );
       return; // 如果核心文件不存在，则退出程序
     }
@@ -299,24 +294,24 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       "-d",
       path.dirname(downloadedConfigPath),
     ]);
-    console.log("Clash进程ID:", clashProcess.pid);
+    logger.info(`Clash进程ID: ${clashProcess.pid}`, "clash_init.js");
 
     clashProcess.stdout.on("data", (data) => {
-      console.log(`[clash]: ${data.toString().trim()}`);
+      logger.info(`[clash]: ${data.toString().trim()}`, "clash_init.js");
     });
 
     clashProcess.stderr.on("data", (data) => {
-      console.error(`[clash error]: ${data.toString().trim()}`);
+      logger.error(`[clash error]: ${data.toString().trim()}`, "clash_init.js");
     });
 
     // 等待Clash启动
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    console.log("设置系统代理...");
+    logger.info("设置系统代理...", "clash_init.js");
     const proxySetSuccess = await setSystemProxy();
 
     if (proxySetSuccess) {
-      console.log("代理设置成功");
+      logger.info("代理设置成功", "clash_init.js");
 
       // 添加节点选择功能
       try {
@@ -325,7 +320,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
         );
 
         if (selectGroup) {
-          console.log("\n节点列表：");
+          logger.info("\n节点列表：", "clash_init.js");
           const proxiesInfo = [];
 
           // 测试并显示节点延迟
@@ -355,9 +350,9 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
                 latency: latency,
               });
 
-              console.log(`${proxyName} - ${latency}ms`);
+              logger.info(`${proxyName} - ${latency}ms`, "clash_init.js");
             } catch (error) {
-              console.log(`${proxyName} - 超时`);
+              logger.info(`${proxyName} - 超时`, "clash_init.js");
               proxiesInfo.push({
                 name: proxyName,
                 server: proxy.server,
@@ -388,7 +383,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
             selectedNodeIndex < proxiesInfo.length
           ) {
             const selectedProxy = proxiesInfo[selectedNodeIndex];
-            console.log(`正在切换到节点: ${selectedProxy.name}`);
+            logger.info(`正在切换到节点: ${selectedProxy.name}`, "clash_init.js");
 
             // 通过API切换节点
             await axios.put(
@@ -398,21 +393,20 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
               }
             );
 
-            console.log("节点切换成功");
+            logger.info("节点切换成功", "clash_init.js");
           }
         }
       } catch (error) {
-        console.error("节点选择出错:", error.message);
+        logger.error(`节点选择出错: ${error.message}`, "clash_init.js");
       }
     } else {
-      console.log("代理设置失败，请手动设置:");
-      console.log("打开Windows设置 -> 网络和Internet -> 代理");
-      console.log(
-        `地址: ${PROXY_SERVER.split(":")[0]}, 端口: ${
-          PROXY_SERVER.split(":")[1]
-        }`
+      logger.info("代理设置失败，请手动设置:", "clash_init.js");
+      logger.info("打开Windows设置 -> 网络和Internet -> 代理", "clash_init.js");
+      logger.info(
+        `地址: ${PROXY_SERVER.split(":")[0]}, 端口: ${PROXY_SERVER.split(":")[1]}`,
+        "clash_init.js"
       );
-      console.log(`例外列表: ${PROXY_OVERRIDE}`);
+      logger.info(`例外列表: ${PROXY_OVERRIDE}`, "clash_init.js");
     }
 
     // 注册进程退出处理
@@ -423,15 +417,15 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
     });
 
     process.on("SIGINT", async () => {
-      console.log("\n正在关闭服务...");
+      logger.info("\n正在关闭服务...", "clash_init.js");
       if (!clashProcess.killed) {
         clashProcess.kill("SIGINT");
       }
-      console.log("正在清除系统代理设置...");
+      logger.info("正在清除系统代理设置...", "clash_init.js");
       await clearSystemProxy();
       process.exit();
     });
   } catch (error) {
-    console.error("程序运行出错:", error.message);
+    logger.error(`程序运行出错: ${error.message}`, "clash_init.js");
   }
 })();
