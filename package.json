@@ -10,7 +10,6 @@
   "author": "qmr",
   "license": "ISC",
   "description": "",
-  "type": "module",
   "devDependencies": {
     "electron": "^36.2.1",
     "pkg": "^5.8.1"

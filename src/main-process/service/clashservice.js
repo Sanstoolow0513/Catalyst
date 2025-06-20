@@ -1,15 +1,14 @@
-import { logger } from "../logger.js";
-import path from "path";
-import axios from "axios";
-import process from "process";
-import yaml from "js-yaml";
-import AdmZip from "adm-zip";
-import zlib from "zlib";
-import fs from "fs";
-import { fileURLToPath } from "url";
-import { readFile, writeFile, mkdir, access } from "fs/promises";
-import { spawn } from "child_process";
-import readline from "readline";
+const path = require("path");
+const axios = require("axios");
+const process = require("process");
+const yaml = require("js-yaml");
+const AdmZip = require("adm-zip");
+const zlib = require("zlib");
+const fs = require("fs");
+// const { fileURLToPath } = require("url"); // Not needed in CJS
+const { readFile, writeFile, mkdir, access } = require("fs/promises");
+const { spawn } = require("child_process");
+const readline = require("readline");
 
 /**
  * Clash 管理服务，负责核心下载、配置管理、进程控制和系统代理设置
@@ -36,7 +35,7 @@ class ClashMS {
     this.clashConfig = null;
     this.externalController = null;
 
-    logger.info("ClashMS 初始化", "service/clashservice.js");
+    console.log("[ClashMS] 初始化", "service/clashservice.js");
   }
 
   /**
@@ -54,12 +53,12 @@ class ClashMS {
       input.pipe(gunzip).pipe(output);
 
       output.on("finish", () => {
-        logger.info(`文件已成功解压到 ${outputFilePath}`, "service/clashservice.js");
+        console.log(`[ClashMS] 文件已成功解压到 ${outputFilePath}`, "service/clashservice.js");
         resolve();
       });
 
       output.on("error", (error) => {
-        logger.error(`解压文件时发生错误: ${error.message}`, "service/clashservice.js");
+        console.error(`[ClashMS] 解压文件时发生错误: ${error.message}`, "service/clashservice.js");
         reject(error);
       });
     });
@@ -69,10 +68,12 @@ class ClashMS {
    * 初始化服务：检查核心，下载配置
    * @returns {Promise<void>}
    */
-  async initialize() {
-    logger.info(`URL 文件路径: ${this.urlFilePath}`, "service/clashservice.js");
-    logger.info(`配置基础目录: ${this.configBaseDir}`, "service/clashservice.js");
-    logger.info(`Clash 核心路径: ${this.clashCorePath}`, "service/clashservice.js");
+   async initialize() {
+     console.log(`[ClashMS.initialize] 初始化开始`, "service/clashservice.js");
+     console.log(`[ClashMS.initialize] 调用堆栈:\n${new Error().stack}`, "service/clashservice.js");
+     console.log(`[ClashMS.initialize] URL 文件路径: ${this.urlFilePath}`, "service/clashservice.js");
+     console.log(`[ClashMS.initialize] 配置基础目录: ${this.configBaseDir}`, "service/clashservice.js");
+     console.log(`[ClashMS.initialize] Clash 核心路径: ${this.clashCorePath}`, "service/clashservice.js");
 
     await this.checkAndDownloadCore();
     await this.downloadConfigFromUrlFile();
@@ -85,17 +86,17 @@ class ClashMS {
    * 检查并下载 Mihomo 核心
    */
   async checkAndDownloadCore() {
-    logger.info("检查 Mihomo 核心是否存在...", "service/clashservice.js");
+    console.log("[ClashMS] 检查 Mihomo 核心是否存在...", "service/clashservice.js");
     try {
       await access(this.clashCorePath);
-      logger.info("已找到 Mihomo 核心，跳过下载。", "service/clashservice.js");
+      console.log("[ClashMS] 已找到 Mihomo 核心，跳过下载。", "service/clashservice.js");
     } catch (error) {
-      logger.info("未找到 Mihomo 核心，正在尝试下载...", "service/clashservice.js");
+      console.log("[ClashMS] 未找到 Mihomo 核心，正在尝试下载...", "service/clashservice.js");
       try {
         await this.downloadMihomoCore(this.clashCorePath);
       } catch (downloadError) {
-        logger.error(
-          `下载 Mihomo 核心失败: ${downloadError.message}`,
+        console.error(
+          `[ClashMS] 下载 Mihomo 核心失败: ${downloadError.message}`,
           "service/clashservice.js"
         );
         throw new Error("Mihomo 核心下载失败");
@@ -113,19 +114,19 @@ class ClashMS {
     const zipFilePath = path.join(path.dirname(targetPath), "mihomo.zip");
 
     let downloadUrl = `https://github.com/MetaCubeX/mihomo/releases/download/${version}/mihomo-windows-amd64-${version}.zip`;
-    logger.info(`正在从 ${downloadUrl} 下载 mihomo 核心...`, "service/clashservice.js");
+    console.log(`[ClashMS] 正在从 ${downloadUrl} 下载 mihomo 核心...`, "service/clashservice.js");
     try {
       const response = await axios.get(downloadUrl, {
         responseType: "arraybuffer",
       });
       await writeFile(zipFilePath, Buffer.from(response.data));
-      logger.info(`mihomo 核心已成功下载到 ${zipFilePath}`, "service/clashservice.js");
-      logger.info("正在解压 mihomo 核心...", "service/clashservice.js");
+      console.log(`[ClashMS] mihomo 核心已成功下载到 ${zipFilePath}`, "service/clashservice.js");
+      console.log("[ClashMS] 正在解压 mihomo 核心...", "service/clashservice.js");
       const zip = new AdmZip(zipFilePath);
       zip.extractAllTo(path.dirname(targetPath), true);
-      logger.info(`mihomo 核心已成功解压到 ${targetPath}`, "service/clashservice.js");
+      console.log(`[ClashMS] mihomo 核心已成功解压到 ${targetPath}`, "service/clashservice.js");
     } catch (error) {
-      logger.error(`下载 mihomo 核心时发生错误: ${error.message}`, "service/clashservice.js");
+      console.error(`[ClashMS] 下载 mihomo 核心时发生错误: ${error.message}`, "service/clashservice.js");
       throw error;
     }
   }
@@ -143,17 +144,17 @@ class ClashMS {
         .filter((line) => line.length > 0);
 
       if (availableUrls.length === 0) {
-        logger.error("未找到有效的配置文件URL，请检查url.txt文件", "service/clashservice.js");
+        console.error("[ClashMS] 未找到有效的配置文件URL，请检查url.txt文件", "service/clashservice.js");
         throw new Error("未找到有效的配置文件URL");
       }
 
       const selectedConfigUrl = availableUrls[0];
-      logger.info(`正在获取配置文件: ${selectedConfigUrl}`, "service/clashservice.js");
+      console.log(`[ClashMS] 正在获取配置文件: ${selectedConfigUrl}`, "service/clashservice.js");
 
       const encodedUrlHash = Buffer.from(selectedConfigUrl)
         .toString("base64")
         .replace(/[\\/:*?"<>|]/g, "_");
-      const configDirectory = path.join(this.configBaseDir, encoded极UrlHash);
+      const configDirectory = path.join(this.configBaseDir, encodedUrlHash);
       const downloadedConfigPath = path.join(configDirectory, "config.yaml");
 
       await mkdir(configDirectory, { recursive: true });
@@ -161,10 +162,10 @@ class ClashMS {
       await writeFile(downloadedConfigPath, response.data);
 
       this.currentConfigPath = downloadedConfigPath;
-      logger.info(`配置文件已成功保存到 ${this.currentConfigPath}`, "service/clashservice.js");
+      console.log(`[ClashMS] 配置文件已成功保存到 ${this.currentConfigPath}`, "service/clashservice.js");
       return this.currentConfigPath;
     } catch (error) {
-      logger.error(`获取配置文件时发生错误: ${error.message}`, "service/clashservice.js");
+      console.error(`[ClashMS] 获取配置文件时发生错误: ${error.message}`, "service/clashservice.js");
       throw error;
     }
   }
@@ -179,11 +180,11 @@ class ClashMS {
       const configContent = await readFile(configPath, "utf-8");
       this.clashConfig = yaml.load(configContent);
       this.externalController = this.clashConfig["external-controller"];
-      logger.info(`配置文件加载成功: ${configPath}`, "service/clashservice.js");
-      logger.info(`外部控制器: ${this.externalController}`, "service/clashservice.js");
+      console.log(`[ClashMS] 配置文件加载成功: ${configPath}`, "service/clashservice.js");
+      console.log(`[ClashMS] 外部控制器: ${this.externalController}`, "service/clashservice.js");
       return this.clashConfig;
     } catch (error) {
-      logger.error(`加载或解析配置文件时发生错误: ${error.message}`, "service/clashservice.js");
+      console.error(`[ClashMS] 加载或解析配置文件时发生错误: ${error.message}`, "service/clashservice.js");
       throw error;
     }
   }
@@ -194,50 +195,50 @@ class ClashMS {
    */
   async startMihomo() {
     if (!this.currentConfigPath) {
-      logger.error("未指定配置文件路径，无法启动 Mihomo", "service/clashservice.js");
+      console.error("[ClashMS] 未指定配置文件路径，无法启动 Mihomo", "service/clashservice.js");
       throw new Error("未指定配置文件路径");
     }
     if (!this.clashCorePath) {
-       logger.error("未指定 Mihomo 核心路径，无法启动 Mihomo", "service/clashservice.js");
+       console.error("[ClashMS] 未指定 Mihomo 核心路径，无法启动 Mihomo", "service/clashservice.js");
        throw new Error("未指定 Mihomo 核心路径");
     }
     if (this.clashProcess) {
-        logger.info("Mihomo 进程已在运行", "service/clashservice.js");
+        console.log("[ClashMS] Mihomo 进程已在运行", "service/clashservice.js");
         return;
     }
 
-    logger.info("启动 Mihomo 服务...", "service/clashservice.js");
+    console.log("[ClashMS] 启动 Mihomo 服务...", "service/clashservice.js");
     try {
       this.clashProcess = spawn(this.clashCorePath, [
         "-d",
         path.dirname(this.currentConfigPath),
       ]);
-      logger.info(`Mihomo 进程ID: ${this.clashProcess.pid}`, "service/clashservice.js");
+      console.log(`[ClashMS] Mihomo 进程ID: ${this.clashProcess.pid}`, "service/clashservice.js");
 
       this.clashProcess.stdout.on("data", (data) => {
-        logger.info(`[mihomo]: ${data.toString().trim()}`, "service/clashservice.js");
+        console.log(`[mihomo]: ${data.toString().trim()}`, "service/clashservice.js");
       });
 
       this.clashProcess.stderr.on("data", (data) => {
-        logger.error(`[mihomo error]: ${data.toString().trim()}`, "service/clashservice.js");
+        console.error(`[mihomo error]: ${data.toString().trim()}`, "service/clashservice.js");
       });
 
       this.clashProcess.on("close", (code) => {
-        logger.info(`Mihomo 进程退出，退出码: ${code}`, "service/clashservice.js");
+        console.log(`[ClashMS] Mihomo 进程退出，退出码: ${code}`, "service/clashservice.js");
         this.clashProcess = null; // Clear process reference on close
       });
 
       this.clashProcess.on("error", (error) => {
-          logger.error(`启动 Mihomo 进程失败: ${error.message}`, "service/clashservice.js");
+          console.error(`[ClashMS] 启动 Mihomo 进程失败: ${error.message}`, "service/clashservice.js");
           this.clashProcess = null;
       });
 
       // 等待Clash启动
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      logger.info("Mihomo 服务已启动", "service/clashservice.js");
+      console.log("[ClashMS] Mihomo 服务已启动", "service/clashservice.js");
 
     } catch (error) {
-      logger.error(`启动 Mihomo 进程时发生错误: ${error.message}`, "service/clashservice.js");
+      console.error(`[ClashMS] 启动 Mihomo 进程时发生错误: ${error.message}`, "service/clashservice.js");
       throw error;
     }
   }
@@ -248,19 +249,19 @@ class ClashMS {
    */
   async stopMihomo() {
       if (!this.clashProcess) {
-          logger.info("Mihomo 进程未运行", "service/clashservice.js");
+          console.log("[ClashMS] Mihomo 进程未运行", "service/clashservice.js");
           return;
       }
 
-      logger.info("停止 Mihomo 服务...", "service/clashservice.js");
+      console.log("[ClashMS] 停止 Mihomo 服务...", "service/clashservice.js");
       return new Promise((resolve, reject) => {
           this.clashProcess.on("close", (code) => {
-              logger.info(`Mihomo 进程已停止，退出码: ${code}`, "service/clashservice.js");
+              console.log(`[ClashMS] Mihomo 进程已停止，退出码: ${code}`, "service/clashservice.js");
               this.clashProcess = null;
               resolve();
           });
           this.clashProcess.on("error", (error) => {
-              logger.error(`停止 Mihomo 进程失败: ${error.message}`, "service/clashservice.js");
+              console.error(`[ClashMS] 停止 Mihomo 进程失败: ${error.message}`, "service/clashservice.js");
               this.clashProcess = null;
               reject(error);
           });
@@ -273,7 +274,7 @@ class ClashMS {
    * @returns {Promise<boolean>}
    */
   async clearSystemProxy() {
-    logger.info("准备清除系统代理设置...", "service/clashservice.js");
+    console.log("[ClashMS] 准备清除系统代理设置...", "service/clashservice.js");
     return new Promise((resolve) => {
       const ps = spawn("powershell.exe", [
         "-Command",
@@ -296,24 +297,24 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       ]);
 
       ps.stdout.on("data", (data) => {
-        logger.info(`[PowerShell]: ${data.toString().trim()}`, "service/clashservice.js");
+        console.log(`[PowerShell]: ${data.toString().trim()}`, "service/clashservice.js");
       });
 
       ps.stderr.on("data", (data) => {
-        logger.error(`[PowerShell error]: ${data.toString().trim()}`, "service/clashservice.js");
+        console.error(`[PowerShell error]: ${data.toString().trim()}`, "service/clashservice.js");
       });
 
       ps.on("close", (code) => {
         if (code === 0) {
-          logger.info("PowerShell脚本执行成功", "service/clashservice.js");
+          console.log("[ClashMS] PowerShell脚本执行成功", "service/clashservice.js");
           resolve(true);
         } else {
-          logger.error(`PowerShell脚本执行失败，退出码: ${code}`, "service/clashservice.js");
+          console.error(`[ClashMS] PowerShell脚本执行失败，退出码: ${code}`, "service/clashservice.js");
           resolve(false);
         }
       });
        ps.on("error", (error) => {
-           logger.error(`执行 PowerShell 脚本失败: ${error.message}`, "service/clashservice.js");
+           console.error(`[ClashMS] 执行 PowerShell 脚本失败: ${error.message}`, "service/clashservice.js");
            resolve(false);
        });
     });
@@ -324,7 +325,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
    * @returns {Promise<boolean>}
    */
   async setSystemProxy() {
-    logger.info("准备设置系统代理...", "service/clashservice.js");
+    console.log("[ClashMS] 准备设置系统代理...", "service/clashservice.js");
     return new Promise((resolve) => {
       const ps = spawn("powershell.exe", [
         "-Command",
@@ -349,24 +350,24 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       ]);
 
       ps.stdout.on("data", (data) => {
-        logger.info(`[PowerShell]: ${data.toString().trim()}`, "service/clashservice.js");
+        console.log(`[PowerShell]: ${data.toString().trim()}`, "service/clashservice.js");
       });
 
       ps.stderr.on("data", (data) => {
-        logger.error(`[PowerShell error]: ${data.toString().trim()}`, "service/clashservice.js");
+        console.error(`[PowerShell error]: ${data.toString().trim()}`, "service/clashservice.js");
       });
 
       ps.on("close", (code) => {
         if (code === 0) {
-          logger.info("PowerShell脚本执行成功", "service/clashservice.js");
+          console.log("[ClashMS] PowerShell脚本执行成功", "service/clashservice.js");
           resolve(true);
         } else {
-          logger.error(`PowerShell脚本执行失败，退出码: ${code}`, "service/clashservice.js");
+          console.error(`[ClashMS] PowerShell脚本执行失败，退出码: ${code}`, "service/clashservice.js");
           resolve(false);
         }
       });
        ps.on("error", (error) => {
-           logger.error(`执行 PowerShell 脚本失败: ${error.message}`, "service/clashservice.js");
+           console.error(`[ClashMS] 执行 PowerShell 脚本失败: ${error.message}`, "service/clashservice.js");
            resolve(false);
        });
     });
@@ -378,33 +379,33 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
    */
   async getProxyList() {
       if (!this.clashConfig) {
-          logger.error("配置文件未加载，无法获取节点列表", "service/clashservice.js");
+          console.error("[ClashMS] 配置文件未加载，无法获取节点列表", "service/clashservice.js");
           return [];
       }
 
       const selectGroup = this.clashConfig["proxy-groups"]?.find(
-          (group) => group.name === "🔰 选择节点"
+        group => group.name === "🔰 选择节点"
       );
 
       if (!selectGroup) {
-          logger.info("未找到 '🔰 选择节点' 代理组", "service/clashservice.js");
+          console.log("[ClashMS] 未找到 '🔰 选择节点' 代理组", "service/clashservice.js");
           return [];
       }
 
       const proxiesInfo = [];
       for (const proxyName of selectGroup.proxies) {
-          if (proxyName === "DIRECT") continue;
+        if (proxyName === "DIRECT") continue;
 
-          const proxy = this.clashConfig.proxies?.find(
-              (p) => p.name === proxyName
-          );
-          if (!proxy) continue;
+        const proxy = this.clashConfig.proxies?.find(
+            (p) => p.name === proxyName
+        );
+        if (!proxy) continue;
 
-          proxiesInfo.push({
-              name: proxyName,
-              server: proxy.server,
-              // latency will be added by testProxyLatency
-          });
+        proxiesInfo.push({
+            name: proxyName,
+            server: proxy.server,
+            // latency will be added by testProxyLatency
+        });
       }
       return proxiesInfo;
   }
@@ -416,11 +417,11 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
    */
   async testProxyLatency(proxyName) {
       if (!this.externalController) {
-          logger.error("外部控制器地址未设置，无法测试节点延迟", "service/clashservice.js");
+          console.error("[ClashMS] 外部控制器地址未设置，无法测试节点延迟", "service/clashservice.js");
           return -1;
       }
       if (!this.clashConfig?.port) {
-           logger.error("Clash 端口未设置，无法测试节点延迟", "service/clashservice.js");
+           console.error("[ClashMS] Clash 端口未设置，无法测试节点延迟", "service/clashservice.js");
            return -1;
       }
 
@@ -429,10 +430,10 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
           // Use the Clash API to test latency
           const response = await axios.get(`http://${this.externalController}/proxies/${encodeURIComponent(proxyName)}/delay?url=http://www.gstatic.com/generate_204&timeout=5000`);
           const latency = response.data.delay;
-          logger.info(`节点 ${proxyName} 延迟: ${latency}ms`, "service/clashservice.js");
+          console.log(`[ClashMS] 节点 ${proxyName} 延迟: ${latency}ms`, "service/clashservice.js");
           return latency;
       } catch (error) {
-          logger.error(`测试节点 ${proxyName} 延迟时出错: ${error.message}`, "service/clashservice.js");
+          console.error(`[ClashMS] 测试节点 ${proxyName} 延迟时出错: ${error.message}`, "service/clashservice.js");
           return -1; // Indicate timeout or error
       }
   }
@@ -444,11 +445,11 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
    */
   async switchProxy(proxyName) {
       if (!this.externalController) {
-          logger.error("外部控制器地址未设置，无法切换节点", "service/clashservice.js");
+          console.error("[ClashMS] 外部控制器地址未设置，无法切换节点", "service/clashservice.js");
           throw new Error("外部控制器地址未设置");
       }
 
-      logger.info(`正在切换到节点: ${proxyName}`, "service/clashservice.js");
+      console.log(`[ClashMS] 正在切换到节点: ${proxyName}`, "service/clashservice.js");
       try {
           await axios.put(
               `http://${this.externalController}/proxies/🔰 选择节点`,
@@ -456,9 +457,9 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
                   name: proxyName,
               }
           );
-          logger.info("节点切换成功", "service/clashservice.js");
+          console.log("[ClashMS] 节点切换成功", "service/clashservice.js");
       } catch (error) {
-          logger.error(`切换节点 ${proxyName} 时出错: ${error.message}`, "service/clashservice.js");
+          console.error(`[ClashMS] 切换节点 ${proxyName} 时出错: ${error.message}`, "service/clashservice.js");
           throw error;
       }
   }
@@ -469,7 +470,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
    */
   async getCurrentProxy() {
       if (!this.externalController) {
-          logger.error("外部控制器地址未设置，无法获取当前节点", "service/clashservice.js");
+          console.error("[ClashMS] 外部控制器地址未设置，无法获取当前节点", "service/clashservice.js");
           return null;
       }
 
@@ -477,7 +478,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
           const response = await axios.get(`http://${this.externalController}/proxies/🔰 选择节点`);
           return response.data.now;
       } catch (error) {
-          logger.error(`获取当前节点时出错: ${error.message}`, "service/clashservice.js");
+          console.error(`[ClashMS] 获取当前节点时出错: ${error.message}`, "service/clashservice.js");
           return null;
       }
   }
@@ -488,7 +489,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
    */
   async interactiveProxySelection() {
     if (!this.externalController || !this.clashConfig?.port) {
-      logger.error("未初始化完成，无法进行节点选择", "service/clashservice.js");
+      console.error("[ClashMS] 未初始化完成，无法进行节点选择", "service/clashservice.js");
       return;
     }
 
@@ -498,11 +499,11 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
       );
 
       if (!selectGroup) {
-        logger.info("未找到 '🔰 选择节点' 代理组", "service/clashservice.js");
+        console.log("[ClashMS] 未找到 '🔰 选择节点' 代理组", "service/clashservice.js");
         return;
       }
 
-      logger.info("\n节点列表：", "service/clashservice.js");
+      console.log("\n节点列表：", "service/clashservice.js");
       const proxiesInfo = [];
 
       for (const proxyName of selectGroup.proxies) {
@@ -510,7 +511,7 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
 
         const latency = await this.testProxyLatency(proxyName);
         const status = latency >= 0 ? `${latency}ms` : "超时";
-        logger.info(`${proxyName} - ${status}`, "service/clashservice.js");
+        console.log(`${proxyName} - ${status}`, "service/clashservice.js");
         proxiesInfo.push({ name: proxyName, latency });
       }
 
@@ -530,9 +531,9 @@ public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntP
         await this.switchProxy(proxiesInfo[selectedIndex].name);
       }
     } catch (error) {
-      logger.error(`节点选择出错: ${error.message}`, "service/clashservice.js");
+      console.error(`[ClashMS] 节点选择出错: ${error.message}`, "service/clashservice.js");
     }
   }
 }
 
-export default ClashMS;
+module.exports = ClashMS;

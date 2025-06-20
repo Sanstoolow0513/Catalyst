@@ -1,19 +1,11 @@
 /* 模块导入 */
-import { app, BrowserWindow, ipcMain } from "electron";
-import path from "path";
-import { fileURLToPath } from "url";
+const { app, BrowserWindow, ipcMain } = require("electron");
+const path = require("path");
+// const { fileURLToPath } = require("url"); // Not needed in CJS
 // import { spawn } from "child_process"; // spawn is now used within ClashMS
-import ClashMS from "./service/clashservice.js";
-import { logger } from "./logger.js";
+const ClashMS = require("./service/clashservice.js");
 
-// 设置进程编码为UTF-8解决中文乱码
-if (process.platform === "win32") {
-  process.env.CHCP = "65001";
-}
 
-// parameters:
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const PROXY_SERVER = "127.0.0.1:7890";
 const PROXY_OVERRIDE =
   "localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;192.168.*";
@@ -47,47 +39,42 @@ function createWindow() {
     },
   });
 
-  /* 加载渲染器进程HTML文件 */
   mainWindow.loadFile(path.join(__dirname, "../renderer-process/index.html"));
 
-  /* 打开开发者工具 */
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 
-  /* 窗口关闭事件处理 */
   mainWindow.on("closed", () => {
     mainWindow = null; // 清空窗口引用
   });
 }
 
 app.whenReady().then(async () => { // Added async
-  logger.info("应用程序启动", "main.js");
   createWindow();
 
-  try {
-    // Initialize Clash service (downloads core and config)
-    await clashService.initialize();
-    logger.info("Clash 服务初始化完成", "main.js");
-
-    // Start Mihomo process
-    await clashService.startMihomo();
-    logger.info("Mihomo 进程已启动", "main.js");
-
-    // Set system proxy
-    const proxySetSuccess = await clashService.setSystemProxy();
-    if (proxySetSuccess) {
-      logger.info("系统代理设置成功", "main.js");
-    } else {
-      logger.error("系统代理设置失败", "main.js");
+  ipcMain.on('start-clash', async () => {
+    try {
+      await clashService.initialize();
+      await clashService.startMihomo();
+      const proxySetSuccess = await clashService.setSystemProxy();
+      if (!proxySetSuccess) {
+        mainWindow.webContents.send("clash-error", "系统代理设置失败");
+      } else {
+        mainWindow.webContents.send("clash-started");
+      }
+    } catch (error) {
+      mainWindow.webContents.send("clash-error", `启动Clash失败: ${error.message}`);
     }
+  });
 
-    // TODO: Add logic to interact with Clash service (e.g., get proxy list, switch proxy)
-    // This might involve IPC communication with the renderer process.
-
-  } catch (error) {
-    logger.error(`启动 Clash 服务时发生错误: ${error.message}`, "main.js");
-    // Depending on the error, you might want to show an error message to the user
-  }
-
+  ipcMain.on('stop-clash', async () => {
+    try {
+      await clashService.stopMihomo();
+      await clashService.clearSystemProxy();
+      mainWindow.webContents.send("clash-stopped");
+    } catch (error) {
+      mainWindow.webContents.send("clash-error", `停止Clash失败: ${error.message}`);
+    }
+  });
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -97,31 +84,29 @@ app.whenReady().then(async () => { // Added async
 });
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
 });
 
 app.on("before-quit", async (event) => { // Added event parameter
-  logger.info("应用程序即将退出，正在停止Clash服务并清除代理...", "main.js");
   // Prevent default quit behavior until cleanup is done
   event.preventDefault();
 
   try {
     // Stop Mihomo process
     await clashService.stopMihomo();
-    logger.info("Mihomo 进程已停止", "main.js");
 
     // Clear system proxy
     await clashService.clearSystemProxy();
-    logger.info("系统代理已清除", "main.js");
 
     // Now quit the application
     app.quit();
 
   } catch (error) {
-    logger.error(`退出时停止Clash服务或清除代理出错: ${error.message}`, "main.js");
     // Even if cleanup fails, attempt to quit
     app.quit();
   }
 });
+
+
+ipcMain.on("hello-from-renderer",(event, arg)=>{
+  event.reply("hello-from-main","渲染进程你好");
+})

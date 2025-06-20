@@ -6,6 +6,19 @@
     <link rel="stylesheet" href="./styles/style.css" />
   </head>
   <body>
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <div class="status-indicator">
+        <span id="clash-status-text">Clash: 未启动</span>
+        <div id="clash-status-spinner" class="spinner" style="display: none;"></div>
+      </div>
+      <div class="status-controls">
+        <button id="global-start-btn" class="btn btn-primary">启动Clash</button>
+        <button id="global-stop-btn" class="btn btn-warning" disabled>停止Clash</button>
+        <button id="test-btn" class="btn">test-btn</button>
+      </div>
+    </div>
+
     <div class="container">
       <header>
         <h1>多功能系统工具</h1>
@@ -75,12 +88,6 @@
               <!-- Clash状态信息将通过JavaScript动态填充 -->
             </div>
             <div class="btn-group">
-              <button id="start-clash-btn" class="btn btn-primary">
-                启动Clash
-              </button>
-              <button id="stop-clash-btn" class="btn btn-warning">
-                停止Clash
-              </button>
               <button id="refresh-nodes-btn" class="btn btn-secondary">
                 刷新节点
               </button>
@@ -145,7 +152,6 @@
         </section>
       </main>
     </div>
-    <script src="renderer.js"></script>
 
     <script>
       // 标签页切换功能
@@ -166,5 +172,6 @@
         });
       });
     </script>
+    <script src="renderer.js"></script>
   </body>
 </html>
