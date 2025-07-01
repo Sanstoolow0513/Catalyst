@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Catalyst</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles/global.css" />
+    <!-- tsParticles library -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js"
+      integrity="sha256-nLNUzbT3B1/CPQo1IeQEdoqC4ymFw3FzV3TpOfBe2s4="
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <!-- Custom Title Bar -->
+    <div class="title-bar">
+        <div class="title-text">Catalyst</div>
+        <div class="window-controls">
+            <button id="minimize-btn" class="window-control-btn" title="最小化">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M20 14H4v-4h16"></path></svg>
+            </button>
+            <button id="maximize-btn" class="window-control-btn" title="最大化/还原">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v16H4z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+            </button>
+            <button id="close-btn" class="window-control-btn close-btn" title="关闭">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M18.3 5.71a.996.996 0 0 0-1.41 0L12 10.59L7.11 5.7A.996.996 0 1 0 5.7 7.11L10.59 12L5.7 16.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.89a.996.996 0 1 0 1.41-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"></path></svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Particles.js container -->
+    <div id="tsparticles"></div>
+
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <div class="status-indicator">
+        <span id="clash-status-text">Clash: 未启动</span>
+        <div id="clash-status-spinner" class="spinner" style="display: none;"></div>
+      </div>
+      <div class="status-controls">
+        <button id="global-start-btn" class="btn btn-primary">启动Clash</button>
+        <button id="global-stop-btn" class="btn btn-warning" disabled>停止Clash</button>
+        <button id="test-btn" class="btn">test-btn</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <header>
+        <h1>Catalyst</h1>
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="dashboard">
+            仪表盘
+          </button>
+          <button class="tab-btn" data-tab="proxy">代理</button>
+          <button class="tab-btn" data-tab="toolkit">工具箱</button>
+          <button class="tab-btn" data-tab="browser-view">浏览器</button>
+        </nav>
+      </header>
+
+      <main>
+        <!-- 仪表盘 (合并了系统信息和资源监控) -->
+        <section id="dashboard" class="tab-content active">
+          <div class="card">
+            <h2>系统信息</h2>
+            <div id="system-info-container" class="info-grid">
+              <!-- 系统信息将通过JavaScript动态填充 -->
+              <p class="placeholder-text">正在加载系统信息...</p>
+            </div>
+          </div>
+          <div class="card">
+            <h2>资源监控</h2>
+            <div class="monitor-grid">
+              <div class="monitor-card">
+                <h3>CPU使用率</h3>
+                <div class="progress-bar-bg">
+                  <div id="cpu-progress" class="progress-bar" style="width: 0%">
+                    0%
+                  </div>
+                </div>
+              </div>
+              <div class="monitor-card">
+                <h3>内存使用率</h3>
+                <div class="progress-bar-bg">
+                  <div
+                    id="mem-progress"
+                    class="progress-bar"
+                    style="width: 0%"
+                  >
+                    0%
+                  </div>
+                </div>
+              </div>
+              <div class="monitor-card">
+                <h3>GPU使用率</h3>
+                <div class="progress-bar-bg">
+                  <div id="gpu-progress" class="progress-bar" style="width: 0%">
+                    0%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Clash代理面板 -->
+        <section id="proxy" class="tab-content">
+          <div class="card">
+            <h2>Clash代理服务</h2>
+            <div id="clash-status" class="info-grid">
+              <!-- Clash状态信息将通过JavaScript动态填充 -->
+            </div>
+            <div class="btn-group">
+              <button id="refresh-nodes-btn" class="btn btn-secondary" title="从服务器重新获取节点列表">
+                刷新节点
+              </button>
+            </div>
+
+            <div id="node-list-container" style="margin-top: 20px">
+              <h3>节点列表</h3>
+              <ul id="node-list" class="node-list">
+                <!-- 节点将通过JavaScript动态添加 -->
+                <p class="placeholder-text">请先启动Clash并刷新节点...</p>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 工具箱 (原IDE安装) -->
+        <section id="toolkit" class="tab-content">
+          <div class="card">
+            <h2>开发工具与环境</h2>
+             <p class="placeholder-text">一键安装和管理您的开发环境。</p>
+            <div id="toolkit-container" class="installer-grid">
+              <!-- Software installers will be dynamically populated here -->
+            </div>
+          </div>
+        </section>
+        
+        <!-- Browser View -->
+        <section id="browser-view" class="tab-content">
+            <div class="card">
+                <h2>内嵌浏览器</h2>
+                <div class="browser-controls">
+                    <input type="text" id="browser-url" placeholder="输入网址，例如 https://www.bing.com" />
+                    <button id="browser-go-btn" class="btn btn-primary">前往</button>
+                </div>
+                <div class="webview-container">
+                    <webview id="browser-webview" style="width:100%; height:600px;"></webview>
+                    <div id="webview-loading" class="loading-overlay" style="display: none;">
+                        <span>正在加载...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // 标签页切换功能
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".tab-btn").forEach((button) => {
+          button.addEventListener("click", () => {
+            // 移除所有活动标签和内容
+            document
+              .querySelectorAll(".tab-btn")
+              .forEach((btn) => btn.classList.remove("active"));
+            document
+              .querySelectorAll(".tab-content")
+              .forEach((content) => content.classList.remove("active"));
+
+            // 激活当前标签和内容
+            button.classList.add("active");
+            const tabId = button.dataset.tab;
+            document.getElementById(tabId).classList.add("active");
+          });
+        });
+      });
+    </script>
+    <script src="./index.js"></script>
+  </body>
+</html> 

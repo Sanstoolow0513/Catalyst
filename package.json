@@ -1,26 +1,56 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "ele",
+  "name": "catalyst",
   "version": "1.0.0",
-  "main": "./src/main-process/main.js",
+  "main": "./src/main/index.js",
   "scripts": {
-    "dev": "electron .",
+    "dev": "node ./tools/dev.js",
+    "start": "electron .",
+    "build": "electron-builder",
+    "lint": "eslint .",
+    "clean": "rimraf dist/*",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "qmr",
   "license": "ISC",
-  "description": "",
+  "description": "Catalyst - 一款为开发者和高级用户设计的桌面效率催化剂",
   "devDependencies": {
     "electron": "^36.2.1",
-    "pkg": "^5.8.1"
+    "electron-builder": "^24.13.1",
+    "eslint": "^8.57.0",
+    "rimraf": "^5.0.5",
+    "yaml": "^2.8.0"
   },
   "dependencies": {
     "adm-zip": "^0.5.16",
     "axios": "^1.9.0",
     "crypto-js": "^4.2.0",
     "js-yaml": "^4.1.0",
-    "puppeteer": "^24.9.0",
-    "winreg": "^1.2.5",
-    "yaml": "^2.8.0"
+    "systeminformation": "^5.27.7",
+    "winreg": "^1.2.5"
+  },
+  "build": {
+    "appId": "com.qmr.catalyst",
+    "productName": "Catalyst",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "resources"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
