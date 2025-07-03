@@ -3,5 +3,8 @@
 *.db
 *.metadb
 *.zip
+*.txt
 /node_modules
-/src/main-process/clash/url.txt
+/dist
+/resources
+
