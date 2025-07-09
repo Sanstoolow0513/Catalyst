@@ -20,6 +20,30 @@ const clashServiceConfig = {
   PROXY_OVERRIDE,
 };
 
+
+const ConfigService = require("./services/config-manager");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 实例化Clash服务
 let clashService; // 声明变量
 let mainWindow;
