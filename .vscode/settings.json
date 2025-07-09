@@ -1,8 +1,7 @@
 {
-    "yaml.schemas": {
-        "c:\\Users\\Sanstoolow\\.vscode-insiders\\extensions\\continue.continue-1.1.52-win32-x64\\config-yaml-schema.json": [
-            ".continue/**/*.yaml",
-            "file:///c%3A/Users/Sanstoolow/.continue/config.yaml"
-        ]
-    }
+  "yaml.schemas": {
+    "c:/Users/Sanstoolow/.vscode/extensions/continue.continue-1.0.15-win32-x64/config-yaml-schema.json": [
+      ".continue/**/*.yaml"
+    ]
+  }
 }
