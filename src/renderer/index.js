@@ -13,7 +13,6 @@ console.log('[renderer] 脚本开始执行');
 document.addEventListener('DOMContentLoaded', () => {
   console.log('[renderer] DOMContentLoaded 事件触发');
 
-  // --- 窗口控制 ---
   document.getElementById('minimize-btn').addEventListener('click', () => {
     ipcRenderer.send('minimize-window');
   });
@@ -23,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('close-btn').addEventListener('click', () => {
     ipcRenderer.send('close-window');
   });
+  //更新proxy
+  document.getElementById("add-btn").addEventListener("click",()=>{
+    ipcRenderer.send("proxy-changed");
+  })
 
   // --- 初始化组件 ---
   // 仪表盘-系统信息组件初始化
