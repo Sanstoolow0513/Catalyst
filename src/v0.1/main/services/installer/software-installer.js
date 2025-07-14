@@ -4,7 +4,6 @@ const https = require("https");
 const { execFile } = require("child_process");
 const os = require("os");
 const { EventEmitter } = require("events");
-const { GitHubAuth } = require("../auth/github-auth");
 
 class SoftwareInstallerService extends EventEmitter {
   /**
@@ -13,17 +12,10 @@ class SoftwareInstallerService extends EventEmitter {
   constructor() {
     super();
     this.tempDir = path.join(os.tmpdir(), "QMR-Toolkit-Downloads");
-    this.githubAuth = new GitHubAuth();
   }
 
   async installSoftware(software) {
     const { id, name, url, installer_args } = software;
-
-    // 验证GitHub账户
-    const authResult = await this.githubAuth.login();
-    if (!authResult.token) {
-      throw new Error("GitHub登录失败，请先登录GitHub账户");
-    }
 
     this.emit("status", { id, status: "downloading" });
 
