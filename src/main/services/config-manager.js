@@ -7,17 +7,10 @@ const { config } = require("process");
 
 class ConfigManager {
   /**
-   * 创建配置管理器实例
-   * @param {Object} options 配置选项
-   * @param {string} options.configBaseDir 配置文件基础目录
+   * @param {string} options.configDir yaml-base-dir
    */
   constructor(options = {}) {
-    //传入的文件串目录需要注意
-    this.userConfig = options.userConfig;
-    //
-    this.configBaseDir = options.configBaseDir;
-    this.currentConfigPath = null;
-    this.urlFilePath = path.join(options.configBaseDir, "url.txt");
+    this.userConfigPath = path.join(options.configDir, "config_sources.yaml");
   }
 
   async getUserConfig() {
@@ -26,13 +19,13 @@ class ConfigManager {
 
     console.log(data);
     return data;
-    }
+  }
   //承诺给用户的前端list加入一个结构 object
-  async addUserConfig(setting,data){
-    const newYaml = yaml.dump(data,setting);
+  async addUserConfig(setting, data) {
+    const newYaml = yaml.dump(data, setting);
     fs.writeFileSync(this.userConfig);
   }
-  
+
   getCurrentConfigPath() {
     return this.currentConfigPath;
   }

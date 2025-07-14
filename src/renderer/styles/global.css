@@ -2,17 +2,17 @@
 
 /* --- 全局样式和变量 --- */
 :root {
-  --primary-color: #6c63ff;
-  --secondary-color: #3f3d56;
-  --background-color: #12121e;
-  --card-background-color: #1e1e2f;
-  --text-color: #e0e0e0;
-  --text-muted-color: #a0a0b0;
-  --border-color: #2c2c40;
-  --success-color: #4caf50;
-  --warning-color: #ff9800;
-  --error-color: #f44336;
-  --font-family: 'Exo 2', sans-serif;
+  --primary-color: #4d6df3; /* 蓝色 - 主色调 */
+  --secondary-color: #2d3849; /* 深青色 - 副色调 */
+  --background-color: #0f1720; /* 深蓝黑 - 背景 */
+  --card-background-color: #1a2432; /* 深青灰 - 卡片背景 */
+  --text-color: #e3f1ff; /* 淡蓝色 - 文本 */
+  --text-muted-color: #8c9fb5; /* 灰蓝色 - 弱文本 */
+  --border-color: #2a3b50; /* 深蓝色 - 边框 */
+  --success-color: #00c9a7; /* 青色 - 成功提示 */
+  --warning-color: #ffac1e; /* 琥珀色 - 警告提示 */
+  --error-color: #ff5a87; /* 粉红色 - 错误提示 */
+  --font-family: "Exo 2", sans-serif;
 }
 
 body {
@@ -177,7 +177,7 @@ header h1 {
 }
 
 .btn:active {
-    transform: scale(0.98);
+  transform: scale(0.98);
 }
 
 .btn-primary {
@@ -205,8 +205,8 @@ header h1 {
 }
 
 .btn-group {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
 /* --- 状态栏 --- */
@@ -298,7 +298,8 @@ header h1 {
   border-bottom: none;
 }
 
-.node-list li:hover, .node-list li.active {
+.node-list li:hover,
+.node-list li.active {
   background-color: var(--secondary-color);
 }
 
@@ -316,37 +317,107 @@ header h1 {
 
 /* --- 浏览器视图 --- */
 .browser-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 #browser-url {
-    flex-grow: 1;
-    padding: 8px;
-    background-color: var(--secondary-color);
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    color: var(--text-color);
+  flex-grow: 1;
+  padding: 8px;
+  background-color: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  color: var(--text-color);
 }
 
 .webview-container {
-    position: relative;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 #webview-loading {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(30, 30, 47, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-color);
-    z-index: 10;
-} 
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(30, 30, 47, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-color);
+  z-index: 10;
+}
+/* 新增代理面板样式 */
+#proxy-config-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.setting-group {
+  margin-bottom: 20px;
+}
+
+.setting-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-muted-color);
+}
+
+.setting-group input {
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  color: var(--text-color);
+  margin-bottom: 10px;
+}
+
+#config-textarea {
+  width: 100%;
+  height: 150px;
+  padding: 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  color: var(--text-color);
+  font-family: var(--font-family);
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+#proxy-list {
+  list-style-type: none;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+}
+
+#proxy-list li {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+}
+
+#proxy-list li:last-child {
+  border-bottom: none;
+}
+
+#proxy-list li .remove-btn {
+  color: var(--error-color);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+#proxy-list li .remove-btn:hover {
+  opacity: 1;
+}

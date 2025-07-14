@@ -190,6 +190,39 @@
         </section>
       </main>
     </div>
+    <!-- 代理面板与配置 -->
+    <div id="proxy-config-container" class="card">
+      <div class="proxy-settings">
+        <h2>代理设置</h2>
+
+        <div class="setting-group">
+          <label for="proxy-url">代理URL</label>
+          <input type="text" id="proxy-url" placeholder="输入代理地址" />
+          <button id="add-proxy-btn" class="btn btn-secondary">添加</button>
+        </div>
+
+        <div id="proxy-panel">
+          <h3>当前代理</h3>
+          <ul id="proxy-list">
+            <li>默认系统代理</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="config-editor">
+        <h3>配置设定</h3>
+        <textarea
+          id="config-textarea"
+          placeholder="输入自定义配置..."
+        ></textarea>
+        <div class="btn-group">
+          <button id="save-config-btn" class="btn btn-primary">保存配置</button>
+          <button id="import-config-btn" class="btn btn-secondary">
+            导入配置
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script>
       // 标签页切换功能
