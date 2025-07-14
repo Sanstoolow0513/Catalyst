@@ -1,0 +1,30 @@
+[
+  {
+    "id": "vscode",
+    "name": "Visual Studio Code",
+    "description": "轻量级但功能强大的源代码编辑器",
+    "url": "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user",
+    "installer_args": "/VERYSILENT /MERGETASKS=!runcode"
+  },
+  {
+    "id": "git",
+    "name": "Git",
+    "description": "分布式版本控制系统",
+    "url": "https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/Git-2.44.0-64-bit.exe",
+    "installer_args": "/VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /COMPONENTS=\"icons,ext\\reg\\shellhere,assoc,assoc_sh\""
+  },
+  {
+    "id": "nodejs",
+    "name": "Node.js",
+    "description": "JavaScript 运行时",
+    "url": "https://nodejs.org/dist/v20.10.0/node-v20.10.0-x64.msi",
+    "installer_args": "/quiet /passive"
+  },
+  {
+    "id": "python",
+    "name": "Python",
+    "description": "Python 编程语言",
+    "url": "https://www.python.org/ftp/python/3.11.5/python-3.11.5-amd64.exe",
+    "installer_args": "/quiet InstallAllUsers=1 PrependPath=1"
+  }
+] 
