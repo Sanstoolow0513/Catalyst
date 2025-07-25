@@ -6,8 +6,8 @@ const fs = require('fs')
 
 class GitHubAuth {
   constructor() {
-    this.clientId = 'your_client_id'
-    this.clientSecret = 'your_client_secret'
+    this.clientId = process.env.GITHUB_CLIENT_ID || 'your_client_id';
+    this.clientSecret = process.env.GITHUB_CLIENT_SECRET || 'your_client_secret';
     this.redirectUri = 'http://localhost:3000/auth/callback'
     this.scopes = ['user', 'repo']
     this.tokenPath = path.join(__dirname, '../../Appdata/config/github-token.json')
@@ -43,9 +43,15 @@ class GitHubAuth {
       const { token } = await this.octokit.auth({
         type: 'oauth-user',
         code: code
-      })
+      }).catch(error => {
+        throw new Error(`OAuth authentication failed: ${error.message}`);
+      });
       
-      fs.writeFileSync(this.tokenPath, JSON.stringify({ token }))
+      if (token) {
+        fs.writeFileSync(this.tokenPath, JSON.stringify({ token }));
+      } else {
+        throw new Error('Token retrieval failed');
+      }
       
       // 自动设置token并返回用户信息
       this.octokit = new Octokit({ auth: token })
@@ -60,17 +66,22 @@ class GitHubAuth {
         }
       }
     } catch (error) {
-      console.error('Authentication failed:', error)
-      throw error
+      console.error('Authentication failed:', error.message);
+      throw new Error(`Authentication error: ${error.message}`);
     }
   }
 
   async getToken() {
     if (fs.existsSync(this.tokenPath)) {
-      const { token } = JSON.parse(fs.readFileSync(this.tokenPath))
-      return token
+      try {
+        const data = JSON.parse(fs.readFileSync(this.tokenPath));
+        return data.token;  // 确保返回正确的token
+      } catch (parseError) {
+        console.error('Error parsing token file:', parseError);
+        return null;
+      }
     }
-    return null
+    return null;
   }
 }
 
