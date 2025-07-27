@@ -86,6 +86,20 @@ class ClashPanel {
       console.log('[ClashPanel] 代理列表更新:', proxyList);
       this.renderProxyList(proxyList);
     });
+
+    // 监听代理切换成功
+    ipcRenderer.on('proxy-switched', (event, { groupName, proxyName }) => {
+      console.log(`[ClashPanel] 代理切换成功: ${groupName} => ${proxyName}`);
+      // 重新获取代理列表以更新UI
+      this.fetchProxyList();
+    });
+
+    // 监听代理切换错误
+    ipcRenderer.on('proxy-switch-error', (event, message) => {
+      console.error(`[ClashPanel] 代理切换错误: ${message}`);
+      // 显示错误消息
+      this.updateClashStatus('error', `代理切换失败: ${message}`);
+    });
   }
 
   /**
@@ -130,7 +144,7 @@ class ClashPanel {
         
         // 清空节点列表
         if (this.nodeList) {
-          this.nodeList.innerHTML = '<li class="node-item">Clash 未运行，无法获取节点</li>';
+          this.nodeList.innerHTML = '<p class="placeholder-text">Clash 未运行，无法获取节点</p>';
         }
         break;
       case 'error':
@@ -153,7 +167,7 @@ class ClashPanel {
     ipcRenderer.send('get-proxy-list');
     
     if (this.nodeList) {
-      this.nodeList.innerHTML = '<li class="node-item loading">正在加载节点列表...</li>';
+      this.nodeList.innerHTML = '<p class="placeholder-text">正在加载节点列表...</p>';
     }
   }
 
@@ -169,13 +183,13 @@ class ClashPanel {
     this.nodeList.innerHTML = '';
     
     if (proxyList.length === 0) {
-      this.nodeList.innerHTML = '<li class="node-item">未找到可用节点</li>';
+      this.nodeList.innerHTML = '<p class="placeholder-text">未找到可用节点</p>';
       return;
     }
     
     // 添加代理组
     proxyList.forEach(proxy => {
-      const groupItem = document.createElement('li');
+      const groupItem = document.createElement('div');
       groupItem.className = 'node-group';
       
       const groupHeader = document.createElement('div');
@@ -184,6 +198,19 @@ class ClashPanel {
         <span class="node-group-name">${proxy.name}</span>
         <span class="node-group-current">当前: ${proxy.current}</span>
       `;
+      
+      // 添加点击事件以切换折叠状态
+      groupHeader.addEventListener('click', () => {
+        const optionsList = groupItem.querySelector('.node-options');
+        const isCollapsed = optionsList.style.display === 'none';
+        optionsList.style.display = isCollapsed ? 'block' : 'none';
+        
+        // 旋转箭头图标
+        const arrowIcon = groupHeader.querySelector('.arrow-icon');
+        if (arrowIcon) {
+          arrowIcon.style.transform = isCollapsed ? 'rotate(90deg)' : 'rotate(0deg)';
+        }
+      });
       
       groupItem.appendChild(groupHeader);
       
@@ -199,8 +226,29 @@ class ClashPanel {
             optionItem.classList.add('active');
           }
           
-          optionItem.textContent = option;
-          optionItem.addEventListener('click', () => {
+          // 生成节点类型和延迟信息（模拟数据）
+          const nodeType = this.getNodeType(option);
+          const latency = this.getLatency(option);
+          const status = this.getNodeStatus(option);
+          
+          // 根据延迟确定颜色类
+          let latencyClass = 'bad';
+          if (latency < 100) {
+            latencyClass = 'good';
+          } else if (latency < 300) {
+            latencyClass = 'medium';
+          }
+          
+          optionItem.innerHTML = `
+            <span class="node-option-name">${option}</span>
+            <span class="node-option-type">${nodeType}</span>
+            <span class="node-option-latency ${latencyClass}">${latency}ms</span>
+            <span class="node-option-status ${status}"></span>
+          `;
+          
+          optionItem.addEventListener('click', (e) => {
+            // 防止事件冒泡到组标题
+            e.stopPropagation();
             this.switchProxy(proxy.name, option);
           });
           
@@ -215,6 +263,37 @@ class ClashPanel {
   }
 
   /**
+   * 获取节点类型（模拟实现）
+   * @param {string} nodeName - 节点名称
+   * @private
+   */
+  getNodeType(nodeName) {
+    // 模拟实现，实际应该从节点数据中获取
+    const types = ['Shadowsocks', 'Vmess', 'Trojan', 'HTTP', 'HTTPS'];
+    return types[Math.floor(Math.random() * types.length)];
+  }
+
+  /**
+   * 获取节点延迟（模拟实现）
+   * @param {string} nodeName - 节点名称
+   * @private
+   */
+  getLatency(nodeName) {
+    // 模拟实现，实际应该从节点数据中获取
+    return Math.floor(Math.random() * 500) + 10;
+  }
+
+  /**
+   * 获取节点状态（模拟实现）
+   * @param {string} nodeName - 节点名称
+   * @private
+   */
+  getNodeStatus(nodeName) {
+    // 模拟实现，实际应该从节点数据中获取
+    return Math.random() > 0.2 ? 'online' : 'offline';
+  }
+
+  /**
    * 切换代理
    * @param {string} groupName - 代理组名称
    * @param {string} proxyName - 代理名称
@@ -226,4 +305,4 @@ class ClashPanel {
   }
 }
 
-module.exports = { ClashPanel }; 
+module.exports = { ClashPanel };

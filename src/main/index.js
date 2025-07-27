@@ -6,39 +6,47 @@ const fs = require("fs");
 const https = require("https");
 const os = require("os");
 const si = require("systeminformation");
+const axios = require("axios");
 
 // 导入自定义模块
 const { createMainWindow } = require("./window");
-const ClashService = require("./services/clash/clash-service");
+const ClashCoreService = require("./services/clash/clash-core-service");
+const ClashConfigService = require("./services/clash/clash-config-service");
+const ProxyService = require("./services/clash/proxy-service");
 const { PROXY_SERVER, PROXY_OVERRIDE } = require("../shared/config/app-config");
 
 // Clash服务配置
-const clashServiceConfig = {
-  configBaseDir: path.join(__dirname, "../../resources/clash/configs"),
+const clashCoreServiceConfig = {
   clashCorePath: path.join(
     __dirname,
     "../../resources/clash/core/mihomo-windows-amd64.exe"
   ),
+};
+
+const clashConfigServiceConfig = {
+  configBaseDir: path.join(__dirname, "../../resources/clash/configs"),
+  configDir: path.join(__dirname, "../Appdata"),
+};
+
+const proxyServiceConfig = {
   PROXY_SERVER,
   PROXY_OVERRIDE,
 };
-// Config服务
-const configServiceConfig = {
-  configDir: path.join(__dirname, "../Appdata/config_sources.yaml"),
-};
-
-const ConfigService = require("./services/config-manager");
 
 // 实例化服务
-let clashService;
-const configService = new ConfigService(configServiceConfig);
+let clashCoreService;
+let clashConfigService;
+let proxyService;
 let mainWindow;
 
 app.whenReady().then(async () => {
   mainWindow = createMainWindow();
 
-  // 在主窗口创建后实例化服务，并传入引用
-  clashService = new ClashService(clashServiceConfig, mainWindow);
+  // 在主窗口创建后实例化服务
+  clashCoreService = new ClashCoreService(clashCoreServiceConfig);
+  clashConfigService = new ClashConfigService(clashConfigServiceConfig);
+  proxyService = new ProxyService(proxyServiceConfig);
+
   // 系统信息事件处理
   ipcMain.on("get-system-info", async (event) => {
     try {
@@ -77,9 +85,11 @@ app.whenReady().then(async () => {
   ipcMain.on("start-clash", async () => {
     try {
       sendClashStatus("starting");
-      await clashService.initialize();
-      await clashService.startMihomo();
-      const proxySetSuccess = await clashService.setSystemProxy();
+      await clashCoreService.checkAndDownloadCore();
+      await clashConfigService.downloadConfigFromUrl();
+      const configPath = clashConfigService.getCurrentConfigPath();
+      await clashCoreService.startMihomo(configPath);
+      const proxySetSuccess = await proxyService.setSystemProxy();
       if (!proxySetSuccess) {
         sendClashStatus("error", "系统代理设置失败");
         showNotification("Clash 错误", "设置系统代理失败。");
@@ -97,8 +107,8 @@ app.whenReady().then(async () => {
   ipcMain.on("stop-clash", async () => {
     try {
       sendClashStatus("stopping");
-      await clashService.stopMihomo();
-      await clashService.clearSystemProxy();
+      await clashCoreService.stopMihomo();
+      await proxyService.clearSystemProxy();
       sendClashStatus("stopped");
       showNotification("Clash 已停止", "代理服务已安全停止。");
     } catch (error) {
@@ -110,11 +120,53 @@ app.whenReady().then(async () => {
 
   ipcMain.on("get-proxy-list", async (event) => {
     try {
-      if (!clashService) {
-        throw new Error("Clash service not initialized.");
+      if (!clashCoreService || !clashConfigService) {
+        throw new Error("Clash services not initialized.");
       }
-      const proxyList = await clashService.getProxyList();
-      event.sender.send("proxy-list-update", proxyList);
+      
+      // 确保配置已加载
+      const configPath = clashConfigService.getCurrentConfigPath();
+      if (!configPath) {
+        await clashConfigService.downloadConfigFromUrl();
+      }
+      
+      const config = await clashConfigService.loadConfig(clashConfigService.getCurrentConfigPath());
+      const proxyGroups = config["proxy-groups"];
+      
+      if (!proxyGroups || !Array.isArray(proxyGroups)) {
+        event.sender.send("proxy-list-update", []);
+        return;
+      }
+
+      const result = proxyGroups
+        .filter((group) => group.type === "select" || group.type === "selector")
+        .map((group) => ({
+          name: group.name,
+          type: group.type,
+          current: group.proxies ? group.proxies[0] || "" : "",
+          options: group.proxies || [],
+        }));
+
+      // 如果Clash正在运行，尝试获取实时代理信息
+      // 这里需要获取外部控制器地址
+      const externalController = config["external-controller"];
+      if (clashCoreService.clashProcess && externalController) {
+        try {
+          const url = `http://${externalController}/proxies`;
+          const response = await axios.get(url, { timeout: 2000 });
+          const liveProxies = response.data.proxies;
+
+          for (const group of result) {
+            if (liveProxies[group.name] && liveProxies[group.name].now) {
+              group.current = liveProxies[group.name].now;
+            }
+          }
+        } catch (e) {
+          console.error("获取实时代理信息失败:", e);
+        }
+      }
+
+      event.sender.send("proxy-list-update", result);
     } catch (error) {
       console.error(`[main.js] 获取代理列表失败: ${error.message}`);
       // 将错误发送到前端，以便在UI上显示
@@ -122,6 +174,37 @@ app.whenReady().then(async () => {
         "clash-service-error",
         `获取节点列表失败: ${error.message}`
       );
+    }
+  });
+
+  // 代理切换事件处理
+  ipcMain.on("switch-proxy", async (event, { groupName, proxyName }) => {
+    try {
+      if (!clashCoreService || !clashConfigService) {
+        throw new Error("Clash services not initialized.");
+      }
+      
+      // 确保配置已加载
+      const configPath = clashConfigService.getCurrentConfigPath();
+      if (!configPath) {
+        throw new Error("配置未加载");
+      }
+      
+      const config = await clashConfigService.loadConfig(configPath);
+      const externalController = config["external-controller"];
+      
+      if (!externalController) {
+        throw new Error("未配置外部控制器地址");
+      }
+
+      const url = `http://${externalController}/proxies/${encodeURIComponent(groupName)}`;
+      await axios.put(url, { name: proxyName });
+      
+      // 发送成功消息
+      event.sender.send("proxy-switched", { groupName, proxyName });
+    } catch (error) {
+      console.error(`[main.js] 切换代理失败: ${error.message}`);
+      event.sender.send("proxy-switch-error", error.message);
     }
   });
 
@@ -229,11 +312,6 @@ app.whenReady().then(async () => {
   });
 });
 
-ipcMain.on("proxy-changed", () => {
-  console.log("Proxy changed");
-  configService.getUserConfig();
-});
-
 // 窗口控制事件处理
 ipcMain.on("minimize-window", () => {
   if (mainWindow) {
@@ -275,12 +353,14 @@ app.on("before-quit", async (event) => {
   console.log("[main.js] before-quit: 开始清理...");
 
   try {
-    if (clashService) {
+    if (clashCoreService) {
       console.log("[main.js] 正在停止Clash服务...");
-      await clashService.stopMihomo();
-
+      await clashCoreService.stopMihomo();
+    }
+    
+    if (proxyService) {
       console.log("[main.js] 正在清除系统代理...");
-      await clashService.clearSystemProxy();
+      await proxyService.clearSystemProxy();
     }
   } catch (error) {
     console.error("[main.js] 退出时清理失败:", error);
