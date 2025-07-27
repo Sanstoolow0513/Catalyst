@@ -26,6 +26,7 @@
     "axios": "^1.9.0",
     "crypto-js": "^4.2.0",
     "js-yaml": "^4.1.0",
+    "node-fetch": "^2.6.1",
     "systeminformation": "^5.27.7",
     "winreg": "^1.2.5"
   },
