@@ -113,6 +113,7 @@ class ClashPanel {
 
     // 重置样式
     this.statusText.style.color = '';
+    this.statusText.style.fontWeight = 'normal';
 
     switch (status) {
       case 'starting':
@@ -126,6 +127,7 @@ class ClashPanel {
         this.statusSpinner.style.display = 'none';
         this.startBtn.disabled = true;
         this.stopBtn.disabled = false;
+        this.statusText.style.fontWeight = 'bold';
         
         // 如果Clash正在运行，尝试获取代理列表
         this.fetchProxyList();
@@ -150,6 +152,7 @@ class ClashPanel {
       case 'error':
         this.statusText.textContent = `Clash 错误: ${message || '未知错误'}`;
         this.statusText.style.color = 'var(--error-color)';
+        this.statusText.style.fontWeight = 'bold';
         this.statusSpinner.style.display = 'none';
         this.startBtn.disabled = false;
         this.stopBtn.disabled = true;
@@ -194,10 +197,34 @@ class ClashPanel {
       
       const groupHeader = document.createElement('div');
       groupHeader.className = 'node-group-header';
-      groupHeader.innerHTML = `
-        <span class="node-group-name">${proxy.name}</span>
-        <span class="node-group-current">当前: ${proxy.current}</span>
-      `;
+      
+      // 创建箭头图标
+      const arrowIcon = document.createElement('svg');
+      arrowIcon.className = 'arrow-icon';
+      arrowIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      arrowIcon.setAttribute('width', '16');
+      arrowIcon.setAttribute('height', '16');
+      arrowIcon.setAttribute('viewBox', '0 0 24 24');
+      arrowIcon.setAttribute('fill', 'none');
+      arrowIcon.setAttribute('stroke', 'currentColor');
+      arrowIcon.setAttribute('stroke-width', '2');
+      arrowIcon.setAttribute('stroke-linecap', 'round');
+      arrowIcon.setAttribute('stroke-linejoin', 'round');
+      arrowIcon.innerHTML = '<polyline points="9 18 15 12 9 6"></polyline>';
+      arrowIcon.style.transition = 'transform 0.2s ease';
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'node-group-name';
+      nameSpan.textContent = proxy.name;
+      
+      const currentSpan = document.createElement('span');
+      currentSpan.className = 'node-group-current';
+      currentSpan.textContent = `当前: ${proxy.current}`;
+      
+      // 将元素添加到组头
+      groupHeader.appendChild(arrowIcon);
+      groupHeader.appendChild(nameSpan);
+      groupHeader.appendChild(currentSpan);
       
       // 添加点击事件以切换折叠状态
       groupHeader.addEventListener('click', () => {
@@ -206,10 +233,7 @@ class ClashPanel {
         optionsList.style.display = isCollapsed ? 'block' : 'none';
         
         // 旋转箭头图标
-        const arrowIcon = groupHeader.querySelector('.arrow-icon');
-        if (arrowIcon) {
-          arrowIcon.style.transform = isCollapsed ? 'rotate(90deg)' : 'rotate(0deg)';
-        }
+        arrowIcon.style.transform = isCollapsed ? 'rotate(90deg)' : 'rotate(0deg)';
       });
       
       groupItem.appendChild(groupHeader);
@@ -218,6 +242,7 @@ class ClashPanel {
       if (proxy.options && proxy.options.length > 0) {
         const optionsList = document.createElement('ul');
         optionsList.className = 'node-options';
+        optionsList.style.display = 'block'; // 默认展开
         
         proxy.options.forEach(option => {
           const optionItem = document.createElement('li');
@@ -239,12 +264,27 @@ class ClashPanel {
             latencyClass = 'medium';
           }
           
-          optionItem.innerHTML = `
-            <span class="node-option-name">${option}</span>
-            <span class="node-option-type">${nodeType}</span>
-            <span class="node-option-latency ${latencyClass}">${latency}ms</span>
-            <span class="node-option-status ${status}"></span>
-          `;
+          // 创建节点选项的各个部分
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'node-option-name';
+          nameSpan.textContent = option;
+          
+          const typeSpan = document.createElement('span');
+          typeSpan.className = 'node-option-type';
+          typeSpan.textContent = nodeType;
+          
+          const latencySpan = document.createElement('span');
+          latencySpan.className = `node-option-latency ${latencyClass}`;
+          latencySpan.textContent = `${latency}ms`;
+          
+          const statusSpan = document.createElement('span');
+          statusSpan.className = `node-option-status ${status}`;
+          
+          // 将元素添加到选项项
+          optionItem.appendChild(nameSpan);
+          optionItem.appendChild(typeSpan);
+          optionItem.appendChild(latencySpan);
+          optionItem.appendChild(statusSpan);
           
           optionItem.addEventListener('click', (e) => {
             // 防止事件冒泡到组标题

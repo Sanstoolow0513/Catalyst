@@ -166,10 +166,12 @@
             </div>
 
             <div id="node-list-container" style="margin-top: var(--spacing-md)">
-              <h3>节点列表</h3>
-              <div id="node-list" class="node-groups">
-                <!-- 节点组将通过JavaScript动态添加 -->
-                <p class="placeholder-text">请先启动Clash并刷新节点...</p>
+              <div class="card">
+                <h3 class="card-header">节点列表</h3>
+                <div id="node-list" class="node-groups">
+                  <!-- 节点组将通过JavaScript动态添加 -->
+                  <p class="placeholder-text">请先启动Clash并刷新节点...</p>
+                </div>
               </div>
             </div>
           </div>
@@ -219,36 +221,40 @@
 
     <!-- 代理面板与配置 -->
     <div id="proxy-config-container" class="card" style="margin: var(--spacing-md);">
-      <div class="proxy-settings">
-        <h2 class="card-header">代理设置</h2>
+      <div class="proxy-config-grid">
+        <div class="proxy-settings">
+          <h2 class="card-header">代理设置</h2>
 
-        <div class="setting-group">
-          <label for="proxy-url">代理URL</label>
-          <input type="text" id="proxy-url" placeholder="输入代理地址" />
-          <button id="add-proxy-btn" class="btn btn-secondary">添加</button>
-        </div>
-
-        <div id="proxy-panel">
-          <div class="proxy-panel-header">
-            <h3>当前代理</h3>
+          <div class="setting-group">
+            <label for="proxy-url">代理URL</label>
+            <div class="input-with-button">
+              <input type="text" id="proxy-url" placeholder="输入代理地址" />
+              <button id="add-proxy-btn" class="btn btn-secondary">添加</button>
+            </div>
           </div>
-          <ul id="proxy-list" class="proxy-list">
-            <li class="proxy-list-item">默认系统代理</li>
-          </ul>
-        </div>
-      </div>
 
-      <div class="config-editor">
-        <h3 class="card-header">配置设定</h3>
-        <textarea
-          id="config-textarea"
-          placeholder="输入自定义配置..."
-        ></textarea>
-        <div class="btn-group">
-          <button id="save-config-btn" class="btn btn-primary">保存配置</button>
-          <button id="import-config-btn" class="btn btn-secondary">
-            导入配置
-          </button>
+          <div id="proxy-panel">
+            <div class="proxy-panel-header">
+              <h3>当前代理</h3>
+            </div>
+            <ul id="proxy-list" class="proxy-list">
+              <li class="proxy-list-item">默认系统代理</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="config-editor">
+          <h3 class="card-header">配置设定</h3>
+          <textarea
+            id="config-textarea"
+            placeholder="输入自定义配置..."
+          ></textarea>
+          <div class="btn-group">
+            <button id="save-config-btn" class="btn btn-primary">保存配置</button>
+            <button id="import-config-btn" class="btn btn-secondary">
+              导入配置
+            </button>
+          </div>
         </div>
       </div>
     </div>
