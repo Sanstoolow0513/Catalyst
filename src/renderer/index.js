@@ -22,10 +22,60 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('close-btn').addEventListener('click', () => {
     ipcRenderer.send('close-window');
   });
-  //更新proxy
-  document.getElementById("add-btn").addEventListener("click",()=>{
-    ipcRenderer.send("proxy-changed");
-  })
+  // 更新代理
+  const addProxyBtn = document.getElementById("add-proxy-btn");
+  if (addProxyBtn) {
+    addProxyBtn.addEventListener("click", () => {
+      const proxyUrlInput = document.getElementById("proxy-url");
+      if (proxyUrlInput && proxyUrlInput.value.trim() !== "") {
+        ipcRenderer.send("add-proxy", proxyUrlInput.value.trim());
+        proxyUrlInput.value = ""; // 清空输入框
+      } else {
+        // 显示提示信息
+        showNotification("请输入有效的代理URL", "warning");
+      }
+    });
+  }
+
+  // 添加通知功能
+  function showNotification(message, type = "info") {
+    // 创建通知元素
+    const notification = document.createElement("div");
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // 设置样式
+    Object.assign(notification.style, {
+      position: "fixed",
+      top: "20px",
+      right: "20px",
+      padding: "12px 16px",
+      borderRadius: "8px",
+      backgroundColor: type === "error" ? "var(--error-color)" :
+                      type === "warning" ? "var(--warning-color)" :
+                      type === "success" ? "var(--success-color)" : "var(--primary-color)",
+      color: "white",
+      boxShadow: "var(--shadow-lg)",
+      zIndex: "10000",
+      maxWidth: "300px",
+      wordWrap: "break-word",
+      fontSize: "14px"
+    });
+
+    // 添加到页面
+    document.body.appendChild(notification);
+
+    // 3秒后自动移除
+    setTimeout(() => {
+      notification.style.opacity = "0";
+      notification.style.transition = "opacity 0.5s ease";
+      setTimeout(() => {
+        if (notification.parentNode) {
+          document.body.removeChild(notification);
+        }
+      }, 500);
+    }, 3000);
+  }
 
   // --- 初始化组件 ---
   // 仪表盘-系统信息组件初始化
@@ -71,6 +121,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Particles 背景 ---
   initParticlesBackground();
+
+  // --- 添加全局错误处理 ---
+  window.addEventListener('error', (event) => {
+    console.error('[renderer] 全局JavaScript错误:', event.error);
+    showNotification(`JavaScript错误: ${event.error.message}`, 'error');
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('[renderer] 未处理的Promise拒绝:', event.reason);
+    showNotification(`未处理的Promise拒绝: ${event.reason.message || event.reason}`, 'error');
+    event.preventDefault();
+  });
 });
 
 /**
