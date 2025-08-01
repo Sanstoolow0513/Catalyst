@@ -148,6 +148,16 @@ function registerClashIPCHandlers(clashService) {
     }
   });
 
+  // 新增：请求代理列表事件
+  ipcMain.on('request-proxy-list', async (event) => {
+    try {
+      const proxyList = await clashService.getProxyList();
+      event.sender.send('proxy-list-update', proxyList);
+    } catch (error) {
+      logger.error('发送代理列表失败', { error: error.message });
+    }
+  });
+
   logger.info('Clash IPC处理器注册完成');
 }
 

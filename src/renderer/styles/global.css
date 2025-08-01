@@ -1,33 +1,32 @@
 /* global.css */
 
 /* --- 全局样式和变量 --- */
+/* 深色模式变量 (默认) */
 :root {
-  /* 原有颜色 */
-  --primary-color: #4d6df3; /* 蓝色 - 主色调 */
-  --secondary-color: #2d3849; /* 深青色 - 副色调 */
-  --background-color: #0f1720; /* 深蓝黑 - 背景 */
-  --card-background-color: #1a2432; /* 深青灰 - 卡片背景 */
-  --text-color: #e3f1ff; /* 淡蓝色 - 文本 */
-  --text-muted-color: #8c9fb5; /* 灰蓝色 - 弱文本 */
-  --border-color: #2a3b50; /* 深蓝色 - 边框 */
-  --success-color: #00c9a7; /* 青色 - 成功提示 */
-  --warning-color: #ffac1e; /* 琥珀色 - 警告提示 */
-  --error-color: #ff5a87; /* 粉红色 - 错误提示 */
-  
-  /* 新增语义化颜色 */
-  --info-color: #17a2b8; /* 青色 - 信息提示 */
-  --dark-color: #121a24; /* 更深的背景色 */
-  --light-color: #f8f9fa; /* 浅色背景 */
-  
-  /* 颜色变体 */
+  /* 主色系 */
+  --primary-color: #4d6df3;
   --primary-light: #6a85f5;
   --primary-dark: #3a55d0;
-  --success-light: #00e6c4;
-  --warning-light: #ffc14d;
-  --error-light: #ff7a9d;
-  --info-light: #2bbfd6;
   
-  /* 新增中性色系 */
+  /* 背景色 */
+  --background-color: #0f1720;
+  --card-background-color: #1a2432;
+  --dark-color: #121a24;
+  
+  /* 文字色 */
+  --text-color: #e3f1ff;
+  --text-muted-color: #8c9fb5;
+  
+  /* 边框色 */
+  --border-color: #2a3b50;
+  
+  /* 功能色 */
+  --success-color: #00c9a7;
+  --warning-color: #ffac1e;
+  --error-color: #ff5a87;
+  --info-color: #17a2b8;
+  
+  /* 中性色 */
   --neutral-50: #f8f9fa;
   --neutral-100: #f1f3f5;
   --neutral-200: #e9ecef;
@@ -39,17 +38,81 @@
   --neutral-800: #343a40;
   --neutral-900: #212529;
   
-  /* 字体 */
-  --font-family: "Exo 2", sans-serif;
+  /* 其他变量保持不变... */
+}
+
+/* 浅色模式变量 */
+[data-theme="light"] {
+  --background-color: #f5f7fa;
+  --card-background-color: #ffffff;
+  --dark-color: #e9edf1;
+  
+  --text-color: #2d3849;
+  --text-muted-color: #6c757d;
+  
+  --border-color: #e2e8f0;
+  
+  --neutral-50: #0f1720;
+  --neutral-100: #1a2432;
+  --neutral-200: #2d3849;
+  --neutral-300: #4a5568;
+  --neutral-400: #718096;
+  --neutral-500: #a0aec0;
+  --neutral-600: #cbd5e0;
+  --neutral-700: #e2e8f0;
+  --neutral-800: #edf2f7;
+  --neutral-900: #f7fafc;
+}
+
+/* 系统级深色模式检测 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /* 使用默认深色变量 */
+  }
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+  position: fixed;
+  bottom: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 1000;
+  background-color: var(--card-background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-xl);
+}
+
+.theme-toggle svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--text-color);
+}
+
+/* 字体设置 */
+:root {
+  --font-family: "Exo 2", -apple-system, BlinkMacSystemFont, sans-serif;
   
   /* 字体大小 */
-  --font-size-xs: 12px;
-  --font-size-sm: 14px;
-  --font-size-base: 16px;
-  --font-size-lg: 18px;
-  --font-size-xl: 20px;
-  --font-size-2xl: 24px;
-  --font-size-3xl: 30px;
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
   
   /* 字体权重 */
   --font-weight-normal: 400;
@@ -57,25 +120,25 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   
-  /* 间距系统（基础单位8px） */
-  --spacing-xxs: 4px;
-  --spacing-xs: 8px;
-  --spacing-sm: 12px;
-  --spacing-base: 16px;
-  --spacing-md: 24px;
-  --spacing-lg: 32px;
-  --spacing-xl: 40px;
-  --spacing-2xl: 48px;
-  --spacing-3xl: 64px;
+  /* 间距系统（基于8px） */
+  --spacing-xxs: 0.25rem;  /* 4px */
+  --spacing-xs: 0.5rem;    /* 8px */
+  --spacing-sm: 0.75rem;   /* 12px */
+  --spacing-base: 1rem;    /* 16px */
+  --spacing-md: 1.5rem;    /* 24px */
+  --spacing-lg: 2rem;      /* 32px */
+  --spacing-xl: 2.5rem;    /* 40px */
+  --spacing-2xl: 3rem;     /* 48px */
+  --spacing-3xl: 4rem;     /* 64px */
   
   /* 圆角 */
-  --border-radius-xs: 2px;
-  --border-radius-sm: 4px;
-  --border-radius-base: 8px;
-  --border-radius-lg: 12px;
-  --border-radius-xl: 16px;
-  --border-radius-2xl: 24px;
-  --border-radius-3xl: 32px;
+  --border-radius-xs: 0.125rem;  /* 2px */
+  --border-radius-sm: 0.25rem;   /* 4px */
+  --border-radius-base: 0.5rem;  /* 8px */
+  --border-radius-lg: 0.75rem;   /* 12px */
+  --border-radius-xl: 1rem;      /* 16px */
+  --border-radius-2xl: 1.5rem;   /* 24px */
+  --border-radius-3xl: 2rem;     /* 32px */
   
   /* 阴影 */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -684,6 +747,36 @@ body {
   }
 }
 
+/* 卡片式布局增强 */
+.card {
+  background-color: var(--card-background-color);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+}
+
+.card-header {
+  margin-top: 0;
+  border-bottom: 1px solid var(--border-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-md);
+  color: var(--primary-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--dark-color);
+  border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+}
+
 /* --- Clash 节点列表 --- */
 .node-groups {
   display: flex;
@@ -1038,8 +1131,81 @@ body {
   transform: scale(1.1);
 }
 
-/* --- 响应式设计 --- */
+/* --- 响应式设计增强 --- */
 @media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    padding: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .sidebar-nav {
+    display: flex;
+    overflow-x: auto;
+    padding: var(--spacing-xs);
+  }
+  
+  .sidebar-nav-item {
+    margin: var(--spacing-xs);
+    flex-shrink: 0;
+  }
+  
+  .sidebar-nav-link {
+    border-radius: var(--border-radius-base);
+    margin: 0;
+    padding: var(--spacing-sm);
+  }
+  
+  .sidebar-nav-text {
+    display: none;
+  }
+  
+  .sidebar-nav-icon {
+    margin: 0;
+  }
+  
+  .main-content {
+    padding: var(--spacing-md);
+  }
+  
+  .card {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .node-groups {
+    gap: var(--spacing-md);
+  }
+  
+  .node-group-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .node-option {
+    padding: var(--spacing-sm) var(--spacing-md);
+    flex-wrap: wrap;
+  }
+  
+  .node-option-latency,
+  .node-option-type {
+    margin-top: var(--spacing-xs);
+  }
+  
+  .message {
+    max-width: 90%;
+  }
+  
+  .theme-toggle {
+    bottom: 70px;
+    right: var(--spacing-sm);
+  }
   .app-layout {
     flex-direction: column;
   }
@@ -1138,4 +1304,197 @@ body {
   .setting-group textarea {
     padding: var(--spacing-sm);
   }
+/* --- 聊天面板样式 --- */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--card-background-color);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  gap: var(--spacing-md);
+}
+
+/* 消息气泡样式 */
+.message {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-lg);
+  max-width: 80%;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  border-bottom-right-radius: var(--border-radius-xs);
+}
+
+.message.user::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 10px;
+  border-width: 10px 0 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent transparent var(--primary-color);
+}
+
+.message.assistant {
+  align-self: flex-start;
+  background: var(--secondary-color);
+  color: white;
+  border-bottom-left-radius: var(--border-radius-xs);
+}
+
+.message.assistant::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 10px;
+  border-width: 10px 10px 10px 0;
+  border-style: solid;
+  border-color: transparent var(--secondary-color) transparent transparent;
+}
+
+.message.system {
+  align-self: center;
+  background-color: var(--dark-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted-color);
+  font-size: var(--font-size-sm);
+  max-width: 100%;
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.chat-header h3 {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: var(--font-size-xl);
+}
+
+.api-key-status {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted-color);
+  background-color: var(--secondary-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  background-color: var(--dark-color);
+  border-radius: var(--border-radius-base);
+  margin-bottom: var(--spacing-md);
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.message {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-base);
+  max-width: 80%;
+  word-wrap: break-word;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user {
+  align-self: flex-end;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.message.assistant {
+  align-self: flex-start;
+  background-color: var(--secondary-color);
+}
+
+.message.system {
+  align-self: center;
+  background-color: var(--dark-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted-color);
+  font-size: var(--font-size-sm);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  opacity: 0.8;
+}
+
+.message-content {
+  line-height: 1.5;
+}
+
+.chat-input-area {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+#chat-input {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-base);
+  border: 1px solid var(--border-color);
+  background-color: var(--dark-color);
+  color: var(--text-color);
+  resize: none;
+  font-family: var(--font-family);
+}
+
+#chat-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(77, 109, 243, 0.3);
+}
+
+.api-key-section {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+#api-key-input {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-base);
+  border: 1px solid var(--border-color);
+  background-color: var(--dark-color);
+  color: var(--text-color);
+}
+
+#api-key-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(77, 109, 243, 0.3);
+}
 }

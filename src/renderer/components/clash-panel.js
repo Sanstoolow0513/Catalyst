@@ -167,7 +167,7 @@ class ClashPanel {
    */
   fetchProxyList() {
     console.log('[ClashPanel] 请求代理列表');
-    ipcRenderer.send('get-proxy-list');
+    ipcRenderer.send('request-proxy-list');
     
     if (this.nodeList) {
       this.nodeList.innerHTML = '<p class="placeholder-text">正在加载节点列表...</p>';
