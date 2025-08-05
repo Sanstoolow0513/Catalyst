@@ -167,6 +167,33 @@ graph TD
 - **单一配置入口**：`ConfigManager` 作为应用的单一配置入口点，解决了 `ClashConfigService` 和 `ConfigManager` 的功能重叠问题。
 - **结构化日志**：所有核心服务使用统一的日志系统，支持文件持久化，便于生产环境的问题排查。
 - **模块化IPC**：将IPC处理器移至独立的 `ipc-handlers` 目录，使 `src/main/index.js` 更加简洁，职责更明确。
+### 服务层重构
+- **服务拆分**：
+  - `ClashCoreService`：核心功能（配置文件加载/进程管理）
+  - `ProxyService`：代理规则管理
+- **工厂模式初始化**：通过构造函数注入依赖项（配置路径/主窗口）
+
+### IPC通信改进
+- **统一错误处理**：`ipc-middleware.js`封装try/catch
+- **标准化响应格式**：
+  ```javascript
+  { success: boolean, data: any, error: { code, message } }
+  ```
+
+### 本地测试服务器
+```mermaid
+graph TD
+  A[Express] --> B[Helmet安全中间件]
+  A --> C[Body-Parser]
+  A --> D[路由模块]
+  D --> E[认证路由 /auth]
+  D --> F[配置路由 /config]
+```
+
+### 安全防护
+- **JWT身份验证**：登录端点签发1小时有效token
+- **暴力破解防护**：5次失败触发429锁定
+- **文件上传限制**：body-parser限制请求体大小
 
 ## 潜在改进点
 - 考虑为 `ConfigManager` 添加配置版本管理和迁移机制。

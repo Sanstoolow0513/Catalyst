@@ -1,11 +1,9 @@
 const { safeStorage } = require('electron');
-const { Configuration, OpenAIApi } = require('openai');
 const logger = require('../utils/logger');
 
 class LLMService {
   constructor() {
     this.apiKey = null;
-    this.openai = null;
   }
 
   async setApiKey(apiKey) {
@@ -30,21 +28,10 @@ class LLMService {
       // 解密API密钥
       const decrypted = safeStorage.decryptString(Buffer.from(this.apiKey, 'hex'));
       
-      // 初始化OpenAI客户端
-      const configuration = new Configuration({
-        apiKey: decrypted,
-      });
-      this.openai = new OpenAIApi(configuration);
-
-      // 发送请求
-      const response = await this.openai.createChatCompletion({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: message }],
-      });
-
-      return response.data.choices[0].message.content;
+      // LLM服务已禁用
+      throw new Error('LLM服务当前不可用');
     } catch (error) {
-      logger.error('OpenAI API调用失败', error);
+      logger.error('LLM服务调用失败', error);
       throw error;
     }
   }

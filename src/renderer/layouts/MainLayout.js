@@ -1,10 +1,10 @@
 import React from 'react';
-import { NavBar } from './NavBar';
+import ArcSidebar from './ArcSidebar';
 
 const MainLayout = ({ children }) => {
   return (
     <div className="app-container">
-      <NavBar />
+      <ArcSidebar />
       <main className="main-content">
         {children}
       </main>

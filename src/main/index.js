@@ -34,15 +34,20 @@ app.whenReady().then(async () => {
     appConfig = await configManager.loadAppConfig();
     logger.info('应用配置加载成功', { appConfig });
 
-    // 实例化ClashService
-    clashService = new (require('./services/clash/clash-service'))({
-      configBaseDir: path.join(__dirname, '../../Appdata/config/configs'),
-      clashCorePath: path.join(__dirname, '../../core/clash/clash-core.exe'),
-      PROXY_SERVER: appConfig.PROXY_SERVER,
-      PROXY_OVERRIDE: appConfig.PROXY_OVERRIDE
-    }, mainWindow);
+    // 使用工厂模式初始化服务
+    const createClashService = () => {
+      return new (require('./services/clash/clash-service'))({
+        appDataPath: path.join(__dirname, '../../Appdata'),
+        configDir: path.join(__dirname, '../../Appdata/config'),
+        configBaseDir: path.join(__dirname, '../../Appdata/config/configs'),
+        clashCorePath: path.join(__dirname, '../../core/clash/clash-core.exe'),
+        PROXY_SERVER: appConfig.PROXY_SERVER,
+        PROXY_OVERRIDE: appConfig.PROXY_OVERRIDE
+      }, mainWindow);
+    };
 
-    // 初始化ClashService
+    // 实例化并初始化ClashService
+    clashService = createClashService();
     await clashService.initialize();
     logger.info('ClashService初始化完成');
 
@@ -50,6 +55,12 @@ app.whenReady().then(async () => {
     registerClashIPCHandlers(clashService);
     registerLLMIPCHandlers(mainWindow);
     logger.info('IPC处理器注册完成');
+
+    // 启动Express测试服务器
+    const appServer = require('./server/server');
+    appServer.listen(3001, () => {
+      logger.info('Express测试服务器已启动，端口:3001');
+    });
 
   } catch (error) {
     logger.error('应用初始化失败', { error: error.message, stack: error.stack });

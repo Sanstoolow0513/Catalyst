@@ -251,94 +251,65 @@ body {
   padding-top: 32px; /* 标题栏高度 */
 }
 
-/* --- 侧边栏导航 --- */
-.sidebar {
-  width: 200px;
-  background-color: var(--dark-color);
-  border-right: 1px solid var(--border-color);
-  padding: var(--spacing-md) 0;
+/* --- 主内容区调整（配合Arc侧边栏）--- */
+.app-container {
   display: flex;
-  flex-direction: column;
-  transition: all 0.3s ease;
-  z-index: 100;
+  height: 100vh;
 }
 
-.sidebar.collapsed {
-  width: 60px;
-}
-
-.sidebar-nav {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex-grow: 1;
-}
-
-.sidebar-nav-item {
-  margin: var(--spacing-xs) 0;
-}
-
-.sidebar-nav-link {
-  display: flex;
-  align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  color: var(--text-muted-color);
-  text-decoration: none;
-  transition: all 0.2s;
-  border-radius: 0 var(--border-radius-base) var(--border-radius-base) 0;
-  margin-right: var(--spacing-md);
-}
-
-.sidebar-nav-link:hover {
-  background-color: rgba(77, 109, 243, 0.1);
-  color: var(--primary-color);
-}
-
-.sidebar-nav-link.active {
-  background-color: rgba(77, 109, 243, 0.2);
-  color: var(--primary-color);
-  font-weight: var(--font-weight-semibold);
-}
-
-.sidebar-nav-icon {
-  margin-right: var(--spacing-base);
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-nav-text {
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sidebar.collapsed .sidebar-nav-text {
-  display: none;
-}
-
-.sidebar.collapsed .sidebar-nav-icon {
-  margin-right: 0;
-  margin-left: var(--spacing-xs);
-}
-
-.sidebar.collapsed .sidebar-nav-link {
-  justify-content: center;
-  padding: var(--spacing-sm);
-  margin-right: var(--spacing-sm);
-}
-
-/* --- 主内容区域 --- */
 .main-content {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
+  margin-left: 60px; /* 默认侧边栏宽度 */
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.arc-sidebar.expanded ~ .main-content {
+  margin-left: 220px; /* 侧边栏展开时的宽度 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .arc-sidebar {
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .arc-sidebar.expanded {
+    width: 100%;
+    height: auto;
+  }
+  
+  .sidebar-sections {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0;
+  }
+  
+  .section-item {
+    padding: var(--spacing-sm);
+    margin-right: 0;
+  }
+  
+  .section-label {
+    display: none;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    margin-top: 60px;
+  }
+  
+  .arc-sidebar.expanded ~ .main-content {
+    margin-left: 0;
+    margin-top: 120px; /* 展开后高度增加 */
+  }
+}
+
 
 /* --- 页面标题 --- */
 .page-title {
