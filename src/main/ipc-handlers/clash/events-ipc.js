@@ -10,16 +10,7 @@ const { CLASH_EVENTS } = require('../../../shared/ipc-events');
 function registerEventHandlers(clashService) {
   logger.info('注册Clash事件订阅处理器');
 
-  // 代理列表更新事件
-  ipcMain.on('request-proxy-list', async (event) => {
-    try {
-      if (!clashService) throw createError('ClashService未初始化', 'IPC.request-proxy-list');
-      const proxyList = await clashService.getProxyList();
-      event.sender.send(CLASH_EVENTS.PROXY_LIST_UPDATE_PUB, proxyList);
-    } catch (error) {
-      logger.error('发送代理列表更新失败', error);
-    }
-  });
+  // 事件订阅相关逻辑可以添加在这里
 }
 
 module.exports = { registerEventHandlers };

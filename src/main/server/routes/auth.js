@@ -18,8 +18,12 @@ router.post('/login', (req, res) => {
   if (username === TEST_USER.username && password === TEST_USER.password) {
     // 重置失败计数器
     failedAttempts = 0;
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not defined in environment variables.');
+      return res.status(500).json({ error: 'Internal server error' });
+    }
     // 生成JWT令牌（有效1小时）
-    const token = jwt.sign({ username }, process.env.JWT_SECRET || 'your_secret_key', { expiresIn: '1h' });
+    const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return res.json({ token });
   }
   

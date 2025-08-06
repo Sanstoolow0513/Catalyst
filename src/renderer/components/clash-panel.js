@@ -1,7 +1,8 @@
-const { ipcRenderer } = require('electron');
+const { CLASH_EVENTS } = require('../../shared/ipc-events');
 
 /**
  * Clash代理面板组件类
+ * - 渐进式迁移为 invoke/常量名；保留原 send/on 作为兼容回退
  */
 class ClashPanel {
   /**
@@ -46,17 +47,37 @@ class ClashPanel {
   setupEventListeners() {
     // 启动按钮
     if (this.startBtn) {
-      this.startBtn.addEventListener('click', () => {
+      this.startBtn.addEventListener('click', async () => {
         console.log('[ClashPanel] 点击启动按钮');
-        ipcRenderer.send('start-clash');
+        try {
+          const res = await window.electronAPI.invoke(CLASH_EVENTS.START_REQ);
+          if (res && res.message) {
+            this.updateClashStatus('starting');
+            this.showToast(res.message);
+          } else {
+            this.updateClashStatus('error', res.error || '启动失败');
+          }
+        } catch (e) {
+          this.updateClashStatus('error', `启动出错: ${e.message}`);
+        }
       });
     }
 
     // 停止按钮
     if (this.stopBtn) {
-      this.stopBtn.addEventListener('click', () => {
+      this.stopBtn.addEventListener('click', async () => {
         console.log('[ClashPanel] 点击停止按钮');
-        ipcRenderer.send('stop-clash');
+        try {
+          const res = await window.electronAPI.invoke(CLASH_EVENTS.STOP_REQ);
+          if (res && res.message) {
+            this.updateClashStatus('stopping');
+            this.showToast(res.message);
+          } else {
+            this.updateClashStatus('error', res.error || '停止失败');
+          }
+        } catch (e) {
+          this.updateClashStatus('error', `停止出错: ${e.message}`);
+        }
       });
     }
 
@@ -68,38 +89,13 @@ class ClashPanel {
       });
     }
 
-    // 监听Clash状态更新
-    ipcRenderer.on('clash-status-update', (event, { status, message }) => {
-      console.log(`[ClashPanel] Clash状态更新: ${status}`, message || '');
-      this.updateClashStatus(status, message);
-    });
-
-    // 监听Clash服务启动错误
-    ipcRenderer.on('clash-service-error', (event, message) => {
-      console.error(`[ClashPanel] Clash服务错误: ${message}`);
-      // 直接用错误消息更新状态
-      this.updateClashStatus('error', message);
-    });
-
-    // 监听代理列表更新
-    ipcRenderer.on('proxy-list-update', (event, proxyList) => {
-      console.log('[ClashPanel] 代理列表更新:', proxyList);
-      this.renderProxyList(proxyList);
-    });
-
-    // 监听代理切换成功
-    ipcRenderer.on('proxy-switched', (event, { groupName, proxyName }) => {
-      console.log(`[ClashPanel] 代理切换成功: ${groupName} => ${proxyName}`);
-      // 重新获取代理列表以更新UI
-      this.fetchProxyList();
-    });
-
-    // 监听代理切换错误
-    ipcRenderer.on('proxy-switch-error', (event, message) => {
-      console.error(`[ClashPanel] 代理切换错误: ${message}`);
-      // 显示错误消息
-      this.updateClashStatus('error', `代理切换失败: ${message}`);
-    });
+    this.unsubscribeProxyListUpdate = window.electronAPI.on(
+      CLASH_EVENTS.PROXY_LIST_UPDATE_PUB,
+      (proxyList) => {
+        console.log('[ClashPanel] 代理列表更新:', proxyList);
+        this.renderProxyList(proxyList);
+      }
+    );
   }
 
   /**
@@ -165,12 +161,20 @@ class ClashPanel {
    * 获取代理列表
    * @private
    */
-  fetchProxyList() {
+  async fetchProxyList() {
     console.log('[ClashPanel] 请求代理列表');
-    ipcRenderer.send('request-proxy-list');
-    
     if (this.nodeList) {
       this.nodeList.innerHTML = '<p class="placeholder-text">正在加载节点列表...</p>';
+    }
+    try {
+      const res = await window.electronAPI.invoke(CLASH_EVENTS.GET_PROXY_LIST_REQ);
+      if (res && res.list) {
+        this.renderProxyList(res.list);
+      } else {
+        this.updateClashStatus('error', res.error || '获取代理列表失败');
+      }
+    } catch (e) {
+      this.updateClashStatus('error', `获取代理列表出错: ${e.message}`);
     }
   }
 
@@ -339,9 +343,19 @@ class ClashPanel {
    * @param {string} proxyName - 代理名称
    * @private
    */
-  switchProxy(groupName, proxyName) {
+  async switchProxy(groupName, proxyName) {
     console.log(`[ClashPanel] 切换代理: ${groupName} => ${proxyName}`);
-    ipcRenderer.send('switch-proxy', { groupName, proxyName });
+    try {
+      const res = await window.electronAPI.invoke(CLASH_EVENTS.SWITCH_PROXY_REQ, groupName, proxyName);
+      if (res && res.message) {
+        this.showToast(`已切换到 ${proxyName}`);
+        this.fetchProxyList(); // 重新获取以更新UI
+      } else {
+        this.updateClashStatus('error', res.error || '切换失败');
+      }
+    } catch (e) {
+      this.updateClashStatus('error', `切换代理出错: ${e.message}`);
+    }
   }
 }
 

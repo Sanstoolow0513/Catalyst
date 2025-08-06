@@ -1,4 +1,3 @@
-const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -35,8 +34,7 @@ class SoftwareInstaller {
    * @private
    */
   setupEventListeners() {
-    // 监听安装状态更新
-    ipcRenderer.on('installation-status', (event, { id, status, message }) => {
+    this.unsubscribeStatus = window.electronAPI.on('installation-status', ({ id, status, message }) => {
       console.log(`[SoftwareInstaller] 安装状态更新: ${id}, ${status}`, message || '');
       this.updateInstallationStatus(id, status, message);
     });
@@ -145,7 +143,7 @@ class SoftwareInstaller {
     }
     
     // 发送安装请求到主进程
-    ipcRenderer.send('install-software', software);
+    window.electronAPI.send('install-software', software);
   }
 
   /**

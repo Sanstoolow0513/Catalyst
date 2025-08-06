@@ -1,6 +1,6 @@
 import React, { useState, useContext, createContext, useEffect } from 'react';
-import { ipcRenderer } from 'electron';
 import CryptoJS from 'crypto-js';
+import ConfigExport from './settings/ConfigExport';
 
 // 创建认证上下文
 const AuthContext = createContext(null);
@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // 从electron-store获取存储的token
-    ipcRenderer.invoke('config:get', 'authToken').then(token => {
+    window.electronAPI.invoke('config:get', 'authToken').then(token => {
       if (token) {
         setToken(token);
         // 这里可以添加验证token有效性的逻辑
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       ).toString();
 
       // 发送登录请求
-      const response = await ipcRenderer.invoke('auth:login:request', {
+      const response = await window.electronAPI.invoke('auth:login:request', {
         username: credentials.username,
         password: encryptedPassword
       });
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         setUser({ username: credentials.username });
         setToken(response.token);
         // 存储token到electron-store
-        ipcRenderer.invoke('config:set', 'authToken', response.token);
+        window.electronAPI.invoke('config:set', 'authToken', response.token);
         return true;
       }
       return false;
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    ipcRenderer.invoke('config:delete', 'authToken');
+    window.electronAPI.invoke('config:delete', 'authToken');
   };
 
   return (
@@ -84,7 +84,7 @@ const SettingsPage = () => {
     reader.onload = async (e) => {
       const configData = e.target.result;
       try {
-        await ipcRenderer.invoke('config:upload:request', configData);
+        await window.electronAPI.invoke('config:upload:request', configData);
         alert('配置上传成功');
       } catch (error) {
         alert('配置上传失败: ' + error.message);
@@ -95,7 +95,7 @@ const SettingsPage = () => {
 
   const handleDownload = async () => {
     try {
-      const configData = await ipcRenderer.invoke('config:download:request');
+      const configData = await window.electronAPI.invoke('config:download:request');
       const blob = new Blob([configData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -154,6 +154,11 @@ const SettingsPage = () => {
         <div>
           <button onClick={handleDownload}>下载配置</button>
         </div>
+      </div>
+
+      <div className="config-export-section" style={{ marginTop: 24 }}>
+        <h2>配置导出与分享</h2>
+        <ConfigExport />
       </div>
     </div>
   );

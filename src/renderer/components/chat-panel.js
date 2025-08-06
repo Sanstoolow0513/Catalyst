@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { LLM_EVENTS } = require('../../shared/ipc-events');
 
 class ChatPanel {
   constructor(options) {
@@ -55,13 +55,17 @@ class ChatPanel {
         this.addMessage('user', message);
         chatInput.value = '';
         
-        ipcRenderer.invoke('llm-send-message', message).then((response) => {
-          if (response.success) {
-            this.addMessage('assistant', response.response);
-          } else {
-            this.addMessage('system', `错误: ${response.message}`);
-          }
-        });
+        window.electronAPI.invoke(LLM_EVENTS.SEND_MESSAGE_REQ, message)
+          .then((response) => {
+            if (response && response.response) {
+              this.addMessage('assistant', response.response);
+            } else {
+              this.addMessage('system', `错误: ${(response && response.error) || '发送失败'}`);
+            }
+          })
+          .catch(err => {
+            this.addMessage('system', `错误: ${err.message}`);
+          });
       }
     });
 
@@ -69,16 +73,21 @@ class ChatPanel {
     setApiKeyBtn.addEventListener('click', () => {
       const apiKey = apiKeyInput.value.trim();
       if (apiKey) {
-        ipcRenderer.invoke('llm-set-apikey', apiKey).then((result) => {
-          if (result.success) {
-            this.apiKey = apiKey;
-            document.getElementById('api-key-status').textContent = 'API密钥: 已设置';
-            this.addMessage('system', 'API密钥设置成功');
-          } else {
-            this.addMessage('system', `设置API密钥失败: ${result.message}`);
-          }
-          apiKeyInput.value = '';
-        });
+        window.electronAPI.invoke(LLM_EVENTS.SET_API_KEY_REQ, apiKey)
+          .then((result) => {
+            if (result && result.ok) {
+              this.apiKey = apiKey;
+              document.getElementById('api-key-status').textContent = 'API密钥: 已设置';
+              this.addMessage('system', 'API密钥设置成功');
+            } else {
+              this.addMessage('system', `设置API密钥失败: ${(result && result.error) || '未知错误'}`);
+            }
+            apiKeyInput.value = '';
+          })
+          .catch(err => {
+            this.addMessage('system', `设置API密钥失败: ${err.message}`);
+            apiKeyInput.value = '';
+          });
       }
     });
 
