@@ -94,7 +94,9 @@ class ClashCoreService {
 
   async downloadMihomoCore(targetPath) {
     const version = "v1.19.10";
-    const zipFilePath = path.join(path.dirname(targetPath), "mihomo.zip");
+    const targetDir = path.dirname(targetPath);
+    await fs.promises.mkdir(targetDir, { recursive: true });
+    const zipFilePath = path.join(targetDir, "mihomo.zip");
     const downloadUrl = `https://github.com/MetaCubeX/mihomo/releases/download/${version}/mihomo-windows-amd64-${version}.zip`;
 
     logger.info('开始下载Mihomo核心', { version, targetPath, downloadUrl });

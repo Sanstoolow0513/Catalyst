@@ -1,5 +1,5 @@
 const { safeStorage } = require('electron');
-const logger = require('../utils/logger');
+const logger = require('../../utils/logger');
 
 class LLMService {
   constructor() {

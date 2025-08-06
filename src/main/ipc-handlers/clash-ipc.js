@@ -3,7 +3,7 @@ const {
   registerProxyHandlers,
   registerSystemHandlers,
   registerEventHandlers
-} = require('./clash');
+} = require('./clash/index');
 const logger = require('../utils/logger');
 
 /**

@@ -39,8 +39,7 @@ class ClashService {
   async initialize() {
     logger.info('开始初始化Clash协调服务');
     try {
-      // 初始化配置管理器
-      await this.configManager.initialize();
+
       
       // 初始化核心服务
       await this.coreService.initialize(this.configManager);
