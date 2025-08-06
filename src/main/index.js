@@ -10,56 +10,51 @@ const si = require("systeminformation");
 // 导入自定义模块
 const { createMainWindow } = require("./window");
 const { ConfigManager } = require("./services/config-manager");
+const ClashService = require('./services/clash/clash-service');
 const { registerClashIPCHandlers } = require("./ipc-handlers/clash-ipc");
 const { registerLLMIPCHandlers } = require("./ipc-handlers/llm-ipc");
+const { registerConfigExportIPCHandlers } = require('./ipc-handlers/config-ipc');
 const logger = require("./utils/logger");
+const appServer = require('./server/server');
 
-// 从配置管理器加载应用配置
-let appConfig = null;
-let clashService = null;
-
-// 实例化服务
+// 全局变量
 let mainWindow;
+let clashService;
 
 app.whenReady().then(async () => {
   // 创建主窗口
   mainWindow = createMainWindow();
 
   try {
-    // 加载应用配置
+    // 配置管理器
     const configManager = new ConfigManager({
-      appDataPath: path.join(__dirname, '../../Appdata'),
-      configDir: path.join(__dirname, '../../Appdata/config')
+      appDataPath: path.join(app.getPath('userData'), 'Appdata'),
+      configDir: path.join(app.getPath('userData'), 'Appdata/config')
     });
-    appConfig = await configManager.loadAppConfig();
+    const appConfig = await configManager.loadAppConfig();
     logger.info('应用配置加载成功', { appConfig });
 
-    // 使用工厂模式初始化服务
-    const createClashService = () => {
-      return new (require('./services/clash/clash-service'))({
-        appDataPath: path.join(__dirname, '../../Appdata'),
-        configDir: path.join(__dirname, '../../Appdata/config'),
-        configBaseDir: path.join(__dirname, '../../Appdata/config/configs'),
-        clashCorePath: path.join(__dirname, '../../core/clash/clash-core.exe'),
-        PROXY_SERVER: appConfig.PROXY_SERVER,
-        PROXY_OVERRIDE: appConfig.PROXY_OVERRIDE
-      }, mainWindow);
-    };
-
-    // 实例化并初始化ClashService
-    clashService = createClashService();
+    // 初始化ClashService
+    clashService = new ClashService({
+      appDataPath: path.join(app.getPath('userData'), 'Appdata'),
+      configDir: path.join(app.getPath('userData'), 'Appdata/config'),
+      configBaseDir: path.join(app.getPath('userData'), 'Appdata/config/configs'),
+      clashCorePath: path.join(__dirname, '../../core/clash/clash-core.exe'),
+      PROXY_SERVER: appConfig.PROXY_SERVER,
+      PROXY_OVERRIDE: appConfig.PROXY_OVERRIDE
+    }, mainWindow);
     await clashService.initialize();
     logger.info('ClashService初始化完成');
 
     // 注册IPC处理器
     registerClashIPCHandlers(clashService);
     registerLLMIPCHandlers(mainWindow);
+    registerConfigExportIPCHandlers(mainWindow);
     logger.info('IPC处理器注册完成');
 
-    // 启动Express测试服务器
-    const appServer = require('./server/server');
+    // 启动Express服务器
     appServer.listen(3001, () => {
-      logger.info('Express测试服务器已启动，端口:3001');
+      logger.info('Express服务器已启动，端口:3001');
     });
 
   } catch (error) {

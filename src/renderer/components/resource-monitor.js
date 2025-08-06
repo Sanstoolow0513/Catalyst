@@ -1,4 +1,3 @@
-const { ipcRenderer } = require('electron');
 
 /**
  * 资源监控组件类
@@ -39,13 +38,11 @@ class ResourceMonitor {
    * @private
    */
   setupEventListeners() {
-    // 监听资源数据更新
-    ipcRenderer.on('resource-monitor-data', (event, data) => {
+    this.unsubscribeData = window.electronAPI.on('resource-monitor-data', (data) => {
       this.updateDisplay(data);
     });
 
-    // 监听资源监控错误
-    ipcRenderer.on('resource-monitor-error', (event, error) => {
+    this.unsubscribeError = window.electronAPI.on('resource-monitor-error', (error) => {
       console.error('[ResourceMonitor] 资源监控错误:', error);
     });
 
@@ -83,7 +80,7 @@ class ResourceMonitor {
     }, this.updateInterval);
     
     // 告诉主进程开始监控
-    ipcRenderer.send('start-resource-monitor', { interval: this.updateInterval });
+    window.electronAPI.send('start-resource-monitor', { interval: this.updateInterval });
   }
 
   /**
@@ -99,7 +96,7 @@ class ResourceMonitor {
     this.interval = null;
     
     // 告诉主进程停止监控
-    ipcRenderer.send('stop-resource-monitor');
+    window.electronAPI.send('stop-resource-monitor');
   }
 
   /**
@@ -107,7 +104,7 @@ class ResourceMonitor {
    * @private
    */
   requestData() {
-    ipcRenderer.send('get-resource-data');
+    window.electronAPI.send('get-resource-data');
   }
 
   /**

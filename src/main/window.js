@@ -10,10 +10,11 @@ function createMainWindow() {
     frame: false,
     titleBarStyle: 'hidden',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
       webviewTag: true,
-      devTools: false
+      devTools: process.env.NODE_ENV === 'development',
+      preload: path.join(__dirname, 'preload.js')
     },
   });
 

@@ -1,4 +1,3 @@
-const { ipcRenderer } = require('electron');
 
 /**
  * 系统信息组件类
@@ -31,13 +30,11 @@ class SystemInfo {
    * @private
    */
   setupEventListeners() {
-    // 监听系统信息响应
-    ipcRenderer.on('system-info-data', (event, data) => {
+    this.unsubscribeData = window.electronAPI.on('system-info-data', (data) => {
       this.displaySystemInfo(data);
     });
 
-    // 监听系统信息错误
-    ipcRenderer.on('system-info-error', (event, error) => {
+    this.unsubscribeError = window.electronAPI.on('system-info-error', (error) => {
       console.error('[SystemInfo] 获取系统信息失败:', error);
       if (this.container) {
         this.container.innerHTML = `<p style="color: var(--accent-error);">获取系统信息失败: ${error}</p>`;
@@ -51,7 +48,7 @@ class SystemInfo {
    */
   requestSystemInfo() {
     console.log('[SystemInfo] 请求系统信息数据');
-    ipcRenderer.send('get-system-info');
+    window.electronAPI.send('get-system-info');
 
     // 显示加载指示器
     if (this.container) {

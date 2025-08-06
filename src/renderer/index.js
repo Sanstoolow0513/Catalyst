@@ -6,7 +6,6 @@ import { HomePage } from './pages/HomePage';
 import { ChatPage } from './pages/ChatPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NavBar } from './layouts/NavBar';
-import { ipcRenderer } from 'electron';
 import './styles/global.css';
 
 console.log('[renderer] React应用开始初始化');
