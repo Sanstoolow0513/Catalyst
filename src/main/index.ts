@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron'
 import path from 'path'
+import { registerMihomoIpcHandlers } from './ipc-handlers/mihomo-ipc'
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -17,6 +18,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
   createWindow()
+  registerMihomoIpcHandlers()
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
