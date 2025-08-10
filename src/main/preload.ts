@@ -1,2 +1,10 @@
-// All of the Node.js APIs are available in the preload process.
-// It has the same sandbox as a Chrome extension.
+import { contextBridge, ipcRenderer } from 'electron'
+import { IPC_EVENTS } from '../shared/ipc-events'
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  mihomo: {
+    start: () => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_START),
+    stop: () => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_STOP),
+    status: () => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_STATUS),
+  }
+})
