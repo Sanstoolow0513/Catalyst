@@ -1,88 +1,125 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { PageContainer, Button, Card, StatusIndicator } from '../components/common';
 
-const PageContainer = styled.div`
-  padding: 1rem;
+const Title = styled.h2`
+  margin: 0 0 20px 0;
+  color: ${({ theme }) => theme.textPrimary}; /* 使用新的 textPrimary */
+  font-size: 1.8rem;
 `;
 
-const StatusIndicator = styled.div<{ isRunning: boolean }>`
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  border-radius: 4px;
-  background-color: ${({ isRunning }) => (isRunning ? '#4CAF50' : '#F44336')};
-  color: white;
+const StatusCardContent = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
   font-weight: bold;
+  color: ${({ theme }) => theme.textPrimary}; /* 使用新的 textPrimary */
 `;
 
-const Button = styled.button`
-  background-color: ${({ theme }) => theme.accent};
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-right: 1rem;
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
 `;
 
 const SystemProxyPage = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const checkStatus = async () => {
-    const status = await window.electronAPI.mihomo.status();
-    setIsRunning(status.isRunning);
-    setIsLoading(false);
-  };
+  const [apiAvailable, setApiAvailable] = useState(false);
 
   useEffect(() => {
-    checkStatus();
+    if (window.electronAPI && window.electronAPI.mihomo) {
+      setApiAvailable(true);
+      checkStatus();
+    } else {
+      console.error('Electron API for Mihomo is not available.');
+      setIsLoading(false);
+    }
   }, []);
 
-  const handleStart = async () => {
+  const checkStatus = async () => {
+    if (!apiAvailable) return;
     setIsLoading(true);
-    const result = await window.electronAPI.mihomo.start();
-    if (!result.success) {
-      alert(`Failed to start Mihomo: ${result.error}`);
+    try {
+      const status = await window.electronAPI.mihomo.status();
+      setIsRunning(status.isRunning);
+    } catch (error) {
+      console.error('Error checking Mihomo status:', error);
+      // Optionally set an error message for the user
+    } finally {
+      setIsLoading(false);
     }
-    await checkStatus();
+  };
+
+  const handleStart = async () => {
+    if (!apiAvailable) return;
+    setIsLoading(true);
+    try {
+      const result = await window.electronAPI.mihomo.start();
+      if (!result.success) {
+        alert(`Failed to start Mihomo: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error starting Mihomo:', error);
+      alert('An error occurred while trying to start Mihomo.');
+    } finally {
+      await checkStatus();
+    }
   };
 
   const handleStop = async () => {
+    if (!apiAvailable) return;
     setIsLoading(true);
-    const result = await window.electronAPI.mihomo.stop();
-    if (!result.success) {
-      alert(`Failed to stop Mihomo: ${result.error}`);
+    try {
+      const result = await window.electronAPI.mihomo.stop();
+      if (!result.success) {
+        alert(`Failed to stop Mihomo: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error stopping Mihomo:', error);
+      alert('An error occurred while trying to stop Mihomo.');
+    } finally {
+      await checkStatus();
     }
-    await checkStatus();
   };
 
   return (
     <PageContainer>
-      <h2>System Proxy (Mihomo)</h2>
-      {isLoading ? (
-        <p>Loading status...</p>
+      <Title>System Proxy (Mihomo)</Title>
+      {!apiAvailable ? (
+        <Card $padding="20px" $margin="0 0 20px 0">
+          <StatusCardContent>
+            <StatusIndicator $status="error" />
+            Electron API for Mihomo is not available. Please restart the application.
+          </StatusCardContent>
+        </Card>
       ) : (
-        <>
-          <StatusIndicator isRunning={isRunning}>
-            {isRunning ? 'Mihomo is Running' : 'Mihomo is Stopped'}
-          </StatusIndicator>
-          <Button onClick={handleStart} disabled={isRunning || isLoading}>
-            Start
-          </Button>
-          <Button onClick={handleStop} disabled={!isRunning || isLoading}>
-            Stop
-          </Button>
-        </>
+        isLoading ? (
+          <Card $padding="20px" $margin="0 0 20px 0">
+            <StatusCardContent>
+              <StatusIndicator $status="info" />
+              Loading status...
+            </StatusCardContent>
+          </Card>
+        ) : (
+          <>
+            <Card $padding="20px" $margin="0 0 20px 0">
+              <StatusCardContent>
+                <StatusIndicator $status={isRunning ? 'success' : 'error'} />
+                {isRunning ? 'Mihomo is Running' : 'Mihomo is Stopped'}
+              </StatusCardContent>
+            </Card>
+            <ButtonGroup>
+              <Button onClick={handleStart} disabled={isRunning || isLoading} variant="primary">
+                Start
+              </Button>
+              <Button onClick={handleStop} disabled={!isRunning || isLoading} variant="danger">
+                Stop
+              </Button>
+            </ButtonGroup>
+          </>
+        )
       )}
     </PageContainer>
   );

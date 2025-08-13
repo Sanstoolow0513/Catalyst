@@ -1,25 +1,73 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
+import TitleBar from '../components/common/TitleBar';
 
-const LayoutContainer = styled.div`
+const LayoutContainer = styled(motion.div)`
   display: flex;
+  flex-direction: column;
   height: 100vh;
-  background-color: ${({ theme }) => theme.body};
-  color: ${({ theme }) => theme.text};
-  transition: all 0.25s linear;
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.textPrimary};
+  transition: all ${props => props.theme.transition.normal} ease-in-out;
+  overflow: hidden;
 `;
 
-const Content = styled.main`
+const MainContent = styled(motion.div)`
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+`;
+
+const Content = styled(motion.main)`
   flex-grow: 1;
-  padding: 2rem;
+  overflow-y: auto;
+  padding: 24px;
+  background-color: ${props => props.theme.background};
+  
+  /* 自定义滚动条 */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: ${props => props.theme.surfaceVariant};
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: ${props => props.theme.border};
+    border-radius: 4px;
+    
+    &:hover {
+      background: ${props => props.theme.textTertiary};
+    }
+  }
 `;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <LayoutContainer>
-      <Sidebar />
-      <Content>{children}</Content>
+    <LayoutContainer
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <TitleBar />
+      <MainContent
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.4 }}
+      >
+        <Sidebar />
+        <Content
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+        >
+          {children}
+        </Content>
+      </MainContent>
     </LayoutContainer>
   );
 };
