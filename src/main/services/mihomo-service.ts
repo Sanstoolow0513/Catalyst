@@ -2,13 +2,33 @@ import { spawn, ChildProcess } from 'child_process';
 import { app } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import yaml from 'js-yaml';
 
+/**
+ * MihomoService 类负责管理 Mihomo 核心进程的启动、停止和配置管理。
+ * 它提供了与 Mihomo 进程交互的方法，包括加载和保存配置文件。
+ */
 class MihomoService {
   private static instance: MihomoService;
   private mihomoProcess: ChildProcess | null = null;
+  private configPath: string;
 
-  private constructor() {}
+  /**
+   * 私有构造函数，确保单例模式。
+   * 初始化配置文件路径，并在文件不存在时创建默认配置。
+   */
+  private constructor() {
+    this.configPath = path.join(app.getPath('userData'), 'mihomo_config.yaml');
+    // 确保配置文件存在
+    if (!fs.existsSync(this.configPath)) {
+      this.createDefaultConfig();
+    }
+  }
 
+  /**
+   * 获取 MihomoService 的单例实例。
+   * @returns MihomoService 的单例实例。
+   */
   public static getInstance(): MihomoService {
     if (!MihomoService.instance) {
       MihomoService.instance = new MihomoService();
@@ -16,6 +36,11 @@ class MihomoService {
     return MihomoService.instance;
   }
 
+  /**
+   * 获取 Mihomo 可执行文件的路径。
+   * 在开发环境和生产环境中路径不同。
+   * @returns Mihomo 可执行文件的完整路径。
+   */
   private getMihomoPath(): string {
     // 在开发环境中，我们期望 mihomo.exe 在项目根目录的 resources 文件夹下
     if (!app.isPackaged) {
@@ -27,6 +52,88 @@ class MihomoService {
     return path.resolve(path.dirname(app.getAppPath()), 'resources', 'mihomo.exe');
   }
 
+  /**
+   * 创建默认的 Mihomo 配置文件。
+   * 当配置文件不存在时，会调用此方法创建一个带有基本配置的文件。
+   */
+  private createDefaultConfig(): void {
+    const defaultConfig = {
+      port: 7890,
+      'socks-port': 7891,
+      'redir-port': 7892,
+      'mixed-port': 7893,
+      'allow-lan': false,
+      mode: 'rule',
+      'log-level': 'info',
+      ipv6: false,
+      'external-controller': '127.0.0.1:9090',
+      proxies: [],
+      'proxy-groups': [],
+      rules: []
+    };
+
+    try {
+      fs.writeFileSync(this.configPath, yaml.dump(defaultConfig), 'utf8');
+      console.log(`[MihomoService] Default config created at: ${this.configPath}`);
+    } catch (error) {
+      console.error(`[MihomoService] Failed to create default config: ${error}`);
+    }
+  }
+
+  /**
+   * 获取配置文件的路径。
+   * @returns 配置文件的完整路径。
+   */
+  public getConfigPath(): string {
+    return this.configPath;
+  }
+
+  /**
+   * 从文件系统加载 Mihomo 配置。
+   * @returns 一个 Promise，解析为配置对象。
+   */
+  public loadConfig(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      fs.readFile(this.configPath, 'utf8', (err, data) => {
+        if (err) {
+          console.error(`[MihomoService] Failed to read config file: ${err}`);
+          return reject(err);
+        }
+        
+        try {
+          const config = yaml.load(data);
+          resolve(config);
+        } catch (parseError) {
+          console.error(`[MihomoService] Failed to parse config file: ${parseError}`);
+          reject(parseError);
+        }
+      });
+    });
+  }
+
+  /**
+   * 将配置保存到文件系统。
+   * @param config 要保存的配置对象。
+   * @returns 一个 Promise，在保存成功时解析。
+   */
+  public saveConfig(config: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const yamlStr = yaml.dump(config);
+      fs.writeFile(this.configPath, yamlStr, 'utf8', (err) => {
+        if (err) {
+          console.error(`[MihomoService] Failed to write config file: ${err}`);
+          return reject(err);
+        }
+        console.log(`[MihomoService] Config saved to: ${this.configPath}`);
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * 启动 Mihomo 进程。
+   * @returns 一个 Promise，在启动成功时解析。
+   */
   public start(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.mihomoProcess) {
@@ -44,8 +151,10 @@ class MihomoService {
 
       console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
 
+      // 将配置文件路径传递给 Mihomo
       this.mihomoProcess = spawn(mihomoPath, [
-        // 示例: '-d', path.join(app.getPath('userData'), 'mihomo_config')
+        '-d', path.dirname(this.configPath), // 指定配置文件目录
+        '-f', path.basename(this.configPath)  // 指定配置文件名
       ]);
 
       this.mihomoProcess.stdout?.on('data', (data) => {
@@ -80,6 +189,10 @@ class MihomoService {
     });
   }
 
+  /**
+   * 停止 Mihomo 进程。
+   * @returns 一个 Promise，在停止成功时解析。
+   */
   public stop(): Promise<void> {
     return new Promise((resolve) => {
       if (this.mihomoProcess && !this.mihomoProcess.killed) {
@@ -97,6 +210,10 @@ class MihomoService {
     });
   }
 
+  /**
+   * 检查 Mihomo 进程是否正在运行。
+   * @returns 如果进程正在运行则返回 true，否则返回 false。
+   */
   public isRunning(): boolean {
     return this.mihomoProcess !== null;
   }

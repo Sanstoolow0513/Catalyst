@@ -1,0 +1,272 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { useTheme } from '../../contexts/ThemeContext';
+import styled from 'styled-components';
+import { 
+  Minimize as MinimizeIcon, 
+  Maximize as MaximizeIcon, 
+  X as CloseIcon,
+  Search as SearchIcon,
+  Settings as SettingsIcon,
+  User as UserIcon
+} from 'lucide-react';
+
+const TitleBarContainer = styled(motion.div)`
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background-color: ${props => props.theme.titleBar.background};
+  -webkit-app-region: drag;
+  border-bottom: 1px solid ${props => props.theme.titleBar.border};
+  transition: all ${props => props.theme.transition.normal} ease;
+  backdrop-filter: blur(10px);
+  background-color: ${props => props.theme.titleBar.background}cc;
+`;
+
+const LeftSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  -webkit-app-region: drag;
+`;
+
+const AppLogo = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  color: ${props => props.theme.titleBar.text};
+`;
+
+const LogoIcon = styled.div`
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, ${props => props.theme.primary.main}, ${props => props.theme.accent.main});
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+`;
+
+const SearchContainer = styled(motion.div)`
+  position: relative;
+  -webkit-app-region: no-drag;
+`;
+
+const SearchInput = styled.input`
+  padding: 8px 12px 8px 36px;
+  border-radius: 8px;
+  border: 1px solid ${props => props.theme.input.border};
+  background-color: ${props => props.theme.input.background};
+  color: ${props => props.theme.input.text};
+  width: 240px;
+  font-size: 14px;
+  transition: all ${props => props.theme.transition.normal} ease;
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => props.theme.input.borderFocus};
+    box-shadow: 0 0 0 3px ${props => props.theme.primary.main}20;
+  }
+  
+  &::placeholder {
+    color: ${props => props.theme.input.placeholder};
+  }
+`;
+
+const SearchIconWrapper = styled.div`
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${props => props.theme.titleBar.icon};
+  pointer-events: none;
+`;
+
+const RightSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  -webkit-app-region: no-drag;
+`;
+
+const ActionButton = styled(motion.button)`
+  background: none;
+  border: none;
+  color: ${props => props.theme.titleBar.icon};
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all ${props => props.theme.transition.fast} ease;
+  
+  &:hover {
+    background-color: ${props => props.theme.surfaceVariant};
+    color: ${props => props.theme.titleBar.iconHover};
+  }
+`;
+
+const WindowControls = styled.div`
+  display: flex;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+`;
+
+const WindowButton = styled(motion.button)<{ variant: 'minimize' | 'maximize' | 'close' }>`
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all ${props => props.theme.transition.fast} ease;
+  
+  ${props => {
+    switch (props.variant) {
+      case 'minimize':
+        return `
+          color: ${props.theme.titleBar.icon};
+          &:hover {
+            background-color: ${props.theme.surfaceVariant};
+            color: ${props.theme.titleBar.iconHover};
+          }
+        `;
+      case 'maximize':
+        return `
+          color: ${props.theme.titleBar.icon};
+          &:hover {
+            background-color: ${props.theme.surfaceVariant};
+            color: ${props.theme.titleBar.iconHover};
+          }
+        `;
+      case 'close':
+        return `
+          color: ${props.theme.titleBar.icon};
+          &:hover {
+            background-color: ${props.theme.error.main};
+            color: white;
+          }
+        `;
+      default:
+        return '';
+    }
+  }}
+`;
+
+const TitleBar: React.FC = () => {
+  const { theme } = useTheme();
+
+  const handleMinimize = () => {
+    window.electronAPI?.windowControl.minimize();
+  };
+
+  const handleMaximize = () => {
+    window.electronAPI?.windowControl.maximize();
+  };
+
+  const handleClose = () => {
+    window.electronAPI?.windowControl.close();
+  };
+
+  return (
+    <TitleBarContainer
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      theme={theme}
+    >
+      <LeftSection>
+        <AppLogo
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <LogoIcon theme={theme}>C</LogoIcon>
+          <span>Catalyst</span>
+        </AppLogo>
+        
+        <SearchContainer
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
+          <SearchIconWrapper theme={theme}>
+            <SearchIcon size={16} />
+          </SearchIconWrapper>
+          <SearchInput 
+            placeholder="搜索功能、设置..." 
+            theme={theme}
+          />
+        </SearchContainer>
+      </LeftSection>
+      
+      <RightSection>
+        <ActionButton
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          title="设置"
+          theme={theme}
+        >
+          <SettingsIcon size={18} />
+        </ActionButton>
+        
+        <ActionButton
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          title="用户"
+          theme={theme}
+        >
+          <UserIcon size={18} />
+        </ActionButton>
+        
+        <WindowControls>
+          <WindowButton
+            variant="minimize"
+            onClick={handleMinimize}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            title="最小化"
+            theme={theme}
+          >
+            <MinimizeIcon size={16} />
+          </WindowButton>
+          
+          <WindowButton
+            variant="maximize"
+            onClick={handleMaximize}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            title="最大化"
+            theme={theme}
+          >
+            <MaximizeIcon size={16} />
+          </WindowButton>
+          
+          <WindowButton
+            variant="close"
+            onClick={handleClose}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            title="关闭"
+            theme={theme}
+          >
+            <CloseIcon size={16} />
+          </WindowButton>
+        </WindowControls>
+      </RightSection>
+    </TitleBarContainer>
+  );
+};
+
+export default TitleBar;
