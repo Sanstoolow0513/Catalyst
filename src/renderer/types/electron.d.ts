@@ -8,6 +8,8 @@ export interface IMihomoAPI {
   saveConfig: (config: any) => Promise<{ success: boolean; error?: string }>;
   getConfigPath: () => Promise<{ success: boolean; data?: string; error?: string }>;
   openConfigDir: () => Promise<{ success: boolean; error?: string }>;
+  getProxies: () => Promise<{ success: boolean; data?: any; error?: string }>;
+  selectProxy: (groupName: string, proxyName: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 // Mihomo 配置类型定义

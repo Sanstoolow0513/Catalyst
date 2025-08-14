@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { PageContainer, Button, Card, StatusIndicator } from '../components/common';
+import ProxyGroupManager from '../components/ProxyGroupManager';
 
 const Title = styled.h2`
   margin: 0 0 20px 0;
@@ -88,7 +89,7 @@ const SystemProxyPage = () => {
     <PageContainer>
       <Title>System Proxy (Mihomo)</Title>
       {!apiAvailable ? (
-        <Card $padding="20px" $margin="0 0 20px 0">
+        <Card $padding="medium">
           <StatusCardContent>
             <StatusIndicator $status="error" />
             Electron API for Mihomo is not available. Please restart the application.
@@ -96,7 +97,7 @@ const SystemProxyPage = () => {
         </Card>
       ) : (
         isLoading ? (
-          <Card $padding="20px" $margin="0 0 20px 0">
+          <Card $padding="medium">
             <StatusCardContent>
               <StatusIndicator $status="info" />
               Loading status...
@@ -104,7 +105,7 @@ const SystemProxyPage = () => {
           </Card>
         ) : (
           <>
-            <Card $padding="20px" $margin="0 0 20px 0">
+            <Card $padding="medium">
               <StatusCardContent>
                 <StatusIndicator $status={isRunning ? 'success' : 'error'} />
                 {isRunning ? 'Mihomo is Running' : 'Mihomo is Stopped'}
@@ -120,6 +121,14 @@ const SystemProxyPage = () => {
             </ButtonGroup>
           </>
         )
+      )}
+      
+      {/* 代理组管理 */}
+      {isRunning && (
+        <div style={{ marginTop: '30px' }}>
+          <h3>代理组管理</h3>
+          <ProxyGroupManager />
+        </div>
       )}
     </PageContainer>
   );

@@ -69,4 +69,24 @@ export function registerMihomoIpcHandlers() {
       return { success: false, error: (error as Error).message };
     }
   });
+
+  ipcMain.handle(IPC_EVENTS.MIHOMO_GET_PROXIES, async () => {
+    try {
+      const proxies = await mihomoService.getProxies();
+      return { success: true, data: proxies };
+    } catch (error) {
+      console.error('Failed to get proxies:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle(IPC_EVENTS.MIHOMO_SELECT_PROXY, async (_event, groupName: string, proxyName: string) => {
+    try {
+      await mihomoService.selectProxy(groupName, proxyName);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to select proxy:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
 }

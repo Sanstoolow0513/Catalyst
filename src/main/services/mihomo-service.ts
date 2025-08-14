@@ -3,6 +3,7 @@ import { app } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import yaml from 'js-yaml';
+import axios, { AxiosInstance } from 'axios';
 
 /**
  * MihomoService 类负责管理 Mihomo 核心进程的启动、停止和配置管理。
@@ -12,6 +13,7 @@ class MihomoService {
   private static instance: MihomoService;
   private mihomoProcess: ChildProcess | null = null;
   private configPath: string;
+  private apiClient: AxiosInstance;
 
   /**
    * 私有构造函数，确保单例模式。
@@ -23,6 +25,12 @@ class MihomoService {
     if (!fs.existsSync(this.configPath)) {
       this.createDefaultConfig();
     }
+    
+    // 初始化 API 客户端
+    this.apiClient = axios.create({
+      baseURL: 'http://127.0.0.1:9090', // 默认外部控制器地址
+      timeout: 5000
+    });
   }
 
   /**
@@ -216,6 +224,37 @@ class MihomoService {
    */
   public isRunning(): boolean {
     return this.mihomoProcess !== null;
+  }
+
+  /**
+   * 获取所有代理和策略组信息
+   * @returns 一个 Promise，解析为代理和策略组信息对象
+   */
+  public async getProxies(): Promise<any> {
+    try {
+      const response = await this.apiClient.get('/proxies');
+      return response.data;
+    } catch (error) {
+      console.error('[MihomoService] Failed to get proxies:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 选择代理组中的特定代理
+   * @param groupName 代理组名称
+   * @param proxyName 代理节点名称
+   * @returns 一个 Promise，在选择成功时解析
+   */
+  public async selectProxy(groupName: string, proxyName: string): Promise<void> {
+    try {
+      await this.apiClient.put(`/proxies/${encodeURIComponent(groupName)}`, {
+        name: proxyName
+      });
+    } catch (error) {
+      console.error('[MihomoService] Failed to select proxy:', error);
+      throw error;
+    }
   }
 }
 

@@ -8,6 +8,9 @@ const IPC_EVENTS = {
   MIHOMO_SAVE_CONFIG: "mihomo:save-config",
   MIHOMO_GET_CONFIG_PATH: "mihomo:get-config-path",
   MIHOMO_OPEN_CONFIG_DIR: "mihomo:open-config-dir",
+  // Mihomo 代理组相关事件
+  MIHOMO_GET_PROXIES: "mihomo:get-proxies",
+  MIHOMO_SELECT_PROXY: "mihomo:select-proxy",
   // 开发环境相关事件
   DEV_ENV_INSTALL_VSCODE: "dev-env:install-vscode",
   DEV_ENV_INSTALL_NODEJS: "dev-env:install-nodejs",
@@ -31,7 +34,9 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
     loadConfig: () => electron.ipcRenderer.invoke(IPC_EVENTS.MIHOMO_LOAD_CONFIG),
     saveConfig: (config) => electron.ipcRenderer.invoke(IPC_EVENTS.MIHOMO_SAVE_CONFIG, config),
     getConfigPath: () => electron.ipcRenderer.invoke(IPC_EVENTS.MIHOMO_GET_CONFIG_PATH),
-    openConfigDir: () => electron.ipcRenderer.invoke(IPC_EVENTS.MIHOMO_OPEN_CONFIG_DIR)
+    openConfigDir: () => electron.ipcRenderer.invoke(IPC_EVENTS.MIHOMO_OPEN_CONFIG_DIR),
+    getProxies: () => electron.ipcRenderer.invoke(IPC_EVENTS.MIHOMO_GET_PROXIES),
+    selectProxy: (groupName, proxyName) => electron.ipcRenderer.invoke(IPC_EVENTS.MIHOMO_SELECT_PROXY, groupName, proxyName)
   },
   llm: {
     generateCompletion: (request) => electron.ipcRenderer.invoke(IPC_EVENTS.LLM_GENERATE_COMPLETION, request),
