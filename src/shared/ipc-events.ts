@@ -8,6 +8,10 @@ export const IPC_EVENTS = {
   MIHOMO_GET_CONFIG_PATH: 'mihomo:get-config-path',
   MIHOMO_OPEN_CONFIG_DIR: 'mihomo:open-config-dir',
   
+  // Mihomo 代理组相关事件
+  MIHOMO_GET_PROXIES: 'mihomo:get-proxies',
+  MIHOMO_SELECT_PROXY: 'mihomo:select-proxy',
+  
   // 开发环境相关事件
   DEV_ENV_INSTALL_VSCODE: 'dev-env:install-vscode',
   DEV_ENV_INSTALL_NODEJS: 'dev-env:install-nodejs',

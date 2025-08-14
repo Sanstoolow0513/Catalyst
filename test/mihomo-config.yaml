@@ -1,0 +1,44 @@
+# 测试配置文件
+mixed-port: 7890
+allow-lan: true
+mode: rule
+log-level: info
+external-controller: '127.0.0.1:9090'
+
+proxies:
+  - name: "测试代理1"
+    type: ss
+    server: example.com
+    port: 8388
+    cipher: aes-256-gcm
+    password: "test-password"
+    udp: true
+
+  - name: "测试代理2"
+    type: vmess
+    server: example2.com
+    port: 443
+    uuid: "test-uuid"
+    alterId: 0
+    cipher: auto
+    tls: true
+
+proxy-groups:
+  - name: "手动选择"
+    type: select
+    proxies:
+      - "测试代理1"
+      - "测试代理2"
+
+  - name: "自动选择"
+    type: url-test
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+    proxies:
+      - "测试代理1"
+      - "测试代理2"
+
+rules:
+  - 'DOMAIN-SUFFIX,local,DIRECT'
+  - 'IP-CIDR,127.0.0.0/8,DIRECT'
+  - 'MATCH,手动选择'

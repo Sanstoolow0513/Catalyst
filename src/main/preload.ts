@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveConfig: (config: any) => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_SAVE_CONFIG, config),
     getConfigPath: () => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_GET_CONFIG_PATH),
     openConfigDir: () => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_OPEN_CONFIG_DIR),
+    getProxies: () => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_GET_PROXIES),
+    selectProxy: (groupName: string, proxyName: string) =>
+      ipcRenderer.invoke(IPC_EVENTS.MIHOMO_SELECT_PROXY, groupName, proxyName),
   },
   
   llm: {

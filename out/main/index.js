@@ -29,6 +29,9 @@ const IPC_EVENTS = {
   MIHOMO_SAVE_CONFIG: "mihomo:save-config",
   MIHOMO_GET_CONFIG_PATH: "mihomo:get-config-path",
   MIHOMO_OPEN_CONFIG_DIR: "mihomo:open-config-dir",
+  // Mihomo 代理组相关事件
+  MIHOMO_GET_PROXIES: "mihomo:get-proxies",
+  MIHOMO_SELECT_PROXY: "mihomo:select-proxy",
   // 开发环境相关事件
   DEV_ENV_INSTALL_VSCODE: "dev-env:install-vscode",
   DEV_ENV_INSTALL_NODEJS: "dev-env:install-nodejs",
@@ -2658,253 +2661,6 @@ var jsYaml = {
   safeLoadAll,
   safeDump
 };
-class MihomoService {
-  static instance;
-  mihomoProcess = null;
-  configPath;
-  /**
-   * 私有构造函数，确保单例模式。
-   * 初始化配置文件路径，并在文件不存在时创建默认配置。
-   */
-  constructor() {
-    this.configPath = path.join(electron.app.getPath("userData"), "mihomo_config.yaml");
-    if (!fs.existsSync(this.configPath)) {
-      this.createDefaultConfig();
-    }
-  }
-  /**
-   * 获取 MihomoService 的单例实例。
-   * @returns MihomoService 的单例实例。
-   */
-  static getInstance() {
-    if (!MihomoService.instance) {
-      MihomoService.instance = new MihomoService();
-    }
-    return MihomoService.instance;
-  }
-  /**
-   * 获取 Mihomo 可执行文件的路径。
-   * 在开发环境和生产环境中路径不同。
-   * @returns Mihomo 可执行文件的完整路径。
-   */
-  getMihomoPath() {
-    if (!electron.app.isPackaged) {
-      return path.resolve(electron.app.getAppPath(), "resources", "mihomo.exe");
-    }
-    return path.resolve(path.dirname(electron.app.getAppPath()), "resources", "mihomo.exe");
-  }
-  /**
-   * 创建默认的 Mihomo 配置文件。
-   * 当配置文件不存在时，会调用此方法创建一个带有基本配置的文件。
-   */
-  createDefaultConfig() {
-    const defaultConfig = {
-      port: 7890,
-      "socks-port": 7891,
-      "redir-port": 7892,
-      "mixed-port": 7893,
-      "allow-lan": false,
-      mode: "rule",
-      "log-level": "info",
-      ipv6: false,
-      "external-controller": "127.0.0.1:9090",
-      proxies: [],
-      "proxy-groups": [],
-      rules: []
-    };
-    try {
-      fs.writeFileSync(this.configPath, jsYaml.dump(defaultConfig), "utf8");
-      console.log(`[MihomoService] Default config created at: ${this.configPath}`);
-    } catch (error) {
-      console.error(`[MihomoService] Failed to create default config: ${error}`);
-    }
-  }
-  /**
-   * 获取配置文件的路径。
-   * @returns 配置文件的完整路径。
-   */
-  getConfigPath() {
-    return this.configPath;
-  }
-  /**
-   * 从文件系统加载 Mihomo 配置。
-   * @returns 一个 Promise，解析为配置对象。
-   */
-  loadConfig() {
-    return new Promise((resolve2, reject) => {
-      fs.readFile(this.configPath, "utf8", (err, data) => {
-        if (err) {
-          console.error(`[MihomoService] Failed to read config file: ${err}`);
-          return reject(err);
-        }
-        try {
-          const config = jsYaml.load(data);
-          resolve2(config);
-        } catch (parseError) {
-          console.error(`[MihomoService] Failed to parse config file: ${parseError}`);
-          reject(parseError);
-        }
-      });
-    });
-  }
-  /**
-   * 将配置保存到文件系统。
-   * @param config 要保存的配置对象。
-   * @returns 一个 Promise，在保存成功时解析。
-   */
-  saveConfig(config) {
-    return new Promise((resolve2, reject) => {
-      const yamlStr = jsYaml.dump(config);
-      fs.writeFile(this.configPath, yamlStr, "utf8", (err) => {
-        if (err) {
-          console.error(`[MihomoService] Failed to write config file: ${err}`);
-          return reject(err);
-        }
-        console.log(`[MihomoService] Config saved to: ${this.configPath}`);
-        resolve2();
-      });
-    });
-  }
-  /**
-   * 启动 Mihomo 进程。
-   * @returns 一个 Promise，在启动成功时解析。
-   */
-  start() {
-    return new Promise((resolve2, reject) => {
-      if (this.mihomoProcess) {
-        console.log("[MihomoService] Mihomo is already running.");
-        return resolve2();
-      }
-      const mihomoPath = this.getMihomoPath();
-      if (!fs.existsSync(mihomoPath)) {
-        const errorMsg = `Mihomo executable not found at: ${mihomoPath}`;
-        console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
-      }
-      console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
-      this.mihomoProcess = child_process.spawn(mihomoPath, [
-        "-d",
-        path.dirname(this.configPath),
-        // 指定配置文件目录
-        "-f",
-        path.basename(this.configPath)
-        // 指定配置文件名
-      ]);
-      this.mihomoProcess.stdout?.on("data", (data) => {
-        console.log(`[MihomoService] stdout: ${data.toString().trim()}`);
-      });
-      this.mihomoProcess.stderr?.on("data", (data) => {
-        console.error(`[MihomoService] stderr: ${data.toString().trim()}`);
-      });
-      this.mihomoProcess.on("close", (code2) => {
-        console.log(`[MihomoService] Mihomo process exited with code ${code2}`);
-        this.mihomoProcess = null;
-      });
-      this.mihomoProcess.on("error", (err) => {
-        console.error("[MihomoService] Failed to start Mihomo process.", err);
-        this.mihomoProcess = null;
-        reject(err);
-      });
-      setTimeout(() => {
-        if (this.mihomoProcess) {
-          console.log("[MihomoService] Mihomo service started successfully.");
-          resolve2();
-        } else {
-          reject(new Error("Mihomo process failed to start or exited prematurely."));
-        }
-      }, 1500);
-    });
-  }
-  /**
-   * 停止 Mihomo 进程。
-   * @returns 一个 Promise，在停止成功时解析。
-   */
-  stop() {
-    return new Promise((resolve2) => {
-      if (this.mihomoProcess && !this.mihomoProcess.killed) {
-        const killed = this.mihomoProcess.kill();
-        if (killed) {
-          console.log("[MihomoService] Mihomo service stopped successfully.");
-        } else {
-          console.error("[MihomoService] Failed to stop Mihomo service.");
-        }
-        this.mihomoProcess = null;
-      } else {
-        console.log("[MihomoService] Mihomo service is not running.");
-      }
-      resolve2();
-    });
-  }
-  /**
-   * 检查 Mihomo 进程是否正在运行。
-   * @returns 如果进程正在运行则返回 true，否则返回 false。
-   */
-  isRunning() {
-    return this.mihomoProcess !== null;
-  }
-}
-const mihomoService = MihomoService.getInstance();
-function registerMihomoIpcHandlers() {
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_START, async () => {
-    try {
-      await mihomoService.start();
-      return { success: true };
-    } catch (error) {
-      console.error("Failed to start Mihomo:", error);
-      return { success: false, error: error.message };
-    }
-  });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_STOP, async () => {
-    try {
-      await mihomoService.stop();
-      return { success: true };
-    } catch (error) {
-      console.error("Failed to stop Mihomo:", error);
-      return { success: false, error: error.message };
-    }
-  });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_STATUS, () => {
-    return { isRunning: mihomoService.isRunning() };
-  });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_LOAD_CONFIG, async () => {
-    try {
-      const config = await mihomoService.loadConfig();
-      return { success: true, data: config };
-    } catch (error) {
-      console.error("Failed to load Mihomo config:", error);
-      return { success: false, error: error.message };
-    }
-  });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_SAVE_CONFIG, async (_event, config) => {
-    try {
-      await mihomoService.saveConfig(config);
-      return { success: true };
-    } catch (error) {
-      console.error("Failed to save Mihomo config:", error);
-      return { success: false, error: error.message };
-    }
-  });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_GET_CONFIG_PATH, () => {
-    try {
-      const configPath = mihomoService.getConfigPath();
-      return { success: true, data: configPath };
-    } catch (error) {
-      console.error("Failed to get Mihomo config path:", error);
-      return { success: false, error: error.message };
-    }
-  });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_OPEN_CONFIG_DIR, async () => {
-    try {
-      const configPath = mihomoService.getConfigPath();
-      const configDir = path.dirname(configPath);
-      await electron.shell.openPath(configDir);
-      return { success: true };
-    } catch (error) {
-      console.error("Failed to open Mihomo config directory:", error);
-      return { success: false, error: error.message };
-    }
-  });
-}
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -11496,6 +11252,306 @@ const {
   getAdapter,
   mergeConfig
 } = axios;
+class MihomoService {
+  static instance;
+  mihomoProcess = null;
+  configPath;
+  apiClient;
+  /**
+   * 私有构造函数，确保单例模式。
+   * 初始化配置文件路径，并在文件不存在时创建默认配置。
+   */
+  constructor() {
+    this.configPath = path.join(electron.app.getPath("userData"), "mihomo_config.yaml");
+    if (!fs.existsSync(this.configPath)) {
+      this.createDefaultConfig();
+    }
+    this.apiClient = axios.create({
+      baseURL: "http://127.0.0.1:9090",
+      // 默认外部控制器地址
+      timeout: 5e3
+    });
+  }
+  /**
+   * 获取 MihomoService 的单例实例。
+   * @returns MihomoService 的单例实例。
+   */
+  static getInstance() {
+    if (!MihomoService.instance) {
+      MihomoService.instance = new MihomoService();
+    }
+    return MihomoService.instance;
+  }
+  /**
+   * 获取 Mihomo 可执行文件的路径。
+   * 在开发环境和生产环境中路径不同。
+   * @returns Mihomo 可执行文件的完整路径。
+   */
+  getMihomoPath() {
+    if (!electron.app.isPackaged) {
+      return path.resolve(electron.app.getAppPath(), "resources", "mihomo.exe");
+    }
+    return path.resolve(path.dirname(electron.app.getAppPath()), "resources", "mihomo.exe");
+  }
+  /**
+   * 创建默认的 Mihomo 配置文件。
+   * 当配置文件不存在时，会调用此方法创建一个带有基本配置的文件。
+   */
+  createDefaultConfig() {
+    const defaultConfig = {
+      port: 7890,
+      "socks-port": 7891,
+      "redir-port": 7892,
+      "mixed-port": 7893,
+      "allow-lan": false,
+      mode: "rule",
+      "log-level": "info",
+      ipv6: false,
+      "external-controller": "127.0.0.1:9090",
+      proxies: [],
+      "proxy-groups": [],
+      rules: []
+    };
+    try {
+      fs.writeFileSync(this.configPath, jsYaml.dump(defaultConfig), "utf8");
+      console.log(`[MihomoService] Default config created at: ${this.configPath}`);
+    } catch (error) {
+      console.error(`[MihomoService] Failed to create default config: ${error}`);
+    }
+  }
+  /**
+   * 获取配置文件的路径。
+   * @returns 配置文件的完整路径。
+   */
+  getConfigPath() {
+    return this.configPath;
+  }
+  /**
+   * 从文件系统加载 Mihomo 配置。
+   * @returns 一个 Promise，解析为配置对象。
+   */
+  loadConfig() {
+    return new Promise((resolve2, reject) => {
+      fs.readFile(this.configPath, "utf8", (err, data) => {
+        if (err) {
+          console.error(`[MihomoService] Failed to read config file: ${err}`);
+          return reject(err);
+        }
+        try {
+          const config = jsYaml.load(data);
+          resolve2(config);
+        } catch (parseError) {
+          console.error(`[MihomoService] Failed to parse config file: ${parseError}`);
+          reject(parseError);
+        }
+      });
+    });
+  }
+  /**
+   * 将配置保存到文件系统。
+   * @param config 要保存的配置对象。
+   * @returns 一个 Promise，在保存成功时解析。
+   */
+  saveConfig(config) {
+    return new Promise((resolve2, reject) => {
+      const yamlStr = jsYaml.dump(config);
+      fs.writeFile(this.configPath, yamlStr, "utf8", (err) => {
+        if (err) {
+          console.error(`[MihomoService] Failed to write config file: ${err}`);
+          return reject(err);
+        }
+        console.log(`[MihomoService] Config saved to: ${this.configPath}`);
+        resolve2();
+      });
+    });
+  }
+  /**
+   * 启动 Mihomo 进程。
+   * @returns 一个 Promise，在启动成功时解析。
+   */
+  start() {
+    return new Promise((resolve2, reject) => {
+      if (this.mihomoProcess) {
+        console.log("[MihomoService] Mihomo is already running.");
+        return resolve2();
+      }
+      const mihomoPath = this.getMihomoPath();
+      if (!fs.existsSync(mihomoPath)) {
+        const errorMsg = `Mihomo executable not found at: ${mihomoPath}`;
+        console.error(`[MihomoService] ${errorMsg}`);
+        return reject(new Error(errorMsg));
+      }
+      console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
+      this.mihomoProcess = child_process.spawn(mihomoPath, [
+        "-d",
+        path.dirname(this.configPath),
+        // 指定配置文件目录
+        "-f",
+        path.basename(this.configPath)
+        // 指定配置文件名
+      ]);
+      this.mihomoProcess.stdout?.on("data", (data) => {
+        console.log(`[MihomoService] stdout: ${data.toString().trim()}`);
+      });
+      this.mihomoProcess.stderr?.on("data", (data) => {
+        console.error(`[MihomoService] stderr: ${data.toString().trim()}`);
+      });
+      this.mihomoProcess.on("close", (code2) => {
+        console.log(`[MihomoService] Mihomo process exited with code ${code2}`);
+        this.mihomoProcess = null;
+      });
+      this.mihomoProcess.on("error", (err) => {
+        console.error("[MihomoService] Failed to start Mihomo process.", err);
+        this.mihomoProcess = null;
+        reject(err);
+      });
+      setTimeout(() => {
+        if (this.mihomoProcess) {
+          console.log("[MihomoService] Mihomo service started successfully.");
+          resolve2();
+        } else {
+          reject(new Error("Mihomo process failed to start or exited prematurely."));
+        }
+      }, 1500);
+    });
+  }
+  /**
+   * 停止 Mihomo 进程。
+   * @returns 一个 Promise，在停止成功时解析。
+   */
+  stop() {
+    return new Promise((resolve2) => {
+      if (this.mihomoProcess && !this.mihomoProcess.killed) {
+        const killed = this.mihomoProcess.kill();
+        if (killed) {
+          console.log("[MihomoService] Mihomo service stopped successfully.");
+        } else {
+          console.error("[MihomoService] Failed to stop Mihomo service.");
+        }
+        this.mihomoProcess = null;
+      } else {
+        console.log("[MihomoService] Mihomo service is not running.");
+      }
+      resolve2();
+    });
+  }
+  /**
+   * 检查 Mihomo 进程是否正在运行。
+   * @returns 如果进程正在运行则返回 true，否则返回 false。
+   */
+  isRunning() {
+    return this.mihomoProcess !== null;
+  }
+  /**
+   * 获取所有代理和策略组信息
+   * @returns 一个 Promise，解析为代理和策略组信息对象
+   */
+  async getProxies() {
+    try {
+      const response = await this.apiClient.get("/proxies");
+      return response.data;
+    } catch (error) {
+      console.error("[MihomoService] Failed to get proxies:", error);
+      throw error;
+    }
+  }
+  /**
+   * 选择代理组中的特定代理
+   * @param groupName 代理组名称
+   * @param proxyName 代理节点名称
+   * @returns 一个 Promise，在选择成功时解析
+   */
+  async selectProxy(groupName, proxyName) {
+    try {
+      await this.apiClient.put(`/proxies/${encodeURIComponent(groupName)}`, {
+        name: proxyName
+      });
+    } catch (error) {
+      console.error("[MihomoService] Failed to select proxy:", error);
+      throw error;
+    }
+  }
+}
+const mihomoService = MihomoService.getInstance();
+function registerMihomoIpcHandlers() {
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_START, async () => {
+    try {
+      await mihomoService.start();
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to start Mihomo:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_STOP, async () => {
+    try {
+      await mihomoService.stop();
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to stop Mihomo:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_STATUS, () => {
+    return { isRunning: mihomoService.isRunning() };
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_LOAD_CONFIG, async () => {
+    try {
+      const config = await mihomoService.loadConfig();
+      return { success: true, data: config };
+    } catch (error) {
+      console.error("Failed to load Mihomo config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_SAVE_CONFIG, async (_event, config) => {
+    try {
+      await mihomoService.saveConfig(config);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to save Mihomo config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_GET_CONFIG_PATH, () => {
+    try {
+      const configPath = mihomoService.getConfigPath();
+      return { success: true, data: configPath };
+    } catch (error) {
+      console.error("Failed to get Mihomo config path:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_OPEN_CONFIG_DIR, async () => {
+    try {
+      const configPath = mihomoService.getConfigPath();
+      const configDir = path.dirname(configPath);
+      await electron.shell.openPath(configDir);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to open Mihomo config directory:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_GET_PROXIES, async () => {
+    try {
+      const proxies = await mihomoService.getProxies();
+      return { success: true, data: proxies };
+    } catch (error) {
+      console.error("Failed to get proxies:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_SELECT_PROXY, async (_event, groupName, proxyName) => {
+    try {
+      await mihomoService.selectProxy(groupName, proxyName);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to select proxy:", error);
+      return { success: false, error: error.message };
+    }
+  });
+}
 const isObject = (value) => {
   const type2 = typeof value;
   return value !== null && (type2 === "object" || type2 === "function");
