@@ -15,8 +15,16 @@ export type LLMMessage = {
   content: string;
 };
 
+// 定义提供商配置
+interface ProviderConfig {
+  baseUrl: string;
+  apiKey: string;
+  defaultHeaders?: Record<string>;
+}
+
 class LLMService {
   private static instance: LLMService;
+  private providerConfigs: Map<string, ProviderConfig> = new Map();
 
   private constructor() {}
 
@@ -27,16 +35,53 @@ class LLMService {
     return LLMService.instance;
   }
 
+  // 设置提供商配置
+  public setProviderConfig(provider: string, config: ProviderConfig) {
+    this.providerConfigs.set(provider, config);
+  }
+
+  // 获取提供商配置
+  public getProviderConfig(provider: string): ProviderConfig | undefined {
+    return this.providerConfigs.get(provider);
+  }
+
+  // 获取支持的提供商列表
+  public getProviders(): string[] {
+    // In the future, this could be dynamic
+    return ['openai', 'openrouter', 'custom'];
+  }
+
+  // 获取指定提供商的模型列表
+  public getModels(provider: string): string[] {
+    // In the future, this could be dynamic, fetched from an API
+    switch (provider) {
+      case 'openai':
+        return ['gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'];
+      case 'openrouter':
+        return ['anthropic/claude-3-opus', 'google/gemini-pro-1.5', 'mistralai/mistral-7b-instruct'];
+      case 'custom':
+        return ['custom-model-1', 'custom-model-2'];
+      default:
+        return [];
+    }
+  }
+
   public async generateCompletion(
-    provider: 'openai', // 初始只支持 openai，未来可扩展为联合类型
+    provider: string,
     model: string,
     messages: LLMMessage[],
     params: LLMParams = {}
   ): Promise<string> {
-    if (provider === 'openai') {
-      return this.generateOpenAICompletion(model, messages, params);
+    // 获取提供商配置
+    const providerConfig = this.providerConfigs.get(provider);
+    
+    // 如果是自定义提供商或有配置，使用自定义方法
+    if (providerConfig) {
+      return this.generateCustomCompletion(provider, model, messages, params, providerConfig);
     }
-    throw new Error(`Unsupported LLM provider: ${provider}`);
+    
+    // 默认使用OpenAI
+    return this.generateOpenAICompletion(model, messages, params);
   }
 
   private async generateOpenAICompletion(
@@ -74,6 +119,52 @@ class LLMService {
         console.error('An unexpected error occurred:', error);
       }
       throw new Error('Failed to get completion from OpenAI.');
+    }
+  }
+
+  private async generateCustomCompletion(
+    provider: string,
+    model: string,
+    messages: LLMMessage[],
+    params: LLMParams,
+    config: ProviderConfig
+  ): Promise<string> {
+    const { baseUrl, apiKey, defaultHeaders = {} } = config;
+    
+    if (!apiKey) {
+      throw new Error(`${provider} API key is not set.`);
+    }
+
+    // 构建请求URL
+    const url = `${baseUrl}/chat/completions`;
+    
+    // 构建请求头
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      ...defaultHeaders,
+    };
+
+    // 构建请求体
+    const body = {
+      model,
+      messages,
+      ...params,
+    };
+
+    try {
+      const response = await axios.post(url, body, { headers });
+      if (response.data.choices && response.data.choices.length > 0) {
+        return response.data.choices[0].message.content;
+      }
+      throw new Error(`Invalid response structure from ${provider} API.`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(`Error calling ${provider} API:`, error.response?.data || error.message);
+      } else {
+        console.error('An unexpected error occurred:', error);
+      }
+      throw new Error(`Failed to get completion from ${provider}.`);
     }
   }
 }

@@ -32,7 +32,7 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
 
   const toggleTheme = () => {
     const newTheme = isDarkMode ? lightTheme : darkTheme;
-    setTheme(newTheme);
+    setTheme({ ...newTheme, name: isDarkMode ? 'light' : 'dark' });
     setIsDarkMode(!isDarkMode);
   };
 
@@ -40,8 +40,10 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
-      setTheme(darkTheme);
+      setTheme({ ...darkTheme, name: 'dark' });
       setIsDarkMode(true);
+    } else {
+      setTheme({ ...lightTheme, name: 'light' });
     }
   }, []);
 
@@ -60,7 +62,7 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
   return (
     <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme, muiTheme }}>
       <MuiThemeProvider theme={muiTheme}>
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={{ ...theme, name: isDarkMode ? 'dark' : 'light' }}>
           {children}
         </ThemeProvider>
       </MuiThemeProvider>

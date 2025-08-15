@@ -50,14 +50,23 @@ class MihomoService {
    * @returns Mihomo 可执行文件的完整路径。
    */
   private getMihomoPath(): string {
-    // 在开发环境中，我们期望 mihomo.exe 在项目根目录的 resources 文件夹下
+    const appName = 'mihomo.exe'; // Windows 平台
+    // const appName = 'mihomo'; // Linux/macOS 平台
+    
+    // 在开发环境中，我们期望 mihomo 可执行文件在项目根目录的 resources 文件夹下
     if (!app.isPackaged) {
-      return path.resolve(app.getAppPath(), 'resources', 'mihomo.exe');
+      console.log(`[MihomoService] Running in development mode. App path: ${app.getAppPath()}`);
+      const devPath = path.resolve(app.getAppPath(), '..', 'resources', appName);
+      console.log(`[MihomoService] Looking for mihomo in development path: ${devPath}`);
+      return devPath;
     }
     
     // 在生产环境中 (打包后)，resources 目录通常与应用的可执行文件在同一目录下
     // app.getAppPath() 会指向 asar 文件，所以我们需要回到上一层目录
-    return path.resolve(path.dirname(app.getAppPath()), 'resources', 'mihomo.exe');
+    console.log(`[MihomoService] Running in production mode. App path: ${app.getAppPath()}`);
+    const prodPath = path.resolve(path.dirname(app.getAppPath()), 'resources', appName);
+    console.log(`[MihomoService] Looking for mihomo in production path: ${prodPath}`);
+    return prodPath;
   }
 
   /**
@@ -158,6 +167,7 @@ class MihomoService {
       }
 
       console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
+      console.log(`[MihomoService] Using config file: ${this.configPath}`);
 
       // 将配置文件路径传递给 Mihomo
       this.mihomoProcess = spawn(mihomoPath, [
@@ -184,16 +194,43 @@ class MihomoService {
         reject(err);
       });
       
-      // 增加一个短暂的延时，以确保进程已完全启动并监听端口
-      setTimeout(() => {
-        if (this.mihomoProcess) {
-          console.log('[MihomoService] Mihomo service started successfully.');
-          resolve();
-        } else {
-          // 如果进程在启动后立即退出，这里会捕获到
-          reject(new Error('Mihomo process failed to start or exited prematurely.'));
-        }
-      }, 1500);
+      // 增加一个更长的延时，以确保进程已完全启动并监听端口
+      // 同时增加对 API 端口的检查
+      let attempts = 0;
+      const maxAttempts = 20; // 最多尝试20次
+      const checkInterval = 500; // 每500ms检查一次
+      
+      const checkApi = () => {
+        attempts++;
+        console.log(`[MihomoService] Checking API availability (attempt ${attempts}/${maxAttempts})...`);
+        
+        this.apiClient.get('/version')
+          .then(response => {
+            console.log(`[MihomoService] Mihomo API is available. Version: ${response.data.version}`);
+            console.log('[MihomoService] Mihomo service started successfully.');
+            resolve();
+          })
+          .catch(err => {
+            if (attempts < maxAttempts) {
+              console.log(`[MihomoService] API not ready yet, retrying in ${checkInterval}ms...`);
+              setTimeout(checkApi, checkInterval);
+            } else {
+              console.error('[MihomoService] Mihomo API failed to become available after maximum attempts.');
+              console.error('[MihomoService] Last error:', err.message);
+              // 即使 API 不可用，我们也认为 Mihomo 进程已经启动
+              // 因为有些配置可能禁用了外部控制器
+              if (this.mihomoProcess) {
+                console.log('[MihomoService] Mihomo process seems to be running, resolving start promise.');
+                resolve();
+              } else {
+                reject(new Error('Mihomo process failed to start or exited prematurely.'));
+              }
+            }
+          });
+      };
+      
+      // 等待1.5秒后开始检查 API
+      setTimeout(checkApi, 1500);
     });
   }
 
@@ -224,6 +261,31 @@ class MihomoService {
    */
   public isRunning(): boolean {
     return this.mihomoProcess !== null;
+  }
+
+  /**
+   * 从VPN服务提供商的URL获取配置
+   * @param url VPN服务提供商的配置URL
+   * @returns 一个 Promise，解析为获取到的配置对象
+   */
+  public async fetchConfigFromURL(url: string): Promise<any> {
+    try {
+      console.log(`[MihomoService] Fetching config from URL: ${url}`);
+      const response = await axios.get(url, {
+        timeout: 10000, // 10秒超时
+        headers: {
+          'User-Agent': 'Catalyst-App/1.0'
+        }
+      });
+      
+      // 尝试解析响应内容为YAML
+      const config = yaml.load(response.data);
+      console.log('[MihomoService] Config fetched and parsed successfully');
+      return config;
+    } catch (error) {
+      console.error('[MihomoService] Failed to fetch config from URL:', error);
+      throw new Error(`Failed to fetch config from URL: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**

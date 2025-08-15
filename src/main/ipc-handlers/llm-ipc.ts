@@ -6,7 +6,7 @@ import { LLMMessage, LLMParams } from '../services/llm-service';
 
 // 定义生成补全请求的参数类型
 interface GenerateCompletionRequest {
-  provider: 'openai';
+  provider: string;
   model: string;
   messages: LLMMessage[];
   params?: LLMParams;
@@ -16,6 +16,14 @@ interface GenerateCompletionRequest {
 interface SetApiKeyRequest {
   provider: string;
   apiKey: string;
+}
+
+// 定义设置提供商配置的参数类型
+interface SetProviderConfigRequest {
+  provider: string;
+  baseUrl: string;
+  apiKey: string;
+  defaultHeaders?: Record<string>;
 }
 
 export function registerLlmIpcHandlers() {
@@ -72,6 +80,57 @@ export function registerLlmIpcHandlers() {
       return { success: true };
     } catch (error) {
       console.error('Failed to delete API key:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 设置提供商配置
+  ipcMain.handle(IPC_EVENTS.LLM_SET_PROVIDER_CONFIG, async (_event: IpcMainInvokeEvent, request: SetProviderConfigRequest) => {
+    try {
+      const { provider, baseUrl, apiKey, defaultHeaders } = request;
+      llmService.setProviderConfig(provider, { baseUrl, apiKey, defaultHeaders });
+      
+      // 如果设置了API密钥，也保存到API密钥管理器中
+      if (apiKey) {
+        apiKeyManager.setApiKey(provider, apiKey);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to set provider config:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 获取提供商配置
+  ipcMain.handle(IPC_EVENTS.LLM_GET_PROVIDER_CONFIG, async (_event: IpcMainInvokeEvent, provider: string) => {
+    try {
+      const config = llmService.getProviderConfig(provider);
+      return { success: true, data: config };
+    } catch (error) {
+      console.error('Failed to get provider config:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 获取提供商列表
+  ipcMain.handle(IPC_EVENTS.LLM_GET_PROVIDERS, async () => {
+    try {
+      const providers = llmService.getProviders();
+      return { success: true, data: providers };
+    } catch (error) {
+      console.error('Failed to get LLM providers:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 获取模型列表
+  ipcMain.handle(IPC_EVENTS.LLM_GET_MODELS, async (_event: IpcMainInvokeEvent, provider: string) => {
+    try {
+      const models = llmService.getModels(provider);
+      return { success: true, data: models };
+    } catch (error) {
+      console.error('Failed to get LLM models:', error);
       return { success: false, error: (error as Error).message };
     }
   });

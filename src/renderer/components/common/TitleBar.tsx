@@ -2,16 +2,23 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { 
   Minimize as MinimizeIcon, 
   Maximize as MaximizeIcon, 
   X as CloseIcon,
   Search as SearchIcon,
   Settings as SettingsIcon,
-  User as UserIcon
+  User as UserIcon,
+  Sun as SunIcon,
+  Moon as MoonIcon
 } from 'lucide-react';
 
 const TitleBarContainer = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 48px;
   display: flex;
   align-items: center;
@@ -19,10 +26,11 @@ const TitleBarContainer = styled(motion.div)`
   padding: 0 16px;
   background-color: ${props => props.theme.titleBar.background};
   -webkit-app-region: drag;
-  border-bottom: 1px solid ${props => props.theme.titleBar.border};
+  border-bottom: 1px solid transparent;
   transition: all ${props => props.theme.transition.normal} ease;
   backdrop-filter: blur(10px);
   background-color: ${props => props.theme.titleBar.background}cc;
+  z-index: 1000;
 `;
 
 const LeftSection = styled.div`
@@ -44,7 +52,7 @@ const AppLogo = styled(motion.div)`
 const LogoIcon = styled.div`
   width: 24px;
   height: 24px;
-  background: linear-gradient(135deg, ${props => props.theme.primary.main}, ${props => props.theme.accent.main});
+  background: linear-gradient(135deg, ${props => props.theme.primary.main}, ${props => props.theme.accent});
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -114,6 +122,16 @@ const ActionButton = styled(motion.button)`
   }
 `;
 
+const ThemeToggleButton = styled(ActionButton)`
+  background-color: ${props => props.theme.surfaceVariant};
+  color: ${props => props.theme.titleBar.icon};
+  
+  &:hover {
+    background-color: ${props => props.theme.surface};
+    color: ${props => props.theme.titleBar.iconHover};
+  }
+`;
+
 const WindowControls = styled.div`
   display: flex;
   gap: 4px;
@@ -166,18 +184,41 @@ const WindowButton = styled(motion.button)<{ variant: 'minimize' | 'maximize' | 
 `;
 
 const TitleBar: React.FC = () => {
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   const handleMinimize = () => {
-    window.electronAPI?.windowControl.minimize();
+    console.log('Minimize button clicked');
+    if (window.electronAPI?.windowControl) {
+      console.log('Calling windowControl.minimize()');
+      window.electronAPI.windowControl.minimize();
+    } else {
+      console.error('electronAPI.windowControl is not available');
+    }
   };
 
   const handleMaximize = () => {
-    window.electronAPI?.windowControl.maximize();
+    console.log('Maximize button clicked');
+    if (window.electronAPI?.windowControl) {
+      console.log('Calling windowControl.maximize()');
+      window.electronAPI.windowControl.maximize();
+    } else {
+      console.error('electronAPI.windowControl is not available');
+    }
   };
 
   const handleClose = () => {
-    window.electronAPI?.windowControl.close();
+    console.log('Close button clicked');
+    if (window.electronAPI?.windowControl) {
+      console.log('Calling windowControl.close()');
+      window.electronAPI.windowControl.close();
+    } else {
+      console.error('electronAPI.windowControl is not available');
+    }
+  };
+
+  const handleSettings = () => {
+    navigate('/settings');
   };
 
   return (
@@ -200,6 +241,7 @@ const TitleBar: React.FC = () => {
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1, duration: 0.3 }}
+          style={{ zIndex: 1 }}
         >
           <SearchIconWrapper theme={theme}>
             <SearchIcon size={16} />
@@ -212,9 +254,20 @@ const TitleBar: React.FC = () => {
       </LeftSection>
       
       <RightSection>
+        <ThemeToggleButton
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={toggleTheme}
+          title="切换主题"
+          theme={theme}
+        >
+          {theme.name === 'dark' ? <SunIcon size={18} /> : <MoonIcon size={18} />}
+        </ThemeToggleButton>
+        
         <ActionButton
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
+          onClick={handleSettings}
           title="设置"
           theme={theme}
         >

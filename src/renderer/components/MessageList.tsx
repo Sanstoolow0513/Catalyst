@@ -1,77 +1,123 @@
 import React, { useEffect, useRef } from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { ILLMMessage } from '../types/electron';
 
 // 容器高度自适应，自动滚动到底部
 const MessageContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 15px; /* 调整间距 */
-  padding: 20px; /* 调整 padding */
+  gap: 24px;
+  padding: 24px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
   background: transparent;
 `;
 
-// 气泡样式优化，宽度适配大屏，角色区分更明显
+// 消息项容器
+const MessageItem = styled.div<{ role: 'user' | 'assistant' | 'system' }>`
+  display: flex;
+  flex-direction: column;
+  align-items: ${props => props.role === 'user' ? 'flex-end' : 'flex-start'};
+  width: 100%;
+`;
+
+// 消息气泡
 const MessageBubble = styled.div<{ role: 'user' | 'assistant' | 'system' }>`
-  max-width: 900px;
+  max-width: 85%;
   width: fit-content;
-  padding: 15px 20px; /* 调整 padding */
-  border-radius: 16px;
-  align-self: ${({ role }) => (role === 'user' ? 'flex-end' : 'flex-start')};
-  background-color: ${({ role, theme }) =>
-    role === 'user' ? theme.accent :
-    theme.foreground /* 助手和系统消息使用 foreground */
+  padding: 20px 24px;
+  border-radius: ${props => props.theme.borderRadius.xlarge};
+  background-color: ${props => 
+    props.role === 'user' ? 
+    props.theme.accent : 
+    props.theme.foreground
   };
-  color: ${({ role, theme }) =>
-    role === 'user' ? '#FFFFFF' :
-    theme.textPrimary /* 助手和系统消息使用 textPrimary */
+  color: ${props => 
+    props.role === 'user' ? 
+    '#FFFFFF' : 
+    props.theme.textPrimary
   };
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* 更柔和的阴影 */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.6;
   word-break: break-word;
   position: relative;
-  ${({ role }) => role === 'system' && css`
+  
+  // 用户消息右对齐，圆角在左下角
+  ${props => props.role === 'user' && `
+    border-bottom-left-radius: 8px;
+  `}
+  
+  // 助手消息左对齐，圆角在右下角
+  ${props => props.role === 'assistant' && `
+    border-bottom-right-radius: 8px;
+  `}
+  
+  ${props => props.role === 'system' && `
     font-style: italic;
     opacity: 0.7;
+    max-width: 100%;
+    background-color: ${props.theme.surfaceVariant};
   `}
 `;
 
-// 角色标签更紧凑
+// 角色标签
 const MessageRole = styled.div<{ role: 'user' | 'assistant' | 'system' }>`
-  font-size: 0.8rem; /* 调整字体大小 */
-  font-weight: bold;
-  margin-bottom: 5px; /* 调整间距 */
-  opacity: 0.7;
-  color: ${({ role, theme }) =>
-    role === 'user' ? '#FFFFFF' :
-    theme.textSecondary /* 助手和系统消息使用 textSecondary */
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  opacity: 0.8;
+  color: ${props => 
+    props.role === 'user' ? 
+    props.theme.accent : 
+    props.theme.textSecondary
   };
 `;
 
-// 支持代码块和多行文本
+// 消息内容
 const MessageContent = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   font-family: inherit;
+  
   code, pre {
-    font-family: 'Fira Code', 'Consolas', 'Menlo', monospace; /* 使用 Fira Code */
-    background: ${({ theme }) => theme.background}; /* 使用 theme.background */
-    color: ${({ theme }) => theme.textPrimary}; /* 使用 theme.textPrimary */
-    padding: 0.2em 0.4em;
-    border-radius: 4px;
-    font-size: 0.97em;
+    font-family: 'Fira Code', 'Consolas', 'Menlo', monospace;
+    background: ${({ theme }) => theme.surfaceVariant};
+    color: ${({ theme }) => theme.textPrimary};
+    padding: 0.3em 0.5em;
+    border-radius: 8px;
+    font-size: 0.95em;
   }
+  
   pre {
-    background: ${({ theme }) => theme.background}; /* 使用 theme.background */
-    color: ${({ theme }) => theme.textPrimary}; /* 使用 theme.textPrimary */
-    padding: 0.8em 1em;
-    border-radius: 6px;
-    margin: 0.5em 0;
+    background: ${({ theme }) => theme.surfaceVariant};
+    color: ${({ theme }) => theme.textPrimary};
+    padding: 1.2em;
+    border-radius: 12px;
+    margin: 0.8em 0;
     overflow-x: auto;
+    border: none;
+  }
+  
+  p {
+    margin: 0.8em 0;
+  }
+  
+  ul, ol {
+    margin: 0.8em 0;
+    padding-left: 1.5em;
+  }
+  
+  li {
+    margin: 0.3em 0;
+  }
+  
+  blockquote {
+    border-left: 3px solid ${({ theme }) => theme.accent};
+    margin: 0.8em 0;
+    padding-left: 1em;
+    color: ${({ theme }) => theme.textSecondary};
   }
 `;
 
@@ -118,13 +164,15 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   return (
     <MessageContainer ref={containerRef}>
       {messages.map((message, index) => (
-        <MessageBubble key={index} role={message.role}>
+        <MessageItem key={index} role={message.role}>
           <MessageRole role={message.role}>
             {message.role === 'user' ? 'You' :
              message.role === 'assistant' ? 'Assistant' : 'System'}
           </MessageRole>
-          <MessageContent>{renderContent(message.content)}</MessageContent>
-        </MessageBubble>
+          <MessageBubble role={message.role}>
+            <MessageContent>{renderContent(message.content)}</MessageContent>
+          </MessageBubble>
+        </MessageItem>
       ))}
     </MessageContainer>
   );

@@ -1,155 +1,122 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
-import { Card, Button } from '../components/common';
 import { 
   Shield, 
   MessageSquare, 
-  Settings, 
   Code, 
-  Zap,
-  Activity,
-  CheckCircle,
-  AlertCircle,
-  Clock
+  Settings,
+  Moon,
+  Sun
 } from 'lucide-react';
 
-const HomeContainer = styled(motion.div)`
-  max-width: 1200px;
-  margin: 0 auto;
-  
+const HomePageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 24px;
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.textPrimary};
 `;
 
-const WelcomeSection = styled(motion.div)`
-  text-align: center;
-  margin-bottom: 48px;
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
 `;
 
-const AppTitle = styled.h1`
-  font-size: 3rem;
+const Title = styled.h1`
+  font-size: 2.5rem;
   font-weight: 700;
   color: ${props => props.theme.textPrimary};
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, ${props => props.theme.primary.main}, ${props => props.theme.accent.main});
+  margin: 0;
+`;
+
+const ThemeToggle = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: ${props => props.theme.surfaceVariant};
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: ${props => props.theme.textPrimary};
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${props => props.theme.border};
+  }
+`;
+
+const HeroSection = styled(motion.div)`
+  text-align: center;
+  margin-bottom: 50px;
+  padding: 40px 20px;
+`;
+
+const AppName = styled.h1`
+  font-size: 4rem;
+  font-weight: 800;
+  margin: 0 0 20px 0;
+  background: ${props => props.theme.isDarkMode
+    ? 'linear-gradient(135deg, #3B82F6, #8B5CF6)'
+    : 'linear-gradient(135deg, #2563EB, #7C3AED)'};
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 `;
 
-const AppSubtitle = styled.p`
-  font-size: 1.25rem;
+const AppDescription = styled.p`
+  font-size: 1.2rem;
   color: ${props => props.theme.textSecondary};
-  margin-bottom: 32px;
   max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto 30px;
+  line-height: 1.6;
 `;
 
-const StatsGrid = styled(motion.div)`
+const FeaturesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 24px;
-  margin-bottom: 48px;
+  margin-bottom: 40px;
 `;
 
-const StatCardContainer = styled(motion.div)`
-  text-align: center;
-`;
-
-const StatCard = styled(Card)`
-  text-align: center;
+const FeatureCard = styled(motion.div)`
+  background: ${props => props.theme.foreground};
+  border-radius: 16px;
   padding: 24px;
-`;
-
-const StatIcon = styled.div<{ variant?: 'primary' | 'success' | 'warning' | 'error' }>`
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 16px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
+  text-align: center;
+  box-shadow: ${props => props.theme.card.shadow};
+  transition: all 0.3s ease;
+  border: 1px solid ${props => props.theme.border};
   
-  ${props => {
-    switch (props.variant) {
-      case 'success':
-        return `
-          background-color: ${props.theme.success.main}20;
-          color: ${props.theme.success.main};
-        `;
-      case 'warning':
-        return `
-          background-color: ${props.theme.warning.main}20;
-          color: ${props.theme.warning.main};
-        `;
-      case 'error':
-        return `
-          background-color: ${props.theme.error.main}20;
-          color: ${props.theme.error.main};
-        `;
-      default:
-        return `
-          background-color: ${props.theme.primary.main}20;
-          color: ${props.theme.primary.main};
-        `;
-    }
-  }}
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: ${props => props.theme.card.shadowHover};
+  }
 `;
 
-const StatValue = styled.div`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${props => props.theme.textPrimary};
-  margin-bottom: 4px;
-`;
-
-const StatLabel = styled.div`
-  font-size: 0.875rem;
-  color: ${props => props.theme.textSecondary};
-`;
-
-const FeaturesGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
-  margin-bottom: 48px;
-`;
-
-const FeatureCardContainer = styled(motion.div)`
-  height: 100%;
-`;
-
-const FeatureCard = styled(Card)`
-  padding: 24px;
-  height: 100%;
-`;
-
-const FeatureHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-`;
-
-const FeatureIcon = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, ${props => props.theme.primary.main}, ${props => props.theme.accent.main});
+const FeatureIcon = styled.div<{ $color: string }>`
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  margin: 0 auto 20px;
+  background: ${props => props.$color}20;
+  color: ${props => props.$color};
 `;
 
 const FeatureTitle = styled.h3`
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
-  margin: 0;
+  margin: 0 0 12px 0;
 `;
 
 const FeatureDescription = styled.p`
@@ -158,175 +125,86 @@ const FeatureDescription = styled.p`
   margin: 0;
 `;
 
-const QuickActions = styled(motion.div)`
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: center;
+const Footer = styled.div`
+  margin-top: auto;
+  text-align: center;
+  padding: 20px 0;
+  color: ${props => props.theme.textTertiary};
+  font-size: 0.9rem;
 `;
 
-const ButtonContainer = styled(motion.div)`
-  display: inline-block;
-`;
+const HomePage: React.FC = () => {
+  const { theme, isDarkMode, toggleTheme } = useTheme();
 
-const features = [
-  {
-    icon: Shield,
-    title: '系统代理',
-    description: '智能管理网络代理配置，支持多种代理协议，确保网络连接的安全性和稳定性。'
-  },
-  {
-    icon: MessageSquare,
-    title: 'AI 对话',
-    description: '集成多种大语言模型，提供智能对话服务，支持上下文记忆和个性化配置。'
-  },
-  {
-    icon: Code,
-    title: '开发环境',
-    description: '一键部署开发工具和环境，支持多种编程语言和框架的开发环境配置。'
-  },
-  {
-    icon: Settings,
-    title: '配置管理',
-    description: '可视化的配置界面，支持导入导出配置文件，提供配置模板和验证功能。'
-  }
-];
-
-const HomePage = () => {
-  const { theme } = useTheme();
+  const features = [
+    {
+      icon: Shield,
+      title: '系统代理',
+      description: '智能管理网络代理配置，支持多种代理协议，确保网络安全稳定。',
+      color: '#3B82F6'
+    },
+    {
+      icon: MessageSquare,
+      title: 'AI 对话',
+      description: '集成多种大语言模型，提供智能对话服务，支持个性化配置。',
+      color: '#8B5CF6'
+    },
+    {
+      icon: Code,
+      title: '开发环境',
+      description: '一键部署开发工具和环境，支持多种编程语言和框架。',
+      color: '#10B981'
+    },
+    {
+      icon: Settings,
+      title: '统一设置',
+      description: '集中管理所有应用配置，提供导入导出和备份恢复功能。',
+      color: '#F59E0B'
+    }
+  ];
 
   return (
-    <HomeContainer
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      <WelcomeSection
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
-        <AppTitle>Catalyst</AppTitle>
-        <AppSubtitle>
-          集成系统代理、AI对话、开发环境部署的综合性桌面应用
-        </AppSubtitle>
-        <QuickActions>
-          <ButtonContainer
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              variant="primary"
-              size="large"
-              startIcon={<Zap size={20} />}
-            >
-              快速开始
-            </Button>
-          </ButtonContainer>
-          <ButtonContainer
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              variant="outline"
-              size="large"
-              startIcon={<Settings size={20} />}
-            >
-              设置向导
-            </Button>
-          </ButtonContainer>
-        </QuickActions>
-      </WelcomeSection>
-
-      <StatsGrid
+    <HomePageContainer>
+      <Header>
+        <Title>欢迎使用 Catalyst</Title>
+        <ThemeToggle onClick={toggleTheme}>
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </ThemeToggle>
+      </Header>
+      
+      <HeroSection
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
+        transition={{ duration: 0.6 }}
       >
-        <StatCardContainer
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-        >
-          <StatCard $variant="elevated" $hoverable>
-            <StatIcon variant="primary">
-              <Activity size={24} />
-            </StatIcon>
-            <StatValue>5</StatValue>
-            <StatLabel>活跃服务</StatLabel>
-          </StatCard>
-        </StatCardContainer>
-
-        <StatCardContainer
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-        >
-          <StatCard $variant="elevated" $hoverable>
-            <StatIcon variant="success">
-              <CheckCircle size={24} />
-            </StatIcon>
-            <StatValue>12</StatValue>
-            <StatLabel>成功任务</StatLabel>
-          </StatCard>
-        </StatCardContainer>
-
-        <StatCardContainer
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
-        >
-          <StatCard $variant="elevated" $hoverable>
-            <StatIcon variant="warning">
-              <Clock size={24} />
-            </StatIcon>
-            <StatValue>2</StatValue>
-            <StatLabel>待处理任务</StatLabel>
-          </StatCard>
-        </StatCardContainer>
-
-        <StatCardContainer
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
-        >
-          <StatCard $variant="elevated" $hoverable>
-            <StatIcon variant="error">
-              <AlertCircle size={24} />
-            </StatIcon>
-            <StatValue>0</StatValue>
-            <StatLabel>错误报告</StatLabel>
-          </StatCard>
-        </StatCardContainer>
-      </StatsGrid>
-
-      <FeaturesGrid
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
+        <AppName>Catalyst</AppName>
+        <AppDescription>
+          现代化综合性桌面应用平台，集成了系统代理、AI对话、开发环境部署和统一设置管理等功能。
+        </AppDescription>
+      </HeroSection>
+      
+      <FeaturesGrid>
         {features.map((feature, index) => (
-          <FeatureCardContainer
+          <FeatureCard
             key={feature.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
+            transition={{ delay: 0.1 * index, duration: 0.5 }}
+            whileHover={{ y: -5 }}
           >
-            <FeatureCard $variant="elevated" $hoverable>
-              <FeatureHeader>
-                <FeatureIcon>
-                  <feature.icon size={24} />
-                </FeatureIcon>
-                <FeatureTitle>{feature.title}</FeatureTitle>
-              </FeatureHeader>
-              <FeatureDescription>
-                {feature.description}
-              </FeatureDescription>
-            </FeatureCard>
-          </FeatureCardContainer>
+            <FeatureIcon $color={feature.color}>
+              <feature.icon size={28} />
+            </FeatureIcon>
+            <FeatureTitle>{feature.title}</FeatureTitle>
+            <FeatureDescription>{feature.description}</FeatureDescription>
+          </FeatureCard>
         ))}
       </FeaturesGrid>
-    </HomeContainer>
+      
+      <Footer>
+        © {new Date().getFullYear()} Catalyst - All rights reserved
+      </Footer>
+    </HomePageContainer>
   );
 };
 

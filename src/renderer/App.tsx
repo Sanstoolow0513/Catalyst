@@ -3,10 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import { ThemeContext } from './contexts/ThemeContext';
 import HomePage from './pages/HomePage';
-import SystemProxyPage from './pages/SystemProxyPage';
+import UnifiedProxyPage from './pages/UnifiedProxyPage';
 import ChatPage from './pages/ChatPage';
-import MihomoConfigPage from './pages/MihomoConfigPage';
 import DevEnvironmentPage from './pages/DevEnvironmentPage';
+import SettingsPage from './pages/SettingsPage';
+import InfoPage from './pages/InfoPage';
 
 function App() {
   const themeContext = useContext(ThemeContext);
@@ -21,10 +22,11 @@ function App() {
       <MainLayout>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/system-proxy" element={<SystemProxyPage />} />
+          <Route path="/proxy-management" element={<UnifiedProxyPage />} />
           <Route path="/chat" element={<ChatPage />} />
-          <Route path="/mihomo-config" element={<MihomoConfigPage />} />
           <Route path="/dev-environment" element={<DevEnvironmentPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/info" element={<InfoPage />} />
         </Routes>
       </MainLayout>
     </Router>

@@ -2,21 +2,20 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import { useTheme } from '../contexts/ThemeContext';
 import { 
   Home as HomeIcon,
   Shield as ShieldIcon,
   MessageSquare as MessageIcon,
   Settings as SettingsIcon,
   Code as CodeIcon,
-  Zap as ZapIcon
+  Info as InfoIcon
 } from 'lucide-react';
 
 const SidebarContainer = styled(motion.aside)`
   width: 260px;
   flex-shrink: 0;
   background-color: ${props => props.theme.sidebar.background};
-  border-right: 1px solid ${props => props.theme.sidebar.border};
+  border-right: 1px solid transparent;
   display: flex;
   flex-direction: column;
   padding: 16px 0;
@@ -100,6 +99,7 @@ const NavGroupTitle = styled.h3`
 
 const NavItemContainer = styled(motion.div)`
   display: block;
+  margin-bottom: 8px; /* 增加功能项之间的间距 */
 `;
 
 const NavItem = styled(Link)<{ $isActive: boolean }>`
@@ -107,7 +107,6 @@ const NavItem = styled(Link)<{ $isActive: boolean }>`
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  margin: 2px 0;
   border-radius: 8px;
   text-decoration: none;
   color: ${props => props.$isActive ? props.theme.sidebar.textActive : props.theme.sidebar.text};
@@ -134,53 +133,37 @@ const NavItem = styled(Link)<{ $isActive: boolean }>`
   }
 `;
 
-const SidebarFooter = styled.div`
-  padding: 16px 20px;
-  border-top: 1px solid ${props => props.theme.sidebar.border};
-`;
-
-const ThemeToggle = styled(motion.button)`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: ${props => props.theme.surfaceVariant};
-  border: none;
-  border-radius: 8px;
-  color: ${props => props.theme.textPrimary};
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all ${props => props.theme.transition.fast} ease;
-  
-  &:hover {
-    background: ${props => props.theme.border};
-    transform: translateY(-1px);
-  }
-`;
-
 const navigationItems = [
   {
     group: '主要功能',
     items: [
       { path: '/', label: '首页', icon: HomeIcon },
-      { path: '/system-proxy', label: '系统代理', icon: ShieldIcon },
+      { path: '/proxy-management', label: '代理管理', icon: ShieldIcon },
       { path: '/chat', label: 'AI 对话', icon: MessageIcon },
     ]
   },
   {
     group: '高级设置',
     items: [
-      { path: '/mihomo-config', label: '代理配置', icon: SettingsIcon },
       { path: '/dev-environment', label: '开发环境', icon: CodeIcon },
+    ]
+  },
+  {
+    group: '设置',
+    items: [
+      { path: '/settings', label: '设置', icon: SettingsIcon },
+    ]
+  },
+  {
+    group: '关于',
+    items: [
+      { path: '/info', label: '关于', icon: InfoIcon },
     ]
   }
 ];
 
 const Sidebar = () => {
   const location = useLocation();
-  const { toggleTheme, isDarkMode } = useTheme();
 
   return (
     <SidebarContainer
@@ -190,8 +173,8 @@ const Sidebar = () => {
     >
       <SidebarHeader>
         <LogoSection
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.05, zIndex: 1 }}
+          whileTap={{ scale: 0.95, zIndex: 1 }}
         >
           <Logo>C</Logo>
           <div>
@@ -213,8 +196,8 @@ const Sidebar = () => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 * itemIndex, duration: 0.3 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.02, zIndex: 1 }}
+                  whileTap={{ scale: 0.98, zIndex: 1 }}
                 >
                   <NavItem to={item.path} $isActive={isActive}>
                     <item.icon className="nav-icon" size={20} />
@@ -226,22 +209,6 @@ const Sidebar = () => {
           </NavGroup>
         ))}
       </NavSection>
-      
-      <SidebarFooter>
-        <ThemeToggle
-          onClick={toggleTheme}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <span>主题模式</span>
-          <motion.div
-            animate={{ rotate: isDarkMode ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {isDarkMode ? '🌙' : '☀️'}
-          </motion.div>
-        </ThemeToggle>
-      </SidebarFooter>
     </SidebarContainer>
   );
 };

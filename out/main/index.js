@@ -1,7 +1,7 @@
 "use strict";
 const electron = require("electron");
-const child_process = require("child_process");
 const path = require("path");
+const child_process = require("child_process");
 const fs = require("fs");
 const require$$1$1 = require("util");
 const stream = require("stream");
@@ -21,6 +21,24 @@ const fs$1 = require("node:fs");
 const crypto = require("node:crypto");
 const assert = require("node:assert");
 const os$1 = require("node:os");
+function _interopNamespaceDefault(e) {
+  const n = Object.create(null, { [Symbol.toStringTag]: { value: "Module" } });
+  if (e) {
+    for (const k in e) {
+      if (k !== "default") {
+        const d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: () => e[k]
+        });
+      }
+    }
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+const path__namespace = /* @__PURE__ */ _interopNamespaceDefault(path);
+const fs__namespace = /* @__PURE__ */ _interopNamespaceDefault(fs);
 const IPC_EVENTS = {
   MIHOMO_START: "mihomo:start",
   MIHOMO_STOP: "mihomo:stop",
@@ -32,6 +50,7 @@ const IPC_EVENTS = {
   // Mihomo 代理组相关事件
   MIHOMO_GET_PROXIES: "mihomo:get-proxies",
   MIHOMO_SELECT_PROXY: "mihomo:select-proxy",
+  MIHOMO_FETCH_CONFIG_FROM_URL: "mihomo:fetch-config-from-url",
   // 开发环境相关事件
   DEV_ENV_INSTALL_VSCODE: "dev-env:install-vscode",
   DEV_ENV_INSTALL_NODEJS: "dev-env:install-nodejs",
@@ -42,6 +61,35 @@ const IPC_EVENTS = {
   LLM_GET_API_KEY: "llm:get-api-key",
   LLM_GET_ALL_API_KEYS: "llm:get-all-api-keys",
   LLM_DELETE_API_KEY: "llm:delete-api-key",
+  LLM_SET_PROVIDER_CONFIG: "llm:set-provider-config",
+  LLM_GET_PROVIDER_CONFIG: "llm:get-provider-config",
+  LLM_GET_PROVIDERS: "llm:get-providers",
+  LLM_GET_MODELS: "llm:get-models",
+  // 配置管理相关事件
+  CONFIG_GET_ALL: "config:get-all",
+  CONFIG_SET_VPN_URL: "config:set-vpn-url",
+  CONFIG_GET_VPN_URL: "config:get-vpn-url",
+  CONFIG_SET_PROXY_AUTO_START: "config:set-proxy-auto-start",
+  CONFIG_GET_PROXY_AUTO_START: "config:get-proxy-auto-start",
+  CONFIG_EXPORT: "config:export",
+  CONFIG_IMPORT: "config:import",
+  CONFIG_RESET: "config:reset",
+  CONFIG_SET_USER_NAME: "config:set-user-name",
+  CONFIG_GET_USER_NAME: "config:get-user-name",
+  CONFIG_SET_USER_EMAIL: "config:set-user-email",
+  CONFIG_GET_USER_EMAIL: "config:get-user-email",
+  CONFIG_SET_STARTUP: "config:set-startup",
+  CONFIG_GET_STARTUP: "config:get-startup",
+  CONFIG_SET_MINIMIZE_TO_TRAY: "config:set-minimize-to-tray",
+  CONFIG_GET_MINIMIZE_TO_TRAY: "config:get-minimize-to-tray",
+  CONFIG_SET_NOTIFICATIONS: "config:set-notifications",
+  CONFIG_GET_NOTIFICATIONS: "config:get-notifications",
+  CONFIG_GET_USAGE_STATS: "config:get-usage-stats",
+  CONFIG_CREATE_BACKUP: "config:create-backup",
+  CONFIG_RESTORE_FROM_BACKUP: "config:restore-from-backup",
+  CONFIG_GET_BACKUP_FILES: "config:get-backup-files",
+  CONFIG_VALIDATE_CONFIG: "config:validate-config",
+  CONFIG_MIGRATE_CONFIG: "config:migrate-config",
   // 窗口控制事件
   WINDOW_MINIMIZE: "window:minimize",
   WINDOW_MAXIMIZE: "window:maximize",
@@ -11288,10 +11336,17 @@ class MihomoService {
    * @returns Mihomo 可执行文件的完整路径。
    */
   getMihomoPath() {
+    const appName = "mihomo.exe";
     if (!electron.app.isPackaged) {
-      return path.resolve(electron.app.getAppPath(), "resources", "mihomo.exe");
+      console.log(`[MihomoService] Running in development mode. App path: ${electron.app.getAppPath()}`);
+      const devPath = path.resolve(electron.app.getAppPath(), "..", "resources", appName);
+      console.log(`[MihomoService] Looking for mihomo in development path: ${devPath}`);
+      return devPath;
     }
-    return path.resolve(path.dirname(electron.app.getAppPath()), "resources", "mihomo.exe");
+    console.log(`[MihomoService] Running in production mode. App path: ${electron.app.getAppPath()}`);
+    const prodPath = path.resolve(path.dirname(electron.app.getAppPath()), "resources", appName);
+    console.log(`[MihomoService] Looking for mihomo in production path: ${prodPath}`);
+    return prodPath;
   }
   /**
    * 创建默认的 Mihomo 配置文件。
@@ -11382,6 +11437,7 @@ class MihomoService {
         return reject(new Error(errorMsg));
       }
       console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
+      console.log(`[MihomoService] Using config file: ${this.configPath}`);
       this.mihomoProcess = child_process.spawn(mihomoPath, [
         "-d",
         path.dirname(this.configPath),
@@ -11405,14 +11461,33 @@ class MihomoService {
         this.mihomoProcess = null;
         reject(err);
       });
-      setTimeout(() => {
-        if (this.mihomoProcess) {
+      let attempts = 0;
+      const maxAttempts = 20;
+      const checkInterval = 500;
+      const checkApi = () => {
+        attempts++;
+        console.log(`[MihomoService] Checking API availability (attempt ${attempts}/${maxAttempts})...`);
+        this.apiClient.get("/version").then((response) => {
+          console.log(`[MihomoService] Mihomo API is available. Version: ${response.data.version}`);
           console.log("[MihomoService] Mihomo service started successfully.");
           resolve2();
-        } else {
-          reject(new Error("Mihomo process failed to start or exited prematurely."));
-        }
-      }, 1500);
+        }).catch((err) => {
+          if (attempts < maxAttempts) {
+            console.log(`[MihomoService] API not ready yet, retrying in ${checkInterval}ms...`);
+            setTimeout(checkApi, checkInterval);
+          } else {
+            console.error("[MihomoService] Mihomo API failed to become available after maximum attempts.");
+            console.error("[MihomoService] Last error:", err.message);
+            if (this.mihomoProcess) {
+              console.log("[MihomoService] Mihomo process seems to be running, resolving start promise.");
+              resolve2();
+            } else {
+              reject(new Error("Mihomo process failed to start or exited prematurely."));
+            }
+          }
+        });
+      };
+      setTimeout(checkApi, 1500);
     });
   }
   /**
@@ -11441,6 +11516,29 @@ class MihomoService {
    */
   isRunning() {
     return this.mihomoProcess !== null;
+  }
+  /**
+   * 从VPN服务提供商的URL获取配置
+   * @param url VPN服务提供商的配置URL
+   * @returns 一个 Promise，解析为获取到的配置对象
+   */
+  async fetchConfigFromURL(url) {
+    try {
+      console.log(`[MihomoService] Fetching config from URL: ${url}`);
+      const response = await axios.get(url, {
+        timeout: 1e4,
+        // 10秒超时
+        headers: {
+          "User-Agent": "Catalyst-App/1.0"
+        }
+      });
+      const config = jsYaml.load(response.data);
+      console.log("[MihomoService] Config fetched and parsed successfully");
+      return config;
+    } catch (error) {
+      console.error("[MihomoService] Failed to fetch config from URL:", error);
+      throw new Error(`Failed to fetch config from URL: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
   /**
    * 获取所有代理和策略组信息
@@ -11548,6 +11646,15 @@ function registerMihomoIpcHandlers() {
       return { success: true };
     } catch (error) {
       console.error("Failed to select proxy:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_FETCH_CONFIG_FROM_URL, async (_event, url) => {
+    try {
+      const config = await mihomoService.fetchConfigFromURL(url);
+      return { success: true, data: config };
+    } catch (error) {
+      console.error("Failed to fetch config from URL:", error);
       return { success: false, error: error.message };
     }
   });
@@ -21910,16 +22017,313 @@ class ElectronStore extends Conf {
     }
   }
 }
-class ApiKeyManager {
+class ConfigManager {
   static instance;
   store;
+  configDir;
   constructor() {
+    this.configDir = path__namespace.join(electron.app.getPath("userData"), "config");
+    if (!fs__namespace.existsSync(this.configDir)) {
+      fs__namespace.mkdirSync(this.configDir, { recursive: true });
+    }
     this.store = new ElectronStore({
-      name: "api-key-storage",
+      name: "app-config",
       defaults: {
-        apiKeys: {}
+        llm: {
+          provider: "openai",
+          model: "gpt-3.5-turbo",
+          apiKeys: {}
+        },
+        proxy: {
+          autoStart: false
+        },
+        app: {
+          theme: "auto",
+          language: "zh-CN",
+          autoUpdate: true,
+          startup: false,
+          minimizeToTray: false,
+          notifications: true
+        },
+        user: {
+          usageStats: {
+            proxyUsage: 0,
+            chatUsage: 0,
+            lastActive: (/* @__PURE__ */ new Date()).toISOString()
+          }
+        }
       }
     });
+  }
+  static getInstance() {
+    if (!ConfigManager.instance) {
+      ConfigManager.instance = new ConfigManager();
+    }
+    return ConfigManager.instance;
+  }
+  // LLM配置方法
+  setLLMProvider(provider) {
+    this.store.set("llm.provider", provider);
+  }
+  getLLMProvider() {
+    return this.store.get("llm.provider");
+  }
+  setLLMModel(model) {
+    this.store.set("llm.model", model);
+  }
+  getLLMModel() {
+    return this.store.get("llm.model");
+  }
+  setApiKey(provider, apiKey) {
+    const apiKeys = this.store.get("llm.apiKeys");
+    this.store.set("llm.apiKeys", {
+      ...apiKeys,
+      [provider]: apiKey
+    });
+  }
+  getApiKey(provider) {
+    return this.store.get("llm.apiKeys")[provider];
+  }
+  getAllApiKeys() {
+    return this.store.get("llm.apiKeys");
+  }
+  deleteApiKey(provider) {
+    const apiKeys = this.store.get("llm.apiKeys");
+    delete apiKeys[provider];
+    this.store.set("llm.apiKeys", apiKeys);
+  }
+  // 代理配置方法
+  setVpnProviderUrl(url) {
+    this.store.set("proxy.vpnProviderUrl", url);
+  }
+  getVpnProviderUrl() {
+    return this.store.get("proxy.vpnProviderUrl");
+  }
+  setProxyAutoStart(autoStart) {
+    this.store.set("proxy.autoStart", autoStart);
+  }
+  getProxyAutoStart() {
+    return this.store.get("proxy.autoStart") || false;
+  }
+  setProxyConfigPath(configPath) {
+    this.store.set("proxy.configPath", configPath);
+  }
+  getProxyConfigPath() {
+    return this.store.get("proxy.configPath");
+  }
+  // 应用设置方法
+  setTheme(theme) {
+    this.store.set("app.theme", theme);
+  }
+  getTheme() {
+    return this.store.get("app.theme") || "auto";
+  }
+  setLanguage(language) {
+    this.store.set("app.language", language);
+  }
+  getLanguage() {
+    return this.store.get("app.language") || "en";
+  }
+  setAutoUpdate(autoUpdate) {
+    this.store.set("app.autoUpdate", autoUpdate);
+  }
+  getAutoUpdate() {
+    return this.store.get("app.autoUpdate") || true;
+  }
+  // 获取完整配置
+  getAllConfig() {
+    return this.store.store;
+  }
+  // 导出配置到文件
+  exportConfig(filePath) {
+    const config = this.getAllConfig();
+    fs__namespace.writeFileSync(filePath, JSON.stringify(config, null, 2));
+  }
+  // 从文件导入配置
+  importConfig(filePath) {
+    try {
+      const configContent = fs__namespace.readFileSync(filePath, "utf8");
+      const config = JSON.parse(configContent);
+      if (config.llm && config.proxy && config.app) {
+        this.store.set(config);
+      } else {
+        throw new Error("Invalid configuration file structure");
+      }
+    } catch (error) {
+      throw new Error(`Failed to import configuration: ${error}`);
+    }
+  }
+  // 重置配置
+  resetConfig() {
+    this.store.clear();
+  }
+  // 获取配置目录路径
+  getConfigDir() {
+    return this.configDir;
+  }
+  // 获取配置文件路径
+  getConfigFilePath() {
+    return path__namespace.join(this.configDir, "app-config.json");
+  }
+  // 用户偏好设置方法
+  setUserName(name) {
+    this.store.set("user.name", name);
+  }
+  getUserName() {
+    return this.store.get("user.name");
+  }
+  setUserEmail(email) {
+    this.store.set("user.email", email);
+  }
+  getUserEmail() {
+    return this.store.get("user.email");
+  }
+  setStartup(startup) {
+    this.store.set("app.startup", startup);
+  }
+  getStartup() {
+    return this.store.get("app.startup") || false;
+  }
+  setMinimizeToTray(minimize) {
+    this.store.set("app.minimizeToTray", minimize);
+  }
+  getMinimizeToTray() {
+    return this.store.get("app.minimizeToTray") || false;
+  }
+  setNotifications(enabled) {
+    this.store.set("app.notifications", enabled);
+  }
+  getNotifications() {
+    return this.store.get("app.notifications") || true;
+  }
+  // 使用统计方法
+  incrementProxyUsage() {
+    const stats = this.store.get("user.usageStats") || {
+      proxyUsage: 0,
+      chatUsage: 0,
+      lastActive: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    this.store.set("user.usageStats", {
+      ...stats,
+      proxyUsage: (stats.proxyUsage || 0) + 1,
+      lastActive: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  }
+  incrementChatUsage() {
+    const stats = this.store.get("user.usageStats") || {
+      proxyUsage: 0,
+      chatUsage: 0,
+      lastActive: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    this.store.set("user.usageStats", {
+      ...stats,
+      chatUsage: (stats.chatUsage || 0) + 1,
+      lastActive: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  }
+  getUsageStats() {
+    return this.store.get("user.usageStats");
+  }
+  // 配置备份和恢复
+  createBackup() {
+    const config = this.getAllConfig();
+    const timestamp2 = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
+    const backupPath = path__namespace.join(this.configDir, `backup-${timestamp2}.json`);
+    fs__namespace.writeFileSync(backupPath, JSON.stringify(config, null, 2));
+    return backupPath;
+  }
+  restoreFromBackup(backupPath) {
+    try {
+      const backupContent = fs__namespace.readFileSync(backupPath, "utf8");
+      const config = JSON.parse(backupContent);
+      if (config.llm && config.proxy && config.app && config.user) {
+        this.store.set(config);
+      } else {
+        throw new Error("Invalid backup file structure");
+      }
+    } catch (error) {
+      throw new Error(`Failed to restore from backup: ${error}`);
+    }
+  }
+  getBackupFiles() {
+    try {
+      const files = fs__namespace.readdirSync(this.configDir);
+      return files.filter((file) => file.startsWith("backup-") && file.endsWith(".json")).map((file) => path__namespace.join(this.configDir, file)).sort((a, b) => fs__namespace.statSync(b).mtime.getTime() - fs__namespace.statSync(a).mtime.getTime());
+    } catch (error) {
+      return [];
+    }
+  }
+  // 配置验证
+  validateConfig(config) {
+    const errors2 = [];
+    if (!config.llm || typeof config.llm !== "object") {
+      errors2.push("LLM configuration is missing or invalid");
+    }
+    if (!config.proxy || typeof config.proxy !== "object") {
+      errors2.push("Proxy configuration is missing or invalid");
+    }
+    if (!config.app || typeof config.app !== "object") {
+      errors2.push("App configuration is missing or invalid");
+    }
+    if (!config.user || typeof config.user !== "object") {
+      errors2.push("User configuration is missing or invalid");
+    }
+    if (config.llm) {
+      if (!config.llm.provider || typeof config.llm.provider !== "string") {
+        errors2.push("LLM provider is missing or invalid");
+      }
+      if (!config.llm.model || typeof config.llm.model !== "string") {
+        errors2.push("LLM model is missing or invalid");
+      }
+      if (!config.llm.apiKeys || typeof config.llm.apiKeys !== "object") {
+        errors2.push("LLM API keys configuration is missing or invalid");
+      }
+    }
+    if (config.app) {
+      const validThemes = ["light", "dark", "auto"];
+      if (config.app.theme && !validThemes.includes(config.app.theme)) {
+        errors2.push("Invalid theme value");
+      }
+      if (config.app.autoUpdate && typeof config.app.autoUpdate !== "boolean") {
+        errors2.push("Auto update setting must be a boolean");
+      }
+    }
+    return {
+      valid: errors2.length === 0,
+      errors: errors2
+    };
+  }
+  // 配置迁移
+  migrateConfig() {
+    const config = this.getAllConfig();
+    let migrated = false;
+    if (!config.user) {
+      this.store.set("user", {
+        usageStats: {
+          proxyUsage: 0,
+          chatUsage: 0,
+          lastActive: (/* @__PURE__ */ new Date()).toISOString()
+        }
+      });
+      migrated = true;
+    }
+    if (config.app && config.app.language === "en") {
+      this.store.set("app.language", "zh-CN");
+      migrated = true;
+    }
+    if (config.app && !config.app.hasOwnProperty("notifications")) {
+      this.store.set("app.notifications", true);
+      migrated = true;
+    }
+    if (migrated) {
+      console.log("Configuration migrated successfully");
+    }
+  }
+}
+const configManager = ConfigManager.getInstance();
+class ApiKeyManager {
+  static instance;
+  constructor() {
   }
   static getInstance() {
     if (!ApiKeyManager.instance) {
@@ -21928,27 +22332,22 @@ class ApiKeyManager {
     return ApiKeyManager.instance;
   }
   setApiKey(provider, apiKey) {
-    const currentKeys = this.store.get("apiKeys");
-    this.store.set("apiKeys", {
-      ...currentKeys,
-      [provider]: apiKey
-    });
+    configManager.setApiKey(provider, apiKey);
   }
   getApiKey(provider) {
-    return this.store.get("apiKeys")[provider];
+    return configManager.getApiKey(provider);
   }
   getAllApiKeys() {
-    return this.store.get("apiKeys");
+    return configManager.getAllApiKeys();
   }
   deleteApiKey(provider) {
-    const currentKeys = this.store.get("apiKeys");
-    delete currentKeys[provider];
-    this.store.set("apiKeys", currentKeys);
+    configManager.deleteApiKey(provider);
   }
 }
 const apiKeyManager = ApiKeyManager.getInstance();
 class LLMService {
   static instance;
+  providerConfigs = /* @__PURE__ */ new Map();
   constructor() {
   }
   static getInstance() {
@@ -21957,11 +22356,37 @@ class LLMService {
     }
     return LLMService.instance;
   }
-  async generateCompletion(provider, model, messages, params = {}) {
-    if (provider === "openai") {
-      return this.generateOpenAICompletion(model, messages, params);
+  // 设置提供商配置
+  setProviderConfig(provider, config) {
+    this.providerConfigs.set(provider, config);
+  }
+  // 获取提供商配置
+  getProviderConfig(provider) {
+    return this.providerConfigs.get(provider);
+  }
+  // 获取支持的提供商列表
+  getProviders() {
+    return ["openai", "openrouter", "custom"];
+  }
+  // 获取指定提供商的模型列表
+  getModels(provider) {
+    switch (provider) {
+      case "openai":
+        return ["gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"];
+      case "openrouter":
+        return ["anthropic/claude-3-opus", "google/gemini-pro-1.5", "mistralai/mistral-7b-instruct"];
+      case "custom":
+        return ["custom-model-1", "custom-model-2"];
+      default:
+        return [];
     }
-    throw new Error(`Unsupported LLM provider: ${provider}`);
+  }
+  async generateCompletion(provider, model, messages, params = {}) {
+    const providerConfig = this.providerConfigs.get(provider);
+    if (providerConfig) {
+      return this.generateCustomCompletion(provider, model, messages, params, providerConfig);
+    }
+    return this.generateOpenAICompletion(model, messages, params);
   }
   async generateOpenAICompletion(model, messages, params) {
     const apiKey = apiKeyManager.getApiKey("openai");
@@ -21991,6 +22416,37 @@ class LLMService {
         console.error("An unexpected error occurred:", error);
       }
       throw new Error("Failed to get completion from OpenAI.");
+    }
+  }
+  async generateCustomCompletion(provider, model, messages, params, config) {
+    const { baseUrl, apiKey, defaultHeaders = {} } = config;
+    if (!apiKey) {
+      throw new Error(`${provider} API key is not set.`);
+    }
+    const url = `${baseUrl}/chat/completions`;
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      ...defaultHeaders
+    };
+    const body = {
+      model,
+      messages,
+      ...params
+    };
+    try {
+      const response = await axios.post(url, body, { headers });
+      if (response.data.choices && response.data.choices.length > 0) {
+        return response.data.choices[0].message.content;
+      }
+      throw new Error(`Invalid response structure from ${provider} API.`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(`Error calling ${provider} API:`, error.response?.data || error.message);
+      } else {
+        console.error("An unexpected error occurred:", error);
+      }
+      throw new Error(`Failed to get completion from ${provider}.`);
     }
   }
 }
@@ -22040,6 +22496,46 @@ function registerLlmIpcHandlers() {
       return { success: true };
     } catch (error) {
       console.error("Failed to delete API key:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.LLM_SET_PROVIDER_CONFIG, async (_event, request) => {
+    try {
+      const { provider, baseUrl, apiKey, defaultHeaders } = request;
+      llmService.setProviderConfig(provider, { baseUrl, apiKey, defaultHeaders });
+      if (apiKey) {
+        apiKeyManager.setApiKey(provider, apiKey);
+      }
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set provider config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.LLM_GET_PROVIDER_CONFIG, async (_event, provider) => {
+    try {
+      const config = llmService.getProviderConfig(provider);
+      return { success: true, data: config };
+    } catch (error) {
+      console.error("Failed to get provider config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.LLM_GET_PROVIDERS, async () => {
+    try {
+      const providers = llmService.getProviders();
+      return { success: true, data: providers };
+    } catch (error) {
+      console.error("Failed to get LLM providers:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.LLM_GET_MODELS, async (_event, provider) => {
+    try {
+      const models = llmService.getModels(provider);
+      return { success: true, data: models };
+    } catch (error) {
+      console.error("Failed to get LLM models:", error);
       return { success: false, error: error.message };
     }
   });
@@ -22264,6 +22760,248 @@ function registerDevEnvironmentIpcHandlers() {
     }
   });
 }
+function registerConfigIpcHandlers() {
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_ALL, async () => {
+    try {
+      const config = configManager.getAllConfig();
+      return { success: true, data: config };
+    } catch (error) {
+      console.error("Failed to get all config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_VPN_URL, async (_event, url) => {
+    try {
+      configManager.setVpnProviderUrl(url);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set VPN URL:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_VPN_URL, async () => {
+    try {
+      const url = configManager.getVpnProviderUrl();
+      return { success: true, data: url };
+    } catch (error) {
+      console.error("Failed to get VPN URL:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_PROXY_AUTO_START, async (_event, autoStart) => {
+    try {
+      configManager.setProxyAutoStart(autoStart);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set proxy auto start:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_PROXY_AUTO_START, async () => {
+    try {
+      const autoStart = configManager.getProxyAutoStart();
+      return { success: true, data: autoStart };
+    } catch (error) {
+      console.error("Failed to get proxy auto start:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_EXPORT, async () => {
+    try {
+      const result = await electron.dialog.showSaveDialog({
+        title: "Export Configuration",
+        defaultPath: path__namespace.join(configManager.getConfigDir(), "catalyst-config.json"),
+        filters: [
+          { name: "JSON Files", extensions: ["json"] },
+          { name: "All Files", extensions: ["*"] }
+        ]
+      });
+      if (!result.canceled && result.filePath) {
+        configManager.exportConfig(result.filePath);
+        return { success: true, data: result.filePath };
+      } else {
+        return { success: false, error: "Export canceled by user" };
+      }
+    } catch (error) {
+      console.error("Failed to export config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_IMPORT, async () => {
+    try {
+      const result = await electron.dialog.showOpenDialog({
+        title: "Import Configuration",
+        filters: [
+          { name: "JSON Files", extensions: ["json"] },
+          { name: "All Files", extensions: ["*"] }
+        ],
+        properties: ["openFile"]
+      });
+      if (!result.canceled && result.filePaths.length > 0) {
+        configManager.importConfig(result.filePaths[0]);
+        return { success: true, data: result.filePaths[0] };
+      } else {
+        return { success: false, error: "Import canceled by user" };
+      }
+    } catch (error) {
+      console.error("Failed to import config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_RESET, async () => {
+    try {
+      configManager.resetConfig();
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to reset config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_USER_NAME, async (_event, name) => {
+    try {
+      configManager.setUserName(name);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set user name:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_USER_NAME, async () => {
+    try {
+      const name = configManager.getUserName();
+      return { success: true, data: name };
+    } catch (error) {
+      console.error("Failed to get user name:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_USER_EMAIL, async (_event, email) => {
+    try {
+      configManager.setUserEmail(email);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set user email:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_USER_EMAIL, async () => {
+    try {
+      const email = configManager.getUserEmail();
+      return { success: true, data: email };
+    } catch (error) {
+      console.error("Failed to get user email:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_STARTUP, async (_event, startup) => {
+    try {
+      configManager.setStartup(startup);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set startup:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_STARTUP, async () => {
+    try {
+      const startup = configManager.getStartup();
+      return { success: true, data: startup };
+    } catch (error) {
+      console.error("Failed to get startup:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_MINIMIZE_TO_TRAY, async (_event, minimize) => {
+    try {
+      configManager.setMinimizeToTray(minimize);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set minimize to tray:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_MINIMIZE_TO_TRAY, async () => {
+    try {
+      const minimize = configManager.getMinimizeToTray();
+      return { success: true, data: minimize };
+    } catch (error) {
+      console.error("Failed to get minimize to tray:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_NOTIFICATIONS, async (_event, enabled) => {
+    try {
+      configManager.setNotifications(enabled);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set notifications:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_NOTIFICATIONS, async () => {
+    try {
+      const notifications = configManager.getNotifications();
+      return { success: true, data: notifications };
+    } catch (error) {
+      console.error("Failed to get notifications:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_USAGE_STATS, async () => {
+    try {
+      const stats = configManager.getUsageStats();
+      return { success: true, data: stats };
+    } catch (error) {
+      console.error("Failed to get usage stats:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_CREATE_BACKUP, async () => {
+    try {
+      const backupPath = configManager.createBackup();
+      return { success: true, data: backupPath };
+    } catch (error) {
+      console.error("Failed to create backup:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_RESTORE_FROM_BACKUP, async (_event, backupPath) => {
+    try {
+      configManager.restoreFromBackup(backupPath);
+      return { success: true, data: backupPath };
+    } catch (error) {
+      console.error("Failed to restore from backup:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_BACKUP_FILES, async () => {
+    try {
+      const backupFiles = configManager.getBackupFiles();
+      return { success: true, data: backupFiles };
+    } catch (error) {
+      console.error("Failed to get backup files:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_VALIDATE_CONFIG, async (_event, config) => {
+    try {
+      const validation2 = configManager.validateConfig(config);
+      return { success: true, data: validation2 };
+    } catch (error) {
+      console.error("Failed to validate config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_MIGRATE_CONFIG, async () => {
+    try {
+      configManager.migrateConfig();
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to migrate config:", error);
+      return { success: false, error: error.message };
+    }
+  });
+}
 let mainWindow = null;
 function createWindow() {
   const mainScreen = require("electron").screen.getPrimaryDisplay();
@@ -22274,32 +23012,52 @@ function createWindow() {
     frame: false,
     // 禁用默认标题栏
     webPreferences: {
-      preload: process.env.ELECTRON_VITE_PRELOAD,
-      sandbox: false
+      preload: path.join(__dirname, "../preload/preload.js"),
+      // 修正为正确的 preload 文件名
+      contextIsolation: true
     }
   });
   mainWindow.loadURL("http://localhost:5173");
+  mainWindow.webContents.openDevTools();
+  electron.ipcMain.on(IPC_EVENTS.WINDOW_MINIMIZE, () => {
+    console.log("Received WINDOW_MINIMIZE event");
+    if (mainWindow) {
+      console.log("Minimizing window");
+      mainWindow.minimize();
+    } else {
+      console.error("Main window is null, cannot minimize");
+    }
+  });
+  electron.ipcMain.on(IPC_EVENTS.WINDOW_MAXIMIZE, () => {
+    console.log("Received WINDOW_MAXIMIZE event");
+    if (mainWindow) {
+      if (mainWindow.isMaximized()) {
+        console.log("Unmaximizing window");
+        mainWindow.unmaximize();
+      } else {
+        console.log("Maximizing window");
+        mainWindow.maximize();
+      }
+    } else {
+      console.error("Main window is null, cannot maximize/unmaximize");
+    }
+  });
+  electron.ipcMain.on(IPC_EVENTS.WINDOW_CLOSE, () => {
+    console.log("Received WINDOW_CLOSE event");
+    if (mainWindow) {
+      console.log("Closing window");
+      mainWindow.close();
+    } else {
+      console.error("Main window is null, cannot close");
+    }
+  });
 }
 electron.app.whenReady().then(() => {
   createWindow();
   registerMihomoIpcHandlers();
   registerLlmIpcHandlers();
   registerDevEnvironmentIpcHandlers();
-  if (mainWindow) {
-    electron.ipcMain.on(IPC_EVENTS.WINDOW_MINIMIZE, () => {
-      mainWindow?.minimize();
-    });
-    electron.ipcMain.on(IPC_EVENTS.WINDOW_MAXIMIZE, () => {
-      if (mainWindow?.isMaximized()) {
-        mainWindow.unmaximize();
-      } else {
-        mainWindow?.maximize();
-      }
-    });
-    electron.ipcMain.on(IPC_EVENTS.WINDOW_CLOSE, () => {
-      mainWindow?.close();
-    });
-  }
+  registerConfigIpcHandlers();
   electron.app.on("activate", function() {
     if (electron.BrowserWindow.getAllWindows().length === 0) createWindow();
   });
