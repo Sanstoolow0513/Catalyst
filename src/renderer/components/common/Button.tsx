@@ -214,8 +214,8 @@ const Button: React.FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       className={className}
-      whileHover={{ scale: $loading || disabled ? 1 : 1.02 }}
-      whileTap={{ scale: $loading || disabled ? 1 : 0.98 }}
+      whileHover={{ scale: $loading || disabled ? 1 : 1.02, zIndex: $loading || disabled ? 0 : 1 }}
+      whileTap={{ scale: $loading || disabled ? 1 : 0.98, zIndex: $loading || disabled ? 0 : 1 }}
       {...props}
     >
       {$loading ? null : startIcon}

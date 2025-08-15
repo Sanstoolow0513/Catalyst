@@ -116,9 +116,10 @@ const Card: React.FC<CardProps> = ({
       transition={{ duration: 0.3 }}
       whileHover={$hoverable ? {
         scale: 1.02,
-        boxShadow: theme.card.shadowHover
+        boxShadow: theme.card.shadowHover,
+        zIndex: 1
       } : {}}
-      whileTap={$clickable ? { scale: 0.98 } : {}}
+      whileTap={$clickable ? { scale: 0.98, zIndex: 1 } : {}}
       {...props}
     >
       {children}

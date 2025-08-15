@@ -1,24 +1,9 @@
-import Store from 'electron-store';
-
-// 定义存储的数据结构类型
-type ApiKeyStore = {
-  apiKeys: {
-    [provider: string]: string;
-  };
-};
+import { configManager } from './config-manager';
 
 class ApiKeyManager {
   private static instance: ApiKeyManager;
-  private store: Store<ApiKeyStore>;
 
-  private constructor() {
-    this.store = new Store<ApiKeyStore>({
-      name: 'api-key-storage',
-      defaults: {
-        apiKeys: {},
-      },
-    });
-  }
+  private constructor() {}
 
   public static getInstance(): ApiKeyManager {
     if (!ApiKeyManager.instance) {
@@ -28,25 +13,19 @@ class ApiKeyManager {
   }
 
   public setApiKey(provider: string, apiKey: string): void {
-    const currentKeys = this.store.get('apiKeys');
-    this.store.set('apiKeys', {
-      ...currentKeys,
-      [provider]: apiKey,
-    });
+    configManager.setApiKey(provider, apiKey);
   }
 
   public getApiKey(provider: string): string | undefined {
-    return this.store.get('apiKeys')[provider];
+    return configManager.getApiKey(provider);
   }
 
   public getAllApiKeys(): { [provider: string]: string } {
-    return this.store.get('apiKeys');
+    return configManager.getAllApiKeys();
   }
 
   public deleteApiKey(provider: string): void {
-    const currentKeys = this.store.get('apiKeys');
-    delete currentKeys[provider];
-    this.store.set('apiKeys', currentKeys);
+    configManager.deleteApiKey(provider);
   }
 }
 

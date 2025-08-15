@@ -10,6 +10,7 @@ export interface IMihomoAPI {
   openConfigDir: () => Promise<{ success: boolean; error?: string }>;
   getProxies: () => Promise<{ success: boolean; data?: any; error?: string }>;
   selectProxy: (groupName: string, proxyName: string) => Promise<{ success: boolean; error?: string }>;
+  fetchConfigFromURL: (url: string) => Promise<{ success: boolean; data?: any; error?: string }>;
 }
 
 // Mihomo 配置类型定义
@@ -50,10 +51,16 @@ export interface ILLMParams {
 }
 
 export interface IGenerateCompletionRequest {
-  provider: 'openai';
+  provider: string;
   model: string;
   messages: ILLMMessage[];
   params?: ILLMParams;
+}
+
+export interface IProviderConfig {
+  baseUrl: string;
+  apiKey: string;
+  defaultHeaders?: Record<string>;
 }
 
 export interface ILLMAPI {
@@ -62,6 +69,40 @@ export interface ILLMAPI {
   getApiKey: (provider: string) => Promise<{ success: boolean; data?: string; error?: string }>;
   getAllApiKeys: () => Promise<{ success: boolean; data?: { [provider: string]: string }; error?: string }>;
   deleteApiKey: (provider: string) => Promise<{ success: boolean; error?: string }>;
+  setProviderConfig: (config: IProviderConfig & { provider: string }) => Promise<{ success: boolean; error?: string }>;
+  getProviderConfig: (provider: string) => Promise<{ success: boolean; data?: IProviderConfig; error?: string }>;
+  getProviders: () => Promise<{ success: boolean; data?: string[]; error?: string }>;
+  getModels: (provider: string) => Promise<{ success: boolean; data?: string[]; error?: string }>;
+}
+
+// 配置管理API
+export interface IConfigAPI {
+  getAll: () => Promise<{ success: boolean; data?: any; error?: string }>;
+  setVpnUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
+  getVpnUrl: () => Promise<{ success: boolean; data?: string; error?: string }>;
+  setProxyAutoStart: (autoStart: boolean) => Promise<{ success: boolean; error?: string }>;
+  getProxyAutoStart: () => Promise<{ success: boolean; data?: boolean; error?: string }>;
+  export: () => Promise<{ success: boolean; data?: string; error?: string }>;
+  import: () => Promise<{ success: boolean; data?: string; error?: string }>;
+  reset: () => Promise<{ success: boolean; error?: string }>;
+  setUserName: (name: string) => Promise<{ success: boolean; error?: string }>;
+  getUserName: () => Promise<{ success: boolean; data?: string; error?: string }>;
+  setUserEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
+  getUserEmail: () => Promise<{ success: boolean; data?: string; error?: string }>;
+  setStartup: (startup: boolean) => Promise<{ success: boolean; error?: string }>;
+  getStartup: () => Promise<{ success: boolean; data?: boolean; error?: string }>;
+  setMinimizeToTray: (minimize: boolean) => Promise<{ success: boolean; error?: string }>;
+  getMinimizeToTray: () => Promise<{ success: boolean; data?: boolean; error?: string }>;
+  setNotifications: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
+  getNotifications: () => Promise<{ success: boolean; data?: boolean; error?: string }>;
+  setTheme: (theme: 'light' | 'dark' | 'auto') => Promise<{ success: boolean; error?: string }>;
+  setLanguage: (language: string) => Promise<{ success: boolean; error?: string }>;
+  getUsageStats: () => Promise<{ success: boolean; data?: any; error?: string }>;
+  createBackup: () => Promise<{ success: boolean; data?: string; error?: string }>;
+  restoreFromBackup: (backupPath: string) => Promise<{ success: boolean; data?: string; error?: string }>;
+  getBackupFiles: () => Promise<{ success: boolean; data?: string[]; error?: string }>;
+  validateConfig: (config: any) => Promise<{ success: boolean; data?: { valid: boolean; errors: string[] }; error?: string }>;
+  migrateConfig: () => Promise<{ success: boolean; error?: string }>;
 }
 
 // 窗口控制API
@@ -76,6 +117,7 @@ declare global {
     electronAPI: {
       mihomo: IMihomoAPI;
       llm: ILLMAPI;
+      config: IConfigAPI;
       devEnvironment: IDevEnvironmentAPI;
       windowControl: IWindowControlAPI;
     };

@@ -14,10 +14,11 @@ const LayoutContainer = styled(motion.div)`
   overflow: hidden;
 `;
 
-const MainContent = styled(motion.div)`
+const MainContent = styled.div`
   display: flex;
   flex: 1;
   overflow: hidden;
+  margin-top: ${props => props.theme.titleBar.height};
 `;
 
 const Content = styled(motion.main)`
@@ -54,16 +55,12 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       transition={{ duration: 0.3 }}
     >
       <TitleBar />
-      <MainContent
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.4 }}
-      >
+      <MainContent>
         <Sidebar />
         <Content
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
         >
           {children}
         </Content>

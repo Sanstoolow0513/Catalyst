@@ -89,4 +89,14 @@ export function registerMihomoIpcHandlers() {
       return { success: false, error: (error as Error).message };
     }
   });
+
+  ipcMain.handle(IPC_EVENTS.MIHOMO_FETCH_CONFIG_FROM_URL, async (_event, url: string) => {
+    try {
+      const config = await mihomoService.fetchConfigFromURL(url);
+      return { success: true, data: config };
+    } catch (error) {
+      console.error('Failed to fetch config from URL:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
 }
