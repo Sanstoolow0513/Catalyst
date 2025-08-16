@@ -52,6 +52,9 @@ interface ProxyConfig {
 interface UserConfig {
   name: string;                      // 用户姓名
   email: string;                     // 用户邮箱
+  nickname: string;                  // 用户昵称
+  avatar: string | null;             // 用户头像 (Base64)
+  bio: string;                       // 个人简介
 }
 ```
 

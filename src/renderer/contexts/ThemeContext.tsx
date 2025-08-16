@@ -8,7 +8,9 @@ import { lightTheme, darkTheme, muiLightTheme, muiDarkTheme, Theme } from '../st
 type ThemeContextType = {
   theme: Theme;
   isDarkMode: boolean;
+  isSidebarCollapsed: boolean;
   toggleTheme: () => void;
+  toggleSidebar: () => void;
   muiTheme: ReturnType<typeof createTheme>;
 };
 
@@ -29,6 +31,7 @@ type ThemeProviderProps = {
 export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
   const [theme, setTheme] = useState(lightTheme);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const toggleTheme = () => {
     const newTheme = isDarkMode ? lightTheme : darkTheme;
@@ -36,14 +39,24 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
     setIsDarkMode(!isDarkMode);
   };
 
-  // 在页面加载时从 localStorage 读取用户偏好的主题
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
+  // 在页面加载时从 localStorage 读取用户偏好的主题和侧边栏状态
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
+    const savedSidebarState = localStorage.getItem('sidebarCollapsed');
+    
     if (savedTheme === 'dark') {
       setTheme({ ...darkTheme, name: 'dark' });
       setIsDarkMode(true);
     } else {
       setTheme({ ...lightTheme, name: 'light' });
+    }
+    
+    if (savedSidebarState === 'true') {
+      setIsSidebarCollapsed(true);
     }
   }, []);
 
@@ -51,6 +64,11 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
   useEffect(() => {
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
+
+  // 当侧边栏状态改变时，将其保存到 localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', isSidebarCollapsed.toString());
+  }, [isSidebarCollapsed]);
 
   // 当主题改变时，同步更新HTML的data-theme属性
   useEffect(() => {
@@ -60,7 +78,7 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
   const muiTheme = isDarkMode ? muiDarkTheme : muiLightTheme;
 
   return (
-    <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme, muiTheme }}>
+    <ThemeContext.Provider value={{ theme, isDarkMode, isSidebarCollapsed, toggleTheme, toggleSidebar, muiTheme }}>
       <MuiThemeProvider theme={muiTheme}>
         <ThemeProvider theme={{ ...theme, name: isDarkMode ? 'dark' : 'light' }}>
           {children}
