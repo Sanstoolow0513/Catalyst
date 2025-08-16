@@ -1,12 +1,36 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { PageContainer, Button, Card, StatusIndicator } from '../components/common';
+import { FaJava } from 'react-icons/fa';
+import { VscCode } from 'react-icons/vsc';
+import { 
+  SiIntellijidea,
+  SiPycharm,
+  SiWebstorm,
+  SiNodedotjs,
+  SiPython,
+  SiDotnet,
+  SiMysql,
+  SiPostgresql,
+  SiMongodb,
+  SiDocker,
+  SiGit,
+  SiNpm,
+  SiReact,
+  SiVuedotjs,
+  SiAngular,
+  SiGithub,
+  SiStackoverflow,
+  SiJuejin,
+  SiMedium
+} from 'react-icons/si';
 import { 
   Code as CodeIcon,
   Terminal as TerminalIcon,
   Database as DatabaseIcon,
   Globe as GlobeIcon,
-  Zap as ZapIcon
+  Zap as ZapIcon,
+  Link as LinkIcon
 } from 'lucide-react';
 
 const Header = styled.div`
@@ -83,6 +107,7 @@ const ToolIcon = styled.div`
   align-items: center;
   justify-content: center;
   color: ${props => props.theme.primary.main};
+  font-size: 24px;
 `;
 
 const ToolInfo = styled.div`
@@ -101,12 +126,14 @@ const ToolDescription = styled.p`
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.9rem;
   line-height: 1.5;
+  flex-grow: 1;
 `;
 
 const ToolFooter = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: auto;
 `;
 
 const ToolCategory = styled.span`
@@ -115,6 +142,48 @@ const ToolCategory = styled.span`
   background-color: ${({ theme }) => theme.surfaceVariant};
   padding: 4px 8px;
   border-radius: 4px;
+`;
+
+const WebsiteCard = styled(Card)`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+`;
+
+const WebsiteIcon = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: ${props => props.theme.surfaceVariant};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: ${props => props.theme.textPrimary};
+`;
+
+const WebsiteInfo = styled.div`
+  flex: 1;
+`;
+
+const WebsiteName = styled.h4`
+  margin: 0 0 4px 0;
+  color: ${({ theme }) => theme.textPrimary};
+  font-size: 1.1rem;
+`;
+
+const WebsiteDescription = styled.p`
+  margin: 0;
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.9rem;
 `;
 
 const StatusMessageContainer = styled.div`
@@ -135,37 +204,53 @@ interface Tool {
   description: string;
   category: 'IDE' | 'Runtime' | 'Database' | 'Tool' | 'Framework';
   status: 'not-installed' | 'installing' | 'installed' | 'error';
+  icon: React.ComponentType;
+}
+
+interface Website {
+  name: string;
+  description: string;
+  url: string;
+  icon: React.ComponentType;
 }
 
 const DevEnvironmentPage: React.FC = () => {
   const [tools, setTools] = useState<Tool[]>([
     // IDEs
-    { id: 'vscode', name: 'Visual Studio Code', description: '免费、开源的代码编辑器，支持多种编程语言', category: 'IDE', status: 'not-installed' },
-    { id: 'intellij', name: 'IntelliJ IDEA', description: '强大的Java IDE，也支持其他语言', category: 'IDE', status: 'not-installed' },
-    { id: 'pycharm', name: 'PyCharm', description: '专业的Python IDE', category: 'IDE', status: 'not-installed' },
-    { id: 'webstorm', name: 'WebStorm', description: '专业的JavaScript和Web开发IDE', category: 'IDE', status: 'not-installed' },
+    { id: 'vscode', name: 'Visual Studio Code', description: '免费、开源的代码编辑器，支持多种编程语言', category: 'IDE', status: 'not-installed', icon: VscCode },
+    { id: 'intellij', name: 'IntelliJ IDEA', description: '强大的Java IDE，也支持其他语言', category: 'IDE', status: 'not-installed', icon: SiIntellijidea },
+    { id: 'pycharm', name: 'PyCharm', description: '专业的Python IDE', category: 'IDE', status: 'not-installed', icon: SiPycharm },
+    { id: 'webstorm', name: 'WebStorm', description: '专业的JavaScript和Web开发IDE', category: 'IDE', status: 'not-installed', icon: SiWebstorm },
     
     // Runtimes
-    { id: 'nodejs', name: 'Node.js', description: 'JavaScript 运行时环境', category: 'Runtime', status: 'not-installed' },
-    { id: 'python', name: 'Python', description: '通用编程语言', category: 'Runtime', status: 'not-installed' },
-    { id: 'java', name: 'Java JDK', description: 'Java开发工具包', category: 'Runtime', status: 'not-installed' },
-    { id: 'dotnet', name: '.NET SDK', description: '微软的开发平台', category: 'Runtime', status: 'not-installed' },
+    { id: 'nodejs', name: 'Node.js', description: 'JavaScript 运行时环境', category: 'Runtime', status: 'not-installed', icon: SiNodedotjs },
+    { id: 'python', name: 'Python', description: '通用编程语言', category: 'Runtime', status: 'not-installed', icon: SiPython },
+    { id: 'java', name: 'Java JDK', description: 'Java开发工具包', category: 'Runtime', status: 'not-installed', icon: FaJava },
+    { id: 'dotnet', name: '.NET SDK', description: '微软的开发平台', category: 'Runtime', status: 'not-installed', icon: SiDotnet },
     
     // Databases
-    { id: 'mysql', name: 'MySQL', description: '流行的开源关系型数据库', category: 'Database', status: 'not-installed' },
-    { id: 'postgresql', name: 'PostgreSQL', description: '强大的开源对象关系型数据库', category: 'Database', status: 'not-installed' },
-    { id: 'mongodb', name: 'MongoDB', description: '流行的NoSQL文档数据库', category: 'Database', status: 'not-installed' },
+    { id: 'mysql', name: 'MySQL', description: '流行的开源关系型数据库', category: 'Database', status: 'not-installed', icon: SiMysql },
+    { id: 'postgresql', name: 'PostgreSQL', description: '强大的开源对象关系型数据库', category: 'Database', status: 'not-installed', icon: SiPostgresql },
+    { id: 'mongodb', name: 'MongoDB', description: '流行的NoSQL文档数据库', category: 'Database', status: 'not-installed', icon: SiMongodb },
     
     // Tools
-    { id: 'docker', name: 'Docker', description: '容器化平台，用于构建、部署和运行应用', category: 'Tool', status: 'not-installed' },
-    { id: 'git', name: 'Git', description: '分布式版本控制系统', category: 'Tool', status: 'not-installed' },
-    { id: 'npm', name: 'npm', description: 'Node.js的包管理器', category: 'Tool', status: 'not-installed' },
+    { id: 'docker', name: 'Docker', description: '容器化平台，用于构建、部署和运行应用', category: 'Tool', status: 'not-installed', icon: SiDocker },
+    { id: 'git', name: 'Git', description: '分布式版本控制系统', category: 'Tool', status: 'not-installed', icon: SiGit },
+    { id: 'npm', name: 'npm', description: 'Node.js的包管理器', category: 'Tool', status: 'not-installed', icon: SiNpm },
     
     // Frameworks
-    { id: 'react', name: 'React', description: '用于构建用户界面的JavaScript库', category: 'Framework', status: 'not-installed' },
-    { id: 'vue', name: 'Vue.js', description: '渐进式JavaScript框架', category: 'Framework', status: 'not-installed' },
-    { id: 'angular', name: 'Angular', description: '平台和框架，用于构建单页应用', category: 'Framework', status: 'not-installed' },
+    { id: 'react', name: 'React', description: '用于构建用户界面的JavaScript库', category: 'Framework', status: 'not-installed', icon: SiReact },
+    { id: 'vue', name: 'Vue.js', description: '渐进式JavaScript框架', category: 'Framework', status: 'not-installed', icon: SiVuedotjs },
+    { id: 'angular', name: 'Angular', description: '平台和框架，用于构建单页应用', category: 'Framework', status: 'not-installed', icon: SiAngular },
   ]);
+
+  const websites: Website[] = [
+    { name: 'GitHub', description: '代码托管与协作平台', url: 'https://github.com', icon: SiGithub },
+    { name: 'Stack Overflow', description: '开发者问答社区', url: 'https://stackoverflow.com', icon: SiStackoverflow },
+    { name: '掘金', description: '中文技术社区', url: 'https://juejin.cn', icon: SiJuejin },
+    { name: 'Medium', description: '高质量技术文章分享', url: 'https://medium.com', icon: SiMedium },
+  ];
+
   const [statusMessage, setStatusMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -173,7 +258,6 @@ const DevEnvironmentPage: React.FC = () => {
     setStatusMessage(`Installing ${toolId}...`);
     setIsSuccess(false);
     
-    // 更新工具状态为 "installing"
     setTools(prevTools =>
       prevTools.map(tool =>
         tool.id === toolId ? { ...tool, status: 'installing' } : tool
@@ -193,9 +277,7 @@ const DevEnvironmentPage: React.FC = () => {
         case 'python':
           result = await window.electronAPI.devEnvironment.installPython();
           break;
-        // 其他工具的安装逻辑可以在这里添加
         default:
-          // 模拟安装过程
           await new Promise(resolve => setTimeout(resolve, 2000));
           result = { success: true };
       }
@@ -229,7 +311,6 @@ const DevEnvironmentPage: React.FC = () => {
     }
   };
 
-  // 按类别分组工具
   const ideTools = tools.filter(tool => tool.category === 'IDE');
   const runtimeTools = tools.filter(tool => tool.category === 'Runtime');
   const databaseTools = tools.filter(tool => tool.category === 'Database');
@@ -245,6 +326,29 @@ const DevEnvironmentPage: React.FC = () => {
         <Section>
           <SectionHeader>
             <SectionIcon>
+              <GlobeIcon size={20} />
+            </SectionIcon>
+            <SectionTitle>常用开发者网站</SectionTitle>
+          </SectionHeader>
+          <ToolsGrid>
+            {websites.map(site => (
+              <a href={site.url} target="_blank" rel="noopener noreferrer" key={site.name} style={{ textDecoration: 'none' }}>
+                <WebsiteCard $padding="medium">
+                  <WebsiteIcon><site.icon /></WebsiteIcon>
+                  <WebsiteInfo>
+                    <WebsiteName>{site.name}</WebsiteName>
+                    <WebsiteDescription>{site.description}</WebsiteDescription>
+                  </WebsiteInfo>
+                  <LinkIcon size={18} />
+                </WebsiteCard>
+              </a>
+            ))}
+          </ToolsGrid>
+        </Section>
+
+        <Section>
+          <SectionHeader>
+            <SectionIcon>
               <CodeIcon size={20} />
             </SectionIcon>
             <SectionTitle>集成开发环境 (IDE)</SectionTitle>
@@ -253,9 +357,7 @@ const DevEnvironmentPage: React.FC = () => {
             {ideTools.map(tool => (
               <ToolCard key={tool.id} $padding="20px">
                 <ToolHeader>
-                  <ToolIcon>
-                    <CodeIcon size={20} />
-                  </ToolIcon>
+                  <ToolIcon><tool.icon /></ToolIcon>
                   <ToolInfo>
                     <ToolName>{tool.name}</ToolName>
                     <ToolCategory>{tool.category}</ToolCategory>
@@ -290,9 +392,7 @@ const DevEnvironmentPage: React.FC = () => {
             {runtimeTools.map(tool => (
               <ToolCard key={tool.id} $padding="20px">
                 <ToolHeader>
-                  <ToolIcon>
-                    <TerminalIcon size={20} />
-                  </ToolIcon>
+                  <ToolIcon><tool.icon /></ToolIcon>
                   <ToolInfo>
                     <ToolName>{tool.name}</ToolName>
                     <ToolCategory>{tool.category}</ToolCategory>
@@ -327,9 +427,7 @@ const DevEnvironmentPage: React.FC = () => {
             {databaseTools.map(tool => (
               <ToolCard key={tool.id} $padding="20px">
                 <ToolHeader>
-                  <ToolIcon>
-                    <DatabaseIcon size={20} />
-                  </ToolIcon>
+                  <ToolIcon><tool.icon /></ToolIcon>
                   <ToolInfo>
                     <ToolName>{tool.name}</ToolName>
                     <ToolCategory>{tool.category}</ToolCategory>
@@ -364,9 +462,7 @@ const DevEnvironmentPage: React.FC = () => {
             {otherTools.map(tool => (
               <ToolCard key={tool.id} $padding="20px">
                 <ToolHeader>
-                  <ToolIcon>
-                    <GlobeIcon size={20} />
-                  </ToolIcon>
+                  <ToolIcon><tool.icon /></ToolIcon>
                   <ToolInfo>
                     <ToolName>{tool.name}</ToolName>
                     <ToolCategory>{tool.category}</ToolCategory>

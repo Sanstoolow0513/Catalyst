@@ -15,6 +15,7 @@ const GlobalStyles = createGlobalStyle`
     height: 100%;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
   }
 
   body {
@@ -40,7 +41,7 @@ const GlobalStyles = createGlobalStyle`
   }
 
   a:hover {
-    color: ${({ theme }) => theme.accent.light}; /* 使用 accent.light 作为悬停颜色 */
+    color: ${({ theme }) => theme.accentHover}; /* 使用 accentHover 作为悬停颜色 */
     text-decoration: none; /* 移除下划线，保持简洁 */
   }
 

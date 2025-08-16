@@ -55,7 +55,8 @@ Catalyst/
 │   │   │       ├── StatusIndicator.tsx  # 状态指示器组件
 │   │   │       └── TitleBar.tsx   # 标题栏组件
 │   │   ├── contexts/             # React Context
-│   │   │   └── ThemeContext.tsx  # 主题上下文
+│   │   │   ├── ThemeContext.tsx  # 主题上下文
+│   │   │   └── UserContext.tsx   # 用户上下文
 │   │   ├── hooks/                # 自定义 Hooks
 │   │   │   └── useChat.ts        # 聊天 Hook
 │   │   ├── layouts/              # 布局组件

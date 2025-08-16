@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useUser } from '../../contexts/UserContext';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -132,6 +133,42 @@ const ThemeToggleButton = styled(ActionButton)`
   }
 `;
 
+const UserProfileContainer = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 20px;
+  background-color: ${props => props.theme.surfaceVariant};
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+`;
+
+const UserAvatar = styled.div`
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: ${props => props.theme.primary.main};
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const UserName = styled.span`
+  font-size: 14px;
+  font-weight: 500;
+  color: ${props => props.theme.titleBar.text};
+  padding-right: 8px;
+`;
+
 const WindowControls = styled.div`
   display: flex;
   gap: 4px;
@@ -185,6 +222,7 @@ const WindowButton = styled(motion.button)<{ variant: 'minimize' | 'maximize' | 
 
 const TitleBar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
+  const { nickname, avatar } = useUser();
   const navigate = useNavigate();
 
   const handleMinimize = () => {
@@ -274,14 +312,17 @@ const TitleBar: React.FC = () => {
           <SettingsIcon size={18} />
         </ActionButton>
         
-        <ActionButton
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          title="用户"
-          theme={theme}
+        <UserProfileContainer
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/settings')}
+          title="用户设置"
         >
-          <UserIcon size={18} />
-        </ActionButton>
+          <UserAvatar>
+            {avatar ? <img src={avatar} alt="User Avatar" /> : <UserIcon size={16} />}
+          </UserAvatar>
+          <UserName>{nickname}</UserName>
+        </UserProfileContainer>
         
         <WindowControls>
           <WindowButton

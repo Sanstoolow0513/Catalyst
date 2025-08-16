@@ -10,6 +10,7 @@ import {
   FormGroup,
   Textarea
 } from '../components/common';
+import { useUser } from '../contexts/UserContext';
 import { 
   User as UserIcon,
   Settings as SettingsIcon,
@@ -294,14 +295,15 @@ interface ToastMessage {
 }
 
 const SettingsPage: React.FC = () => {
+  const { nickname, avatar, setProfile } = useUser();
   const [activeTab, setActiveTab] = useState<TabType>('user');
   const [loading, setLoading] = useState(false);
   
   // 用户设置
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
-  const [userNickname, setUserNickname] = useState('');
-  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userNickname, setUserNickname] = useState(nickname);
+  const [userAvatar, setUserAvatar] = useState<string | null>(avatar);
   const [userBio, setUserBio] = useState('');
   
   // 通用设置
@@ -327,7 +329,9 @@ const SettingsPage: React.FC = () => {
 
   useEffect(() => {
     loadSettings();
-  }, []);
+    setUserNickname(nickname);
+    setUserAvatar(avatar);
+  }, [nickname, avatar]);
 
   const loadSettings = async () => {
     try {
@@ -418,8 +422,8 @@ const SettingsPage: React.FC = () => {
       await window.electronAPI.config.setUserName(userName);
       await window.electronAPI.config.setUserEmail(userEmail);
       // 保存用户昵称和简介到本地存储（因为当前API没有这些字段）
-      localStorage.setItem('userNickname', userNickname);
       localStorage.setItem('userBio', userBio);
+      setProfile({ nickname: userNickname, avatar: userAvatar });
       showToast('用户设置已保存', 'success');
     } catch (error) {
       showToast('保存用户设置失败', 'error');

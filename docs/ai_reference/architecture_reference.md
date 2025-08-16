@@ -134,6 +134,9 @@ Catalyst 采用 Electron 的多进程架构：
 1. **主题上下文** (`ThemeContext.tsx`)
    - 管理应用的主题状态
 
+2. **用户上下文** (`UserContext.tsx`)
+   - 管理用户的个人资料（昵称、头像）
+
 #### 3.2.5 钩子层 (Hooks)
 位于 `src/renderer/hooks/` 目录下：
 
@@ -193,6 +196,7 @@ Catalyst 采用 Electron 的多进程架构：
 - **Styled Components**: CSS-in-JS 解决方案
 - **Framer Motion**: 动画库
 - **Lucide React**: 图标库
+- **React Icons**: 图标库
 
 ### 5.3 后端技术
 - **Electron Store**: 配置存储
