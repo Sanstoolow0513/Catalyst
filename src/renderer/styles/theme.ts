@@ -1,5 +1,5 @@
 // src/renderer/styles/theme.ts
-import { createTheme } from '@mui/material/styles';
+import { createTheme, Theme as MUITheme } from '@mui/material/styles';
 
 // 主题类型定义
 export interface ThemeColors {
@@ -71,16 +71,49 @@ export interface Theme {
   info: ThemeColors;
 
   // 组件特定样式
-  sidebar: ThemeComponentStyles;
-  titleBar: ThemeComponentStyles;
-  input: ThemeComponentStyles;
-  card: ThemeComponentStyles;
-  button: ThemeComponentStyles;
+  sidebar: {
+    background: string;
+    border: string;
+    itemHover: string;
+    itemActive: string;
+    text: string;
+    textActive: string;
+  };
 
-  // 输入框特定样式
+  titleBar: {
+    background: string;
+    border: string;
+    text: string;
+    icon: string;
+    iconHover: string;
+    height: string;
+  };
+
+  input: {
+    background: string;
+    border: string;
+    borderFocus: string;
+    text: string;
+    placeholder: string;
+  };
   inputBorder: string;
   inputBackground: string;
   inputFocusBorder: string;
+
+  card: {
+    background: string;
+    border: string;
+    shadow: string;
+    shadowHover: string;
+  };
+
+  button: {
+    background: string;
+    border: string;
+    borderRadius: string;
+    shadow: string;
+    shadowHover: string;
+  };
 
   // 间距系统
   spacing: ThemeSpacing;
@@ -92,7 +125,7 @@ export interface Theme {
   borderRadius: ThemeBorderRadius;
 
   // 主题名称
-  name: string;
+  name: 'light' | 'dark';
 }
 
 // 浅色模式主题
@@ -177,6 +210,8 @@ export const lightTheme: Theme = {
   },
 
   button: {
+    background: '#FFFFFF',
+    border: 'none',
     borderRadius: '8px',
     shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
     shadowHover: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
@@ -292,6 +327,8 @@ export const darkTheme: Theme = {
   },
 
   button: {
+    background: '#111827',
+    border: 'none',
     borderRadius: '8px',
     shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
     shadowHover: '0 2px 4px 0 rgba(0, 0, 0, 0.2)',

@@ -21,12 +21,7 @@ import {
   FolderOpen
 } from 'lucide-react';
 
-// 页面组件
-const PageHeader = () => (
-  <div style={{ marginBottom: '32px' }}>
-    <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>Proxy Management</h1>
-  </div>
-);
+// 页面组件 - 根据设计规范，具体服务页面不需要标题
 
 // 区块组件
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -456,8 +451,6 @@ const UnifiedProxyPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader />
-      
       {!apiAvailable ? (
         <StatusSection
           isLoading={isLoading}

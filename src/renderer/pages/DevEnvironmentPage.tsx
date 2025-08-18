@@ -33,19 +33,21 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 
+// Header组件 - 根据设计规范，具体服务页面不需要标题
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: ${({ theme }) => theme.spacing.lg};
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: ${({ theme }) => theme.spacing.md};
+  }
 `;
 
-const Title = styled.h2`
-  margin: 0;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.5rem;
-  font-weight: 600;
-`;
+// Title组件 - 根据设计规范，具体服务页面不需要标题
 
 const SectionsContainer = styled.div`
   display: flex;
@@ -62,7 +64,7 @@ const SectionHeader = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
-const SectionTitle = styled.h3`
+const SectionTitle = styled.h2`
   margin: 0;
   color: ${({ theme }) => theme.textPrimary};
   font-size: 1.5rem;
@@ -87,6 +89,14 @@ const ToolsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: ${({ theme }) => theme.spacing.md};
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const ToolCard = styled(Card)`
@@ -322,10 +332,6 @@ const DevEnvironmentPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <Header>
-        <Title>开发环境部署</Title>
-      </Header>
-      
       <SectionsContainer>
         <Section>
           <SectionHeader>

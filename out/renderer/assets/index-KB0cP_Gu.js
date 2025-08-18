@@ -27948,49 +27948,53 @@ function ThemeProvider({
   });
 }
 const lightTheme = {
-  // Base colors for a cleaner look
+  // 基础背景色
   background: "#F9FAFB",
-  // Tailwind gray-50
+  // 页面背景
   foreground: "#FFFFFF",
+  // 前景元素背景
   surface: "#FFFFFF",
+  // 卡片、面板背景
   surfaceVariant: "#F3F4F6",
-  // Tailwind gray-100
-  // Text colors with better contrast
+  // 变体表面（如输入框背景）
+  // 文本颜色
   textPrimary: "#111827",
-  // Tailwind gray-900
+  // 主要文本
   textSecondary: "#4B5563",
-  // Tailwind gray-600
+  // 次要文本
   textTertiary: "#9CA3AF",
-  // Tailwind gray-400
-  // Borders for subtle separation
+  // 第三级文本（如占位符）
+  // 边框颜色
   border: "#E5E7EB",
-  // Tailwind gray-200
+  // 标准边框
   borderLight: "#F3F4F6",
-  // Tailwind gray-100
+  // 浅边框
   divider: "#E5E7EB",
-  // Primary color palette
+  // 分隔线
+  // 主要颜色
   primary: {
     main: "#2563EB",
+    // 主色
     light: "#3B82F6",
     dark: "#1D4ED8",
     contrastText: "#FFFFFF"
   },
-  // Secondary color palette
+  // 次要颜色
   secondary: {
     main: "#64748B",
     light: "#94A3B8",
     dark: "#475569",
     contrastText: "#FFFFFF"
   },
-  // Accent color
+  // 强调色
   accent: "#7C3AED",
   accentHover: "#6D28D9",
-  // State colors
+  // 状态颜色
   success: { main: "#10B981", light: "#34D399", dark: "#059669", contrastText: "#FFFFFF" },
   error: { main: "#EF4444", light: "#F87171", dark: "#DC2626", contrastText: "#FFFFFF" },
   warning: { main: "#F59E0B", light: "#FBBF24", dark: "#D97706", contrastText: "#FFFFFF" },
   info: { main: "#06B6D4", light: "#22D3EE", dark: "#0891B2", contrastText: "#FFFFFF" },
-  // Component-specific styles
+  // 组件特定样式
   sidebar: {
     background: "#FFFFFF",
     border: "#E5E7EB",
@@ -28024,79 +28028,97 @@ const lightTheme = {
     shadowHover: "0 4px 12px 0 rgba(0, 0, 0, 0.08)"
   },
   button: {
+    background: "#FFFFFF",
+    border: "none",
     borderRadius: "8px",
     shadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
     shadowHover: "0 2px 4px 0 rgba(0, 0, 0, 0.1)"
   },
-  // Spacing scale
+  // 间距系统
   spacing: {
     xs: "4px",
+    // 4px
     sm: "8px",
+    // 8px
     md: "16px",
+    // 16px
     lg: "24px",
+    // 24px
     xl: "32px",
+    // 32px
     xxl: "48px"
+    // 48px
   },
-  // Transitions
+  // 过渡动画
   transition: {
     fast: "150ms",
+    // 150ms
     normal: "300ms",
+    // 300ms
     slow: "500ms"
+    // 500ms
   },
-  // Border radius scale
+  // 圆角系统
   borderRadius: {
     small: "8px",
+    // 8px - 用于按钮、标签等小元素
     medium: "12px",
+    // 12px - 用于卡片、输入框等
     large: "16px",
+    // 16px - 用于页面容器、模态框等
     xlarge: "20px"
+    // 20px - 用于特殊场景
   },
   name: "light"
 };
 const darkTheme = {
-  // Dark mode palette with more depth
+  // 基础背景色
   background: "#030712",
-  // Tailwind slate-950
+  // 页面背景
   foreground: "#111827",
-  // Tailwind slate-900
+  // 前景元素背景
   surface: "#111827",
+  // 卡片、面板背景
   surfaceVariant: "#1F2937",
-  // Tailwind slate-800
-  // Text colors for dark mode
+  // 变体表面（如输入框背景）
+  // 文本颜色
   textPrimary: "#F9FAFB",
-  // Tailwind gray-50
+  // 主要文本
   textSecondary: "#9CA3AF",
-  // Tailwind gray-400
+  // 次要文本
   textTertiary: "#4B5563",
-  // Tailwind gray-600
-  // Borders for dark mode
+  // 第三级文本（如占位符）
+  // 边框颜色
   border: "#374151",
-  // Tailwind slate-700
+  // 标准边框
   borderLight: "#4B5563",
-  // Tailwind slate-600
+  // 浅边框
   divider: "#374151",
-  // Primary color palette
+  // 分隔线
+  // 主要颜色
   primary: {
     main: "#3B82F6",
+    // 主色
     light: "#60A5FA",
     dark: "#2563EB",
     contrastText: "#FFFFFF"
   },
-  // Secondary color palette
+  // 次要颜色
   secondary: {
     main: "#94A3B8",
     light: "#CBD5E1",
     dark: "#64748B",
     contrastText: "#030712"
   },
-  // Accent color
+  // 强调色
   accent: "#A78BFA",
   accentHover: "#8B5CF6",
-  // State colors
+  // 状态颜色
   success: { main: "#34D399", light: "#6EE7B7", dark: "#10B981", contrastText: "#FFFFFF" },
   error: { main: "#F87171", light: "#FCA5A5", dark: "#EF4444", contrastText: "#FFFFFF" },
   warning: { main: "#FBBF24", light: "#FCD34D", dark: "#F59E0B", contrastText: "#FFFFFF" },
   info: { main: "#22D3EE", light: "#67E8F9", dark: "#06B6D4", contrastText: "#FFFFFF" },
-  // Component-specific styles
+  // 组件特定样式
   sidebar: {
     background: "#111827",
     border: "#374151",
@@ -28130,31 +28152,46 @@ const darkTheme = {
     shadowHover: "0 4px 12px 0 rgba(0, 0, 0, 0.15)"
   },
   button: {
+    background: "#111827",
+    border: "none",
     borderRadius: "8px",
     shadow: "0 1px 2px 0 rgba(0, 0, 0, 0.1)",
     shadowHover: "0 2px 4px 0 rgba(0, 0, 0, 0.2)"
   },
-  // Spacing scale
+  // 间距系统
   spacing: {
     xs: "4px",
+    // 4px
     sm: "8px",
+    // 8px
     md: "16px",
+    // 16px
     lg: "24px",
+    // 24px
     xl: "32px",
+    // 32px
     xxl: "48px"
+    // 48px
   },
-  // Transitions
+  // 过渡动画
   transition: {
     fast: "150ms",
+    // 150ms
     normal: "300ms",
+    // 300ms
     slow: "500ms"
+    // 500ms
   },
-  // Border radius scale
+  // 圆角系统
   borderRadius: {
     small: "8px",
+    // 8px - 用于按钮、标签等小元素
     medium: "12px",
+    // 12px - 用于卡片、输入框等
     large: "16px",
+    // 16px - 用于页面容器、模态框等
     xlarge: "20px"
+    // 20px - 用于特殊场景
   },
   name: "dark"
 };
@@ -28174,13 +28211,16 @@ const muiLightTheme = createTheme({
     text: {
       primary: lightTheme.textPrimary,
       secondary: lightTheme.textSecondary
-    }
+    },
+    divider: lightTheme.divider,
+    border: lightTheme.border
   },
   typography: {
     fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
   },
   shape: {
     borderRadius: 12
+    // 默认圆角设置为12px
   },
   components: {
     MuiButton: {
@@ -28189,6 +28229,7 @@ const muiLightTheme = createTheme({
           textTransform: "none",
           boxShadow: "none",
           borderRadius: "8px",
+          // 按钮圆角为8px
           "&:hover": {
             boxShadow: "none"
           }
@@ -28203,8 +28244,46 @@ const muiLightTheme = createTheme({
             boxShadow: lightTheme.card.shadowHover
           },
           borderRadius: "12px"
+          // 卡片圆角为12px
         }
       }
+    },
+    MuiInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px"
+          // 输入框圆角为12px
+        }
+      }
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px"
+          // 输入框圆角为12px
+        }
+      }
+    }
+  },
+  spacing: {
+    unit: 8
+    // 基础间距单位为8px
+  },
+  transitions: {
+    duration: {
+      shortest: 150,
+      shorter: 200,
+      short: 250,
+      standard: 300,
+      complex: 375,
+      enteringScreen: 225,
+      leavingScreen: 195
+    },
+    easing: {
+      easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)",
+      easeOut: "cubic-bezier(0.0, 0, 0.2, 1)",
+      easeIn: "cubic-bezier(0.4, 0, 1, 1)",
+      sharp: "cubic-bezier(0.4, 0, 0.6, 1)"
     }
   }
 });
@@ -28224,13 +28303,16 @@ const muiDarkTheme = createTheme({
     text: {
       primary: darkTheme.textPrimary,
       secondary: darkTheme.textSecondary
-    }
+    },
+    divider: darkTheme.divider,
+    border: darkTheme.border
   },
   typography: {
     fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
   },
   shape: {
     borderRadius: 12
+    // 默认圆角设置为12px
   },
   components: {
     MuiButton: {
@@ -28239,6 +28321,7 @@ const muiDarkTheme = createTheme({
           textTransform: "none",
           boxShadow: "none",
           borderRadius: "8px",
+          // 按钮圆角为8px
           "&:hover": {
             boxShadow: "none"
           }
@@ -28253,8 +28336,46 @@ const muiDarkTheme = createTheme({
             boxShadow: darkTheme.card.shadowHover
           },
           borderRadius: "12px"
+          // 卡片圆角为12px
         }
       }
+    },
+    MuiInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px"
+          // 输入框圆角为12px
+        }
+      }
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px"
+          // 输入框圆角为12px
+        }
+      }
+    }
+  },
+  spacing: {
+    unit: 8
+    // 基础间距单位为8px
+  },
+  transitions: {
+    duration: {
+      shortest: 150,
+      shorter: 200,
+      short: 250,
+      standard: 300,
+      complex: 375,
+      enteringScreen: 225,
+      leavingScreen: 195
+    },
+    easing: {
+      easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)",
+      easeOut: "cubic-bezier(0.0, 0, 0.2, 1)",
+      easeIn: "cubic-bezier(0.4, 0, 1, 1)",
+      sharp: "cubic-bezier(0.4, 0, 0.6, 1)"
     }
   }
 });
@@ -28408,41 +28529,35 @@ const createLucideIcon = (iconName, iconNode) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$z = [
-  ["path", { d: "M10.268 21a2 2 0 0 0 3.464 0", key: "vwvbt9" }],
-  [
-    "path",
-    {
-      d: "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
-      key: "11g9vi"
-    }
-  ]
+const __iconNode$z = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+const ChevronDown = createLucideIcon("chevron-down", __iconNode$z);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$y = [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]];
+const ChevronLeft = createLucideIcon("chevron-left", __iconNode$y);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$x = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
+const ChevronRight = createLucideIcon("chevron-right", __iconNode$x);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$w = [
+  ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
+  ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
 ];
-const Bell = createLucideIcon("bell", __iconNode$z);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$y = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-const ChevronDown = createLucideIcon("chevron-down", __iconNode$y);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$x = [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]];
-const ChevronLeft = createLucideIcon("chevron-left", __iconNode$x);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$w = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
-const ChevronRight = createLucideIcon("chevron-right", __iconNode$w);
+const CircleCheckBig = createLucideIcon("circle-check-big", __iconNode$w);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -28450,10 +28565,11 @@ const ChevronRight = createLucideIcon("chevron-right", __iconNode$w);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$v = [
-  ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
-  ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+  ["path", { d: "m15 9-6 6", key: "1uzhvr" }],
+  ["path", { d: "m9 9 6 6", key: "z0biqf" }]
 ];
-const CircleCheckBig = createLucideIcon("circle-check-big", __iconNode$v);
+const CircleX = createLucideIcon("circle-x", __iconNode$v);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -29607,12 +29723,13 @@ const Content$1 = dt(motion.main)`
   }
 `;
 const MainLayout = ({ children }) => {
+  const isServicePage = window.location.pathname.includes("/proxy-management") || window.location.pathname.includes("/chat") || window.location.pathname.includes("/dev-environment");
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     LayoutContainer,
     {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      transition: { duration: 0.3 },
+      initial: isServicePage ? false : { opacity: 0 },
+      animate: isServicePage ? false : { opacity: 1 },
+      transition: isServicePage ? false : { duration: 0.3 },
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(TitleBar, {}),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(MainContent, { children: [
@@ -29620,9 +29737,9 @@ const MainLayout = ({ children }) => {
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             Content$1,
             {
-              initial: { opacity: 0, y: 20 },
-              animate: { opacity: 1, y: 0 },
-              transition: { delay: 0.2, duration: 0.4 },
+              initial: isServicePage ? false : { opacity: 0, y: 20 },
+              animate: isServicePage ? false : { opacity: 1, y: 0 },
+              transition: isServicePage ? false : { delay: 0.2, duration: 0.4 },
               children
             }
           )
@@ -29634,7 +29751,7 @@ const MainLayout = ({ children }) => {
 const StyledButton = dt(motion.button)`
   text-transform: none;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.borderRadius.small};
   transition: all ${(props) => props.theme.transition.fast} ease;
   position: relative;
   overflow: hidden;
@@ -29655,7 +29772,6 @@ const StyledButton = dt(motion.button)`
           color: ${props.theme.primary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.primary.dark};
-            box-shadow: 0 4px 12px ${props.theme.primary.main}40;
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -29669,7 +29785,6 @@ const StyledButton = dt(motion.button)`
           color: ${props.theme.secondary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.secondary.dark};
-            box-shadow: 0 4px 12px ${props.theme.secondary.main}40;
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -29683,7 +29798,6 @@ const StyledButton = dt(motion.button)`
           color: ${props.theme.error.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.error.dark};
-            box-shadow: 0 4px 12px ${props.theme.error.main}40;
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -29730,7 +29844,6 @@ const StyledButton = dt(motion.button)`
           color: ${props.theme.primary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.primary.dark};
-            box-shadow: 0 4px 12px ${props.theme.primary.main}40;
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -29818,6 +29931,9 @@ const Button = ({
   className,
   ...props
 }) => {
+  const isServicePage = ["/proxy-management", "/chat", "/dev-environment"].some(
+    (path) => window.location.pathname.includes(path)
+  );
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     StyledButton,
     {
@@ -29829,8 +29945,9 @@ const Button = ({
       type: type2,
       onClick,
       className,
-      whileHover: { scale: $loading || disabled ? 1 : 1.02, zIndex: $loading || disabled ? 0 : 1 },
-      whileTap: { scale: $loading || disabled ? 1 : 0.98, zIndex: $loading || disabled ? 0 : 1 },
+      whileHover: isServicePage ? void 0 : { scale: $loading || disabled ? 1 : 1.01, zIndex: $loading || disabled ? 0 : 1 },
+      whileTap: isServicePage ? void 0 : { scale: $loading || disabled ? 1 : 0.99, zIndex: $loading || disabled ? 0 : 1 },
+      transition: isServicePage ? { duration: 0.15 } : { duration: 0.2 },
       ...props,
       children: [
         $loading ? null : startIcon,
@@ -29848,13 +29965,13 @@ const StyledCard = dt(motion.div)`
     case "none":
       return "0";
     case "small":
-      return "8px";
+      return props.theme.borderRadius.small;
     case "medium":
-      return "12px";
+      return props.theme.borderRadius.medium;
     case "large":
-      return "16px";
+      return props.theme.borderRadius.large;
     default:
-      return "12px";
+      return props.theme.borderRadius.medium;
   }
 }};
   
@@ -29905,9 +30022,8 @@ const StyledCard = dt(motion.div)`
     cursor: pointer;
     
     &:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: ${props.theme.card.shadowHover};
-      border-color: ${props.theme.primary.main}20;
     }
   `}
   
@@ -29921,8 +30037,6 @@ const StyledCard = dt(motion.div)`
     }
   `}
   
-  /* 动画性能优化 */
-  will-change: transform, box-shadow;
 `;
 const Card = ({
   children,
@@ -29936,6 +30050,9 @@ const Card = ({
   theme,
   ...props
 }) => {
+  const isServicePage = ["/proxy-management", "/chat", "/dev-environment"].some(
+    (path) => window.location.pathname.includes(path)
+  );
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     StyledCard,
     {
@@ -29946,50 +30063,271 @@ const Card = ({
       $clickable,
       onClick,
       className,
-      initial: { opacity: 0, y: 20 },
-      animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.3 },
-      whileHover: $hoverable ? {
-        scale: 1.02,
-        boxShadow: theme.card.shadowHover,
+      initial: isServicePage ? void 0 : { opacity: 0, y: 20 },
+      animate: isServicePage ? void 0 : { opacity: 1, y: 0 },
+      transition: isServicePage ? { duration: 0.15 } : { duration: 0.3 },
+      whileHover: $hoverable && !isServicePage ? {
+        scale: 1.01,
+        boxShadow: theme?.card.shadowHover,
         zIndex: 1
-      } : {},
-      whileTap: $clickable ? { scale: 0.98, zIndex: 1 } : {},
+      } : void 0,
+      whileTap: $clickable ? { scale: 0.98, zIndex: 1 } : void 0,
       ...props,
       children
     }
   );
 };
-const PageContainer$1 = dt.div`
+const StyledTabButton = dt.button`
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  color: ${(props) => props.$active ? props.theme.primary.main : props.theme.textSecondary};
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid ${(props) => props.$active ? props.theme.primary.main : "transparent"};
+  transition: all ${(props) => props.theme.transition.fast} ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  &:hover {
+    color: ${(props) => props.theme.primary.main};
+  }
+`;
+const TabButton = ({
+  $active,
+  onClick,
+  children,
+  icon
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(StyledTabButton, { $active, onClick, children: [
+    icon,
+    children
+  ] });
+};
+const SwitchContainer$1 = dt.label`
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+`;
+const SwitchInput = dt.input`
+  opacity: 0;
+  width: 0;
+  height: 0;
+  
+  &:checked + .slider {
+    background-color: ${(props) => props.theme.primary.main};
+  }
+  
+  &:checked + .slider:before {
+    transform: translateX(24px);
+  }
+  
+  &:disabled + .slider {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+const Slider = dt.span`
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: ${(props) => props.theme.border};
+  transition: ${(props) => props.theme.transition.fast} ease;
+  border-radius: 24px;
+  
+  &:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: ${(props) => props.theme.transition.fast} ease;
+    border-radius: 50%;
+  }
+`;
+const Switch = ({
+  checked,
+  onChange,
+  disabled = false
+}) => {
+  const handleChange = (e) => {
+    onChange(e.target.checked);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer$1, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      SwitchInput,
+      {
+        type: "checkbox",
+        checked,
+        onChange: handleChange,
+        disabled
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Slider, { className: "slider" })
+  ] });
+};
+const ToastContainer = dt.div`
+  position: fixed;
+  top: ${(props) => props.theme.spacing.xl};
+  right: ${(props) => props.theme.spacing.xl};
+  z-index: 9999;
+`;
+const StyledToast = dt.div`
+  display: flex;
+  align-items: center;
+  gap: ${(props) => props.theme.spacing.sm};
+  padding: ${(props) => props.theme.spacing.md} ${(props) => props.theme.spacing.lg};
+  background-color: ${(props) => {
+  switch (props.$type) {
+    case "success":
+      return props.theme.success.main;
+    case "error":
+      return props.theme.error.main;
+    case "info":
+      return props.theme.info.main;
+    default:
+      return props.theme.surfaceVariant;
+  }
+}};
+  color: white;
+  border-radius: ${(props) => props.theme.borderRadius.large};
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn ${(props) => props.theme.transition.normal} ease forwards;
+  min-width: 300px;
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+  
+  &.exiting {
+    animation: slideOut ${(props) => props.theme.transition.normal} ease forwards;
+  }
+`;
+const ToastIcon = dt.div`
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+`;
+const ToastContent = dt.div`
+  flex: 1;
+  font-weight: 500;
+`;
+const ToastClose = dt.button`
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  
+  &:hover {
+    opacity: 1;
+  }
+`;
+const Toast = ({
+  id: id2,
+  message,
+  type: type2,
+  onClose,
+  exiting = false
+}) => {
+  const getIcon = () => {
+    switch (type2) {
+      case "success":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 20 });
+      case "error":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(CircleX, { size: 20 });
+      case "info":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Info, { size: 20 });
+      default:
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Info, { size: 20 });
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(StyledToast, { $type: type2, className: exiting ? "exiting" : "", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ToastIcon, { children: getIcon() }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ToastContent, { children: message }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ToastClose, { onClick: () => onClose(id2), children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 16 }) })
+  ] });
+};
+const PageContainer = dt.div`
   flex-grow: 1;
-  padding: 0;
+  padding: ${(props) => props.theme.spacing.xl};
   background-color: ${(props) => props.theme.background};
   color: ${(props) => props.theme.textPrimary};
   display: flex;
   flex-direction: column;
   overflow: hidden;
   height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: ${(props) => props.theme.spacing.lg};
+  }
+
+  @media (max-width: 480px) {
+    padding: ${(props) => props.theme.spacing.md};
+  }
 `;
-const getColor = ($status) => {
-  switch ($status) {
-    case "success":
-      return "#28A745";
-    case "error":
-      return "#DC3545";
-    case "warning":
-      return "#FFC107";
-    case "info":
-      return "#17A2B8";
+const getSize = ($size = "medium") => {
+  switch ($size) {
+    case "small":
+      return "8px";
+    case "large":
+      return "12px";
+    case "medium":
     default:
-      return "#6C757D";
+      return "10px";
   }
 };
 const StatusIndicator = dt.span`
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: ${(props) => getSize(props.$size)};
+  height: ${(props) => getSize(props.$size)};
   border-radius: 50%;
-  background-color: ${(props) => getColor(props.$status)};
+  background-color: ${(props) => {
+  switch (props.$status) {
+    case "success":
+      return props.theme.success.main;
+    case "error":
+      return props.theme.error.main;
+    case "warning":
+      return props.theme.warning.main;
+    case "info":
+      return props.theme.info.main;
+    default:
+      return props.theme.textSecondary;
+  }
+}};
   margin-right: 8px;
 `;
 const Label = dt.label`
@@ -30028,7 +30366,7 @@ const baseInputStyles = `
 const Input = dt.input`
   ${baseInputStyles}
 `;
-const Textarea$1 = dt.textarea`
+const Textarea = dt.textarea`
   ${baseInputStyles}
   min-height: 100px;
   resize: vertical;
@@ -30077,29 +30415,29 @@ dt.div`
   }
 `;
 dt.div`
-  max-width: 1400px;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 24px;
   padding-right: 24px;
   width: 100%;
 `;
-const HomePageContainer = dt.div`
+dt.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 24px;
   background-color: ${(props) => props.theme.background};
   color: ${(props) => props.theme.textPrimary};
 `;
-const Header$1 = dt.div`
+const Header = dt.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
+  padding: 0 ${({ theme }) => theme.spacing.xl};
 `;
-const Title$1 = dt.h1`
-  font-size: 2.5rem;
+const Title = dt.h1`
+  font-size: 2rem;
   font-weight: 700;
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
@@ -30107,7 +30445,7 @@ const Title$1 = dt.h1`
 const ThemeToggle = dt.button`
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
   background: ${(props) => props.theme.surfaceVariant};
   border: none;
   display: flex;
@@ -30115,7 +30453,7 @@ const ThemeToggle = dt.button`
   justify-content: center;
   cursor: pointer;
   color: ${(props) => props.theme.textPrimary};
-  transition: all 0.2s ease;
+  transition: all ${(props) => props.theme.transition.fast} ease;
   
   &:hover {
     background: ${(props) => props.theme.border};
@@ -30123,14 +30461,14 @@ const ThemeToggle = dt.button`
 `;
 const HeroSection = dt(motion.div)`
   text-align: center;
-  margin-bottom: 50px;
-  padding: 40px 20px;
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
+  padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.lg};
 `;
 const AppName = dt.h1`
   font-size: 4rem;
   font-weight: 800;
-  margin: 0 0 20px 0;
-  background: ${(props) => props.theme.isDarkMode ? "linear-gradient(135deg, #3B82F6, #8B5CF6)" : "linear-gradient(135deg, #2563EB, #7C3AED)"};
+  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
+  background: ${(props) => props.theme.name === "dark" ? "linear-gradient(135deg, #3B82F6, #8B5CF6)" : "linear-gradient(135deg, #2563EB, #7C3AED)"};
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -30139,39 +30477,34 @@ const AppDescription = dt.p`
   font-size: 1.2rem;
   color: ${(props) => props.theme.textSecondary};
   max-width: 600px;
-  margin: 0 auto 30px;
+  margin: 0 auto ${({ theme }) => theme.spacing.xl};
   line-height: 1.6;
 `;
 const QuickActions = dt.div`
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 40px;
+  gap: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+  }
 `;
-const QuickActionCard = dt(motion.div)`
-  background: ${(props) => props.theme.foreground};
-  border-radius: 16px;
-  padding: 24px;
+const QuickActionCard = dt(Card)`
   text-align: center;
-  box-shadow: ${(props) => props.theme.card.shadow};
-  transition: all 0.3s ease;
-  border: 1px solid ${(props) => props.theme.border};
   width: 250px;
   cursor: pointer;
-  
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${(props) => props.theme.card.shadowHover};
-  }
+  $hoverable: true;
 `;
 const QuickActionIcon = dt.div`
   width: 60px;
   height: 60px;
-  border-radius: 16px;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin: 0 auto ${({ theme }) => theme.spacing.lg};
   background: ${(props) => props.$color}20;
   color: ${(props) => props.$color};
 `;
@@ -30179,42 +30512,32 @@ const QuickActionTitle = dt.h3`
   font-size: 1.3rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
-  margin: 0 0 12px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
 `;
 const QuickActionDescription = dt.p`
   color: ${(props) => props.theme.textSecondary};
   line-height: 1.6;
-  margin: 0 0 20px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
   font-size: 0.9rem;
 `;
 const FeaturesGrid = dt.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
+  gap: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
 `;
-const FeatureCard$1 = dt(motion.div)`
-  background: ${(props) => props.theme.foreground};
-  border-radius: 16px;
-  padding: 24px;
+const FeatureCard$1 = dt(Card)`
   text-align: center;
-  box-shadow: ${(props) => props.theme.card.shadow};
-  transition: all 0.3s ease;
-  border: 1px solid ${(props) => props.theme.border};
-  
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${(props) => props.theme.card.shadowHover};
-  }
+  $hoverable: true;
 `;
 const FeatureIcon$1 = dt.div`
   width: 60px;
   height: 60px;
-  border-radius: 16px;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin: 0 auto ${({ theme }) => theme.spacing.lg};
   background: ${(props) => props.$color}20;
   color: ${(props) => props.$color};
 `;
@@ -30222,7 +30545,7 @@ const FeatureTitle$1 = dt.h3`
   font-size: 1.3rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
-  margin: 0 0 12px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
 `;
 const FeatureDescription$1 = dt.p`
   color: ${(props) => props.theme.textSecondary};
@@ -30232,7 +30555,7 @@ const FeatureDescription$1 = dt.p`
 const Footer = dt.div`
   margin-top: auto;
   text-align: center;
-  padding: 20px 0;
+  padding: ${({ theme }) => theme.spacing.lg} 0;
   color: ${(props) => props.theme.textTertiary};
   font-size: 0.9rem;
 `;
@@ -30301,9 +30624,9 @@ const HomePage = () => {
       color: "#F59E0B"
     }
   ];
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(HomePageContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Header$1, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Title$1, { children: "欢迎使用 Catalyst" }),
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Header, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Title, { children: "欢迎使用 Catalyst" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeToggle, { onClick: toggleTheme, children: isDarkMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Sun, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Moon, { size: 20 }) })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -30319,59 +30642,74 @@ const HomePage = () => {
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(QuickActions, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        QuickActionCard,
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        motion.div,
         {
           initial: { opacity: 0, y: 20 },
           animate: { opacity: 1, y: 0 },
           transition: { delay: 0.2, duration: 0.5 },
-          whileHover: { y: -5 },
-          onClick: toggleProxy,
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionIcon, { $color: "#3B82F6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 28 }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionTitle, { children: "代理服务" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionDescription, { children: proxyStatus?.isRunning ? "代理正在运行" : "代理已停止" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                variant: proxyStatus?.isRunning ? "danger" : "primary",
-                disabled: loading,
-                startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { size: 16 }),
-                children: loading ? "处理中..." : proxyStatus?.isRunning ? "停止代理" : "启动代理"
-              }
-            )
-          ]
+          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            QuickActionCard,
+            {
+              $padding: "large",
+              onClick: toggleProxy,
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionIcon, { $color: "#3B82F6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 28 }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionTitle, { children: "代理服务" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionDescription, { children: proxyStatus?.isRunning ? "代理正在运行" : "代理已停止" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Button,
+                  {
+                    variant: proxyStatus?.isRunning ? "danger" : "primary",
+                    disabled: loading,
+                    startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { size: 16 }),
+                    children: loading ? "处理中..." : proxyStatus?.isRunning ? "停止代理" : "启动代理"
+                  }
+                )
+              ]
+            }
+          )
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        QuickActionCard,
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        motion.div,
         {
           initial: { opacity: 0, y: 20 },
           animate: { opacity: 1, y: 0 },
           transition: { delay: 0.3, duration: 0.5 },
-          whileHover: { y: -5 },
-          onClick: () => navigate("/proxy-management"),
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionIcon, { $color: "#10B981", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 28 }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionTitle, { children: "代理管理" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionDescription, { children: "配置和管理您的代理设置" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "outline", children: "前往管理" })
-          ]
+          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            QuickActionCard,
+            {
+              $padding: "large",
+              onClick: () => navigate("/proxy-management"),
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionIcon, { $color: "#10B981", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 28 }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionTitle, { children: "代理管理" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionDescription, { children: "配置和管理您的代理设置" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "outline", children: "前往管理" })
+              ]
+            }
+          )
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(FeaturesGrid, { children: features.map((feature, index) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      FeatureCard$1,
+    /* @__PURE__ */ jsxRuntimeExports.jsx(FeaturesGrid, { children: features.map((feature, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      motion.div,
       {
         initial: { opacity: 0, y: 20 },
         animate: { opacity: 1, y: 0 },
         transition: { delay: 0.1 * index + 0.4, duration: 0.5 },
-        whileHover: { y: -5 },
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureIcon$1, { $color: feature.color, children: /* @__PURE__ */ jsxRuntimeExports.jsx(feature.icon, { size: 28 }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureTitle$1, { children: feature.title }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureDescription$1, { children: feature.description })
-        ]
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          FeatureCard$1,
+          {
+            $padding: "large",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureIcon$1, { $color: feature.color, children: /* @__PURE__ */ jsxRuntimeExports.jsx(feature.icon, { size: 28 }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureTitle$1, { children: feature.title }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureDescription$1, { children: feature.description })
+            ]
+          }
+        )
       },
       feature.title
     )) }),
@@ -33000,27 +33338,53 @@ const ProxyManagerContainer = dt.div`
   display: flex;
   flex-direction: column;
   gap: 24px;
+  
+  @media (max-width: 768px) {
+    gap: 16px;
+  }
 `;
 const Section$4 = dt.section`
   margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 16px;
+  }
 `;
 const SectionHeader$4 = dt.div`
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
+  }
 `;
 const SectionTitle$5 = dt.h3`
   font-size: 1.2rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+  }
 `;
 const StatusCard = dt(Card)`
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 24px;
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 `;
 const StatusContent = dt.div`
   flex: 1;
@@ -33030,35 +33394,77 @@ const StatusTitle = dt.h4`
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
   margin: 0 0 8px 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 `;
 const StatusDescription = dt.p`
   color: ${(props) => props.theme.textSecondary};
   margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
 `;
 const ControlButtonGroup = dt.div`
   display: flex;
   gap: 12px;
   margin-top: 24px;
+  
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+  }
+  
+  @media (max-width: 480px) {
+    width: 100%;
+    
+    & > ${Button} {
+      flex: 1;
+    }
+  }
 `;
 const ConfigCard = dt(Card)`
   margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 16px;
+  }
 `;
 const ConfigHeader = dt.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 `;
 const ConfigTitle = dt.h4`
   font-size: 1.1rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 `;
 const URLInputContainer = dt.div`
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
 `;
 const ConfigTextArea = dt.textarea`
   width: 100%;
@@ -33762,7 +34168,7 @@ const ProxyManager = () => {
   ] });
 };
 const ProxyGroupContainer = dt.div`
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   border: 1px solid ${(props) => props.theme.border};
   border-radius: ${(props) => props.theme.borderRadius.medium};
   overflow: hidden;
@@ -33802,11 +34208,15 @@ const ProxyList = dt.div`
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
+  
+  @media (max-width: 768px) {
+    gap: 6px;
+  }
 `;
 const ProxyItem = dt(Button)`
   padding: 8px 16px;
   font-size: 0.9rem;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.borderRadius.small};
   position: relative;
   
   ${(props) => props.$selected && `
@@ -33829,10 +34239,20 @@ const ProxyItem = dt(Button)`
       font-weight: bold;
     }
   `}
+  
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
 `;
 const TestLatencyButton = dt(Button)`
   font-size: 0.9rem;
   padding: 8px 16px;
+  
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
 `;
 const NoProxiesMessage = dt.div`
   text-align: center;
@@ -33993,23 +34413,23 @@ const ProxyGroupManager = () => {
 const PageHeader$2 = dt.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 const PageTitle$2 = dt.h1`
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
 `;
 const Section$3 = dt.section`
-  margin-top: 32px;
+  margin-top: ${({ theme }) => theme.spacing.xl};
 `;
 const SectionHeader$3 = dt.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 const SectionTitle$4 = dt.h2`
   font-size: 1.5rem;
@@ -34034,7 +34454,7 @@ const ProxyPage = () => {
     const interval = setInterval(checkStatus, 5e3);
     return () => clearInterval(interval);
   }, []);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer$1, { children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(PageHeader$2, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 32 }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(PageTitle$2, { children: "Proxy Management" })
@@ -34199,7 +34619,7 @@ const TextArea = dt.textarea`
   max-height: 200px;
   padding: 18px 20px;
   border: 1px solid ${({ theme }) => theme.inputBorder};
-  border-radius: ${({ theme }) => theme.borderRadius.large};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   background-color: ${({ theme }) => theme.inputBackground};
   color: ${({ theme }) => theme.textPrimary};
   resize: none;
@@ -34210,11 +34630,16 @@ const TextArea = dt.textarea`
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.inputFocusBorder};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.accent}40;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.accent}40;
   }
   
   &::placeholder {
     color: ${({ theme }) => theme.textTertiary};
+  }
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+    min-height: 50px;
   }
 `;
 const MessageInput = ({ onSendMessage, disabled = false }) => {
@@ -34248,129 +34673,97 @@ const MessageInput = ({ onSendMessage, disabled = false }) => {
         onClick: handleSend,
         disabled: !message.trim() || disabled,
         variant: "primary",
-        style: {
-          height: "fit-content",
-          padding: "18px 28px",
-          fontWeight: 600
-        },
+        size: "medium",
         children: "Send"
       }
     )
   ] }) });
 };
-const PageContainer = dt.div`
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-`;
 const Content = dt.div`
   display: flex;
-  gap: 24px;
+  gap: ${(props) => props.theme.spacing.xl};
   flex: 1;
   overflow: hidden;
-`;
-const ConfigPanel = dt.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  min-width: 300px;
-  max-width: 400px;
-`;
-const ChatPanel = dt.div`
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  min-width: 400px;
+
+  @media (max-width: 1024px) {
+    gap: ${(props) => props.theme.spacing.lg};
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: ${(props) => props.theme.spacing.md};
+  }
+
+  @media (max-width: 480px) {
+    gap: ${(props) => props.theme.spacing.sm};
+  }
 `;
 const PanelHeader = dt.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: ${(props) => props.theme.spacing.md};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
 `;
 const PanelTitle = dt.h2`
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
 `;
 const Section$2 = dt.section`
-  margin-bottom: 24px;
+  margin-bottom: ${(props) => props.theme.spacing.xl};
 `;
 const SectionHeader$2 = dt.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: 16px;
+  padding: ${(props) => props.$customPadding ? props.theme.spacing.sm : props.theme.spacing.md};
   border-radius: ${(props) => props.theme.borderRadius.medium};
   background-color: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-  margin-bottom: 16px;
+  border: ${(props) => props.$customPadding ? "none" : `1px solid ${props.theme.border}`};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
+  transition: all ${(props) => props.theme.transition.fast} ease;
+
+  &:hover {
+    background-color: ${(props) => props.$customPadding ? "transparent" : props.theme.surfaceVariant};
+  }
 `;
 const SectionTitle$3 = dt.h3`
   margin: 0;
   color: ${(props) => props.theme.textPrimary};
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
 `;
 const ToggleIcon = dt.div`
   display: flex;
   align-items: center;
   color: ${(props) => props.theme.textTertiary};
+  transition: transform ${(props) => props.theme.transition.fast} ease;
+  transform: ${(props) => props.$isOpen ? "rotate(0deg)" : "rotate(-90deg)"};
 `;
 const SectionContent = dt.div`
-  padding: 0 16px;
+  padding: 0 ${(props) => props.theme.spacing.md};
 `;
 const ConfigGrid = dt.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 16px;
-`;
-const Textarea = dt.textarea`
-  width: 100%;
-  padding: 16px;
-  border: 1px solid ${(props) => props.theme.inputBorder};
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.inputBackground};
-  color: ${(props) => props.theme.textPrimary};
-  font-size: 0.9rem;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 120px;
-
-  &:focus {
-    outline: none;
-    border-color: ${(props) => props.theme.inputFocusBorder};
-    box-shadow: 0 0 0 2px ${(props) => props.theme.accent}40;
-  }
-
-  &::placeholder {
-    color: ${(props) => props.theme.textTertiary};
-  }
-`;
-const ProviderInfo = dt(Card)`
-  margin-top: 16px;
+  gap: ${(props) => props.theme.spacing.md};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
 `;
 const ProviderInfoTitle = dt.h4`
-  margin: 0 0 16px 0;
+  margin: 0 0 ${(props) => props.theme.spacing.lg} 0;
   color: ${(props) => props.theme.textPrimary};
   font-size: 1.1rem;
   font-weight: 600;
 `;
 const ProviderList = dt.ul`
   margin: 0;
-  padding-left: 24px;
+  padding-left: ${(props) => props.theme.spacing.xl};
   color: ${(props) => props.theme.textSecondary};
 `;
 const ProviderItem = dt.li`
-  margin-bottom: 12px;
+  margin-bottom: ${(props) => props.theme.spacing.md};
 
   &:last-child {
     margin-bottom: 0;
@@ -34379,28 +34772,30 @@ const ProviderItem = dt.li`
 const StatusMessage = dt.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: ${(props) => props.theme.spacing.md};
+  padding: ${(props) => props.theme.spacing.md};
   border-radius: ${(props) => props.theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-  color: ${(props) => props.theme.textPrimary};
+  background-color: ${(props) => {
+  if (props.$status === "success") return `${props.theme.success.main}20`;
+  return props.theme.surface;
+}};
+  border: 1px solid ${(props) => {
+  if (props.$status === "success") return `${props.theme.success.main}40`;
+  return props.theme.border;
+}};
+  color: ${(props) => {
+  if (props.$status === "success") return props.theme.success.main;
+  return props.theme.textPrimary;
+}};
   font-size: 0.9rem;
-  margin-top: 16px;
+  margin-top: ${(props) => props.theme.spacing.lg};
 `;
 const StatusIcon = dt.div`
   display: flex;
   align-items: center;
 `;
-const ChatArea = dt(Card)`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 0;
-`;
 const ChatHeader = dt.div`
-  padding: 20px 24px;
+  padding: ${(props) => props.theme.spacing.lg} ${(props) => props.theme.spacing.xl};
   border-bottom: 1px solid ${(props) => props.theme.border};
   display: flex;
   justify-content: space-between;
@@ -34409,11 +34804,8 @@ const ChatHeader = dt.div`
 const ChatTitle = dt.h3`
   margin: 0;
   color: ${(props) => props.theme.textPrimary};
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
-`;
-const ClearButton = dt(Button)`
-  padding: 8px 16px;
 `;
 const ChatMessages = dt.div`
   flex: 1;
@@ -34422,9 +34814,258 @@ const ChatMessages = dt.div`
 const ErrorMessage = dt.div`
   color: ${(props) => props.theme.error.main};
   text-align: center;
-  padding: 16px;
+  padding: ${(props) => props.theme.spacing.md};
   font-weight: 500;
 `;
+const ConfigPanel = ({
+  provider,
+  model,
+  apiKey,
+  baseUrl,
+  temperature,
+  maxTokens,
+  topP,
+  systemPrompt,
+  showBasicSettings,
+  showAdvancedSettings,
+  showSystemPrompt,
+  isConfigValid,
+  onProviderChange,
+  onModelChange,
+  onApiKeyChange,
+  onBaseUrlChange,
+  onTemperatureChange,
+  onMaxTokensChange,
+  onTopPChange,
+  onSystemPromptChange,
+  onToggleBasicSettings,
+  onToggleAdvancedSettings,
+  onToggleSystemPrompt
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "config-panel", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(PanelTitle, { children: "配置设置" }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$2, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$2, { onClick: onToggleBasicSettings, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$3, { children: "基本配置" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ToggleIcon, { $isOpen: showBasicSettings, children: showBasicSettings ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 20 }) })
+      ] }),
+      showBasicSettings && /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionContent, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigGrid, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "提供商 *" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              Select,
+              {
+                value: provider,
+                onChange: (e) => onProviderChange(e.target.value),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "选择提供商" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai", children: "OpenAI" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "gemini", children: "Gemini" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openrouter", children: "OpenRouter" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "custom", children: "自定义" })
+                ]
+              }
+            ) })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "Base URL *" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input,
+              {
+                type: "text",
+                value: baseUrl,
+                onChange: (e) => onBaseUrlChange(e.target.value),
+                placeholder: "输入 API 基础 URL"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "API Key *" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input,
+              {
+                type: "password",
+                value: apiKey,
+                onChange: (e) => onApiKeyChange(e.target.value),
+                placeholder: "输入您的 API 密钥"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "模型 *" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input,
+              {
+                type: "text",
+                value: model,
+                onChange: (e) => onModelChange(e.target.value),
+                placeholder: "输入模型名称"
+              }
+            )
+          ] })
+        ] }),
+        provider && provider !== "custom" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $padding: "medium", $borderRadius: "medium", className: "provider-info-card", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ProviderInfoTitle, { children: "提供商信息" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { style: { color: "var(--text-secondary)" }, children: "以下是常见提供商的Base URL:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderList, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderItem, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "OpenAI:" }),
+              " https://api.openai.com/v1"
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderItem, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Gemini:" }),
+              " https://generativelanguage.googleapis.com/v1beta"
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderItem, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "OpenRouter:" }),
+              " https://openrouter.ai/api/v1"
+            ] })
+          ] })
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$2, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$2, { onClick: onToggleAdvancedSettings, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$3, { children: "高级参数设置" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ToggleIcon, { $isOpen: showAdvancedSettings, children: showAdvancedSettings ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 20 }) })
+      ] }),
+      showAdvancedSettings && /* @__PURE__ */ jsxRuntimeExports.jsx(SectionContent, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigGrid, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
+            "Temperature: ",
+            temperature
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "range",
+              min: "0",
+              max: "2",
+              step: "0.1",
+              value: temperature,
+              onChange: (e) => onTemperatureChange(parseFloat(e.target.value)),
+              style: {
+                width: "100%",
+                marginBottom: "8px",
+                accentColor: "var(--primary-main)"
+              }
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
+            "Max Tokens: ",
+            maxTokens
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "range",
+              min: "1",
+              max: "8192",
+              step: "1",
+              value: maxTokens,
+              onChange: (e) => onMaxTokensChange(parseInt(e.target.value)),
+              style: {
+                width: "100%",
+                marginBottom: "8px",
+                accentColor: "var(--primary-main)"
+              }
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
+            "Top P: ",
+            topP
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "range",
+              min: "0",
+              max: "1",
+              step: "0.01",
+              value: topP,
+              onChange: (e) => onTopPChange(parseFloat(e.target.value)),
+              style: {
+                width: "100%",
+                marginBottom: "8px",
+                accentColor: "var(--primary-main)"
+              }
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          SectionHeader$2,
+          {
+            onClick: onToggleSystemPrompt,
+            $customPadding: true,
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$3, { children: "系统提示词" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(ToggleIcon, { $isOpen: showSystemPrompt, children: showSystemPrompt ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 20 }) })
+            ]
+          }
+        ),
+        showSystemPrompt && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(FormGroup$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Textarea,
+          {
+            value: systemPrompt,
+            onChange: (e) => onSystemPromptChange(e.target.value),
+            placeholder: "输入系统提示词，例如：你是一个乐于助人的助手"
+          }
+        ) }) })
+      ] }) })
+    ] }),
+    isConfigValid ? /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusMessage, { $status: "success", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator, { $status: "success" }) }),
+      "配置已填写完成，可以开始对话"
+    ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusMessage, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator, { $status: "error" }) }),
+      "请填写所有必填字段(*)以启用对话功能"
+    ] })
+  ] });
+};
+const ChatPanel = ({
+  messages,
+  isLoading,
+  error,
+  onSendMessage,
+  onClearMessages
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "chat-panel", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(PanelTitle, { children: "对话窗口" }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "chat-area", style: {
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden"
+    }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $padding: "none", $borderRadius: "medium", className: "chat-area-card", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatHeader, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ChatTitle, { children: "消息记录" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Button,
+          {
+            onClick: onClearMessages,
+            variant: "outline",
+            size: "small",
+            children: "清空对话"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ChatMessages, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(MessageList, { messages }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        MessageInput,
+        {
+          onSendMessage,
+          disabled: isLoading
+        }
+      ),
+      error && /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: error })
+    ] }) })
+  ] });
+};
 const ChatPage = () => {
   const [messages, setMessages] = reactExports.useState([]);
   const [isLoading, setIsLoading] = reactExports.useState(false);
@@ -34565,204 +35206,57 @@ const ChatPage = () => {
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(PageContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Content, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigPanel, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(PanelTitle, { children: "配置设置" }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$2, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$2, { onClick: () => setShowBasicSettings(!showBasicSettings), children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$3, { children: "基本配置" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToggleIcon, { children: showBasicSettings ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 20 }) })
-        ] }),
-        showBasicSettings && /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionContent, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigGrid, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "提供商 *" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                Select,
-                {
-                  value: provider,
-                  onChange: (e) => handleProviderChange(e.target.value),
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "选择提供商" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai", children: "OpenAI" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "gemini", children: "Gemini" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openrouter", children: "OpenRouter" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "custom", children: "自定义" })
-                  ]
-                }
-              ) })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "Base URL *" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Input,
-                {
-                  type: "text",
-                  value: baseUrl,
-                  onChange: (e) => setBaseUrl(e.target.value),
-                  placeholder: "输入 API 基础 URL"
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "API Key *" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Input,
-                {
-                  type: "password",
-                  value: apiKey,
-                  onChange: (e) => setApiKey(e.target.value),
-                  placeholder: "输入您的 API 密钥"
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "模型 *" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Input,
-                {
-                  type: "text",
-                  value: model,
-                  onChange: (e) => setModel(e.target.value),
-                  placeholder: "输入模型名称"
-                }
-              )
-            ] })
-          ] }),
-          provider && provider !== "custom" && /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderInfo, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ProviderInfoTitle, { children: "提供商信息" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "以下是常见提供商的Base URL:" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderList, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderItem, { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "OpenAI:" }),
-                " https://api.openai.com/v1"
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderItem, { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Gemini:" }),
-                " https://generativelanguage.googleapis.com/v1beta"
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(ProviderItem, { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "OpenRouter:" }),
-                " https://openrouter.ai/api/v1"
-              ] })
-            ] })
-          ] })
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$2, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$2, { onClick: () => setShowAdvancedSettings(!showAdvancedSettings), children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$3, { children: "高级参数设置" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToggleIcon, { children: showAdvancedSettings ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 20 }) })
-        ] }),
-        showAdvancedSettings && /* @__PURE__ */ jsxRuntimeExports.jsx(SectionContent, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigGrid, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
-              "Temperature: ",
-              temperature
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                type: "range",
-                min: "0",
-                max: "2",
-                step: "0.1",
-                value: temperature,
-                onChange: (e) => setTemperature(parseFloat(e.target.value)),
-                style: { width: "100%" }
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
-              "Max Tokens: ",
-              maxTokens
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                type: "range",
-                min: "1",
-                max: "8192",
-                step: "1",
-                value: maxTokens,
-                onChange: (e) => setMaxTokens(parseInt(e.target.value)),
-                style: { width: "100%" }
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
-              "Top P: ",
-              topP
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                type: "range",
-                min: "0",
-                max: "1",
-                step: "0.01",
-                value: topP,
-                onChange: (e) => setTopP(parseFloat(e.target.value)),
-                style: { width: "100%" }
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            SectionHeader$2,
-            {
-              onClick: () => setShowSystemPrompt(!showSystemPrompt),
-              style: { padding: "12px", border: "none", background: "transparent" },
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$3, { children: "系统提示词" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(ToggleIcon, { children: showSystemPrompt ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 20 }) })
-              ]
-            }
-          ),
-          showSystemPrompt && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(FormGroup$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Textarea,
-            {
-              value: systemPrompt,
-              onChange: (e) => setSystemPrompt(e.target.value),
-              placeholder: "输入系统提示词，例如：你是一个乐于助人的助手"
-            }
-          ) }) })
-        ] }) })
-      ] }),
-      isConfigValid ? /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusMessage, { style: { backgroundColor: "#10B98120", color: "#10B981", borderColor: "#10B98140" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator, { $status: "success" }) }),
-        "配置已填写完成，可以开始对话"
-      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusMessage, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator, { $status: "error" }) }),
-        "请填写所有必填字段(*)以启用对话功能"
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatPanel, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(PanelTitle, { children: "对话窗口" }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatArea, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatHeader, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ChatTitle, { children: "消息记录" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            ClearButton,
-            {
-              onClick: clearMessages,
-              variant: "outline",
-              size: "small",
-              children: "清空对话"
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ChatMessages, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(MessageList, { messages }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          MessageInput,
-          {
-            onSendMessage: handleSendMessage,
-            disabled: isLoading || !isConfigValid
-          }
-        ),
-        error && /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: error })
-      ] })
-    ] })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "config-panel-wrapper", style: {
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      gap: "24px",
+      minWidth: "300px",
+      maxWidth: "450px"
+    }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ConfigPanel,
+      {
+        provider,
+        model,
+        apiKey,
+        baseUrl,
+        temperature,
+        maxTokens,
+        topP,
+        systemPrompt,
+        showBasicSettings,
+        showAdvancedSettings,
+        showSystemPrompt,
+        isConfigValid,
+        onProviderChange: handleProviderChange,
+        onModelChange: setModel,
+        onApiKeyChange: setApiKey,
+        onBaseUrlChange: setBaseUrl,
+        onTemperatureChange: setTemperature,
+        onMaxTokensChange: setMaxTokens,
+        onTopPChange: setTopP,
+        onSystemPromptChange: setSystemPrompt,
+        onToggleBasicSettings: () => setShowBasicSettings(!showBasicSettings),
+        onToggleAdvancedSettings: () => setShowAdvancedSettings(!showAdvancedSettings),
+        onToggleSystemPrompt: () => setShowSystemPrompt(!showSystemPrompt)
+      }
+    ) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "chat-panel-wrapper", style: {
+      flex: 3,
+      display: "flex",
+      flexDirection: "column",
+      gap: "24px",
+      minWidth: "400px"
+    }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ChatPanel,
+      {
+        messages,
+        isLoading,
+        error,
+        onSendMessage: handleSendMessage,
+        onClearMessages: clearMessages
+      }
+    ) })
   ] }) });
 };
 var DefaultContext = {
@@ -34958,30 +35452,31 @@ function SiVuedotjs(props) {
 function SiWebstorm(props) {
   return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M0 0v24h24V0H0zm17.889 2.889c1.444 0 2.667.444 3.667 1.278l-1.111 1.667c-.889-.611-1.722-1-2.556-1s-1.278.389-1.278.889v.056c0 .667.444.889 2.111 1.333 2 .556 3.111 1.278 3.111 3v.056c0 2-1.5 3.111-3.611 3.111-1.5-.056-3-.611-4.167-1.667l1.278-1.556c.889.722 1.833 1.222 2.944 1.222.889 0 1.389-.333 1.389-.944v-.056c0-.556-.333-.833-2-1.278-2-.5-3.222-1.056-3.222-3.056v-.056c0-1.833 1.444-3 3.444-3zm-16.111.222h2.278l1.5 5.778 1.722-5.778h1.667l1.667 5.778 1.5-5.778h2.333l-2.833 9.944H9.723L8.112 7.277l-1.667 5.778H4.612L1.779 3.111zm.5 16.389h9V21h-9v-1.5z" }, "child": [] }] })(props);
 }
-const Header = dt.div`
+dt.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-`;
-const Title = dt.h2`
-  margin: 0;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.8rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: ${({ theme }) => theme.spacing.md};
+  }
 `;
 const SectionsContainer = dt.div`
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: ${({ theme }) => theme.spacing.xl};
 `;
 const Section$1 = dt.div``;
 const SectionHeader$1 = dt.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
-const SectionTitle$2 = dt.h3`
+const SectionTitle$2 = dt.h2`
   margin: 0;
   color: ${({ theme }) => theme.textPrimary};
   font-size: 1.5rem;
@@ -34990,8 +35485,11 @@ const SectionTitle$2 = dt.h3`
 const SectionIcon = dt.div`
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, ${(props) => props.theme.primary.main}, ${(props) => props.theme.accent.main});
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  background: ${({ theme }) => {
+  const primaryColor = typeof theme.primary === "string" ? theme.primary : theme.primary.main;
+  return `linear-gradient(135deg, ${primaryColor}, ${theme.accent})`;
+}};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35000,7 +35498,15 @@ const SectionIcon = dt.div`
 const ToolsGrid = dt.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  gap: ${({ theme }) => theme.spacing.md};
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 const ToolCard = dt(Card)`
   display: flex;
@@ -35010,13 +35516,13 @@ const ToolCard = dt(Card)`
 const ToolHeader = dt.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 const ToolIcon = dt.div`
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.borderRadius.small};
   background-color: ${(props) => props.theme.surfaceVariant};
   display: flex;
   align-items: center;
@@ -35028,13 +35534,13 @@ const ToolInfo = dt.div`
   flex: 1;
 `;
 const ToolName = dt.h4`
-  margin: 0 0 8px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.sm} 0;
   color: ${({ theme }) => theme.textPrimary};
   font-size: 1.1rem;
   font-weight: 600;
 `;
 const ToolDescription = dt.p`
-  margin: 0 0 16px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.9rem;
   line-height: 1.5;
@@ -35051,25 +35557,25 @@ const ToolCategory = dt.span`
   color: ${({ theme }) => theme.textTertiary};
   background-color: ${({ theme }) => theme.surfaceVariant};
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.borderRadius.small};
 `;
 const WebsiteCard = dt(Card)`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: ${({ theme }) => theme.spacing.md};
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s ease;
+  transition: all ${({ theme }) => theme.transition.fast} ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    box-shadow: ${(props) => props.theme.card.shadowHover};
   }
 `;
 const WebsiteIcon = dt.div`
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   background-color: ${(props) => props.theme.surfaceVariant};
   display: flex;
   align-items: center;
@@ -35081,7 +35587,7 @@ const WebsiteInfo = dt.div`
   flex: 1;
 `;
 const WebsiteName = dt.h4`
-  margin: 0 0 4px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.xs} 0;
   color: ${({ theme }) => theme.textPrimary};
   font-size: 1.1rem;
 `;
@@ -35091,9 +35597,9 @@ const WebsiteDescription = dt.p`
   font-size: 0.9rem;
 `;
 const StatusMessageContainer = dt.div`
-  margin-top: 24px;
-  padding: 16px;
-  border-radius: 8px;
+  margin-top: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   background-color: ${({ theme }) => theme.surfaceVariant};
   border: 1px solid ${({ theme }) => theme.border};
   display: flex;
@@ -35190,8 +35696,7 @@ const DevEnvironmentPage = () => {
   const runtimeTools = tools.filter((tool) => tool.category === "Runtime");
   const databaseTools = tools.filter((tool) => tool.category === "Database");
   const otherTools = tools.filter((tool) => tool.category === "Tool" || tool.category === "Framework");
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer$1, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Header, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Title, { children: "开发环境部署" }) }),
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionsContainer, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$1, { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$1, { children: [
@@ -35212,7 +35717,7 @@ const DevEnvironmentPage = () => {
           /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Code, { size: 20 }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "集成开发环境 (IDE)" })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: ideTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "20px", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: ideTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "medium", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolHeader, { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(ToolIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, {}) }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolInfo, { children: [
@@ -35238,7 +35743,7 @@ const DevEnvironmentPage = () => {
           /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Terminal, { size: 20 }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "运行时环境" })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: runtimeTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "20px", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: runtimeTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "medium", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolHeader, { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(ToolIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, {}) }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolInfo, { children: [
@@ -35264,7 +35769,7 @@ const DevEnvironmentPage = () => {
           /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Database, { size: 20 }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "数据库" })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: databaseTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "20px", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: databaseTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "medium", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolHeader, { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(ToolIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, {}) }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolInfo, { children: [
@@ -35290,7 +35795,7 @@ const DevEnvironmentPage = () => {
           /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zap, { size: 20 }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "工具和框架" })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: otherTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "20px", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: otherTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "medium", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolHeader, { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(ToolIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, {}) }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolInfo, { children: [
@@ -35318,22 +35823,17 @@ const DevEnvironmentPage = () => {
     ] })
   ] });
 };
-const SettingsContainer = dt.div`
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
 const PageHeader$1 = dt.div`
-  margin-bottom: 32px;
+  margin-bottom: ${(props) => props.theme.spacing.xl};
 `;
 const PageTitle$1 = dt.h1`
   font-size: 2rem;
   font-weight: 700;
   color: ${(props) => props.theme.textPrimary};
-  margin-bottom: 8px;
+  margin-bottom: ${(props) => props.theme.spacing.sm};
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: ${(props) => props.theme.spacing.sm};
 `;
 const PageSubtitle$1 = dt.p`
   color: ${(props) => props.theme.textSecondary};
@@ -35341,41 +35841,28 @@ const PageSubtitle$1 = dt.p`
 `;
 const TabsContainer = dt.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: ${(props) => props.theme.spacing.sm};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
   border-bottom: 1px solid ${(props) => props.theme.border};
-`;
-const TabButton = dt.button`
-  padding: 12px 24px;
-  border: none;
-  background: none;
-  color: ${(props) => props.$active ? props.theme.primary.main : props.theme.textSecondary};
-  font-weight: 500;
-  cursor: pointer;
-  border-bottom: 2px solid ${(props) => props.$active ? props.theme.primary.main : "transparent"};
-  transition: all ${(props) => props.theme.transition.fast} ease;
   
-  &:hover {
-    color: ${(props) => props.theme.primary.main};
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    padding-bottom: ${(props) => props.theme.spacing.sm};
   }
 `;
 const TabContent = dt.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
-`;
-const SectionCard = dt(Card)`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  gap: ${(props) => props.theme.spacing.xl};
 `;
 const SectionHeader = dt.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: ${(props) => props.theme.spacing.sm};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
 `;
 const SectionTitle$1 = dt.h3`
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
@@ -35388,13 +35875,17 @@ const SectionDescription = dt.p`
 const FormGrid = dt.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: ${(props) => props.theme.spacing.lg};
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 const AvatarContainer = dt.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: ${(props) => props.theme.spacing.lg};
 `;
 const Avatar = dt.div`
   width: 120px;
@@ -35416,11 +35907,11 @@ const Avatar = dt.div`
 const UploadButton = dt.label`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: ${(props) => props.theme.spacing.sm};
+  padding: ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.md};
   background-color: ${(props) => props.theme.primary.main};
   color: white;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.borderRadius.small};
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
@@ -35437,127 +35928,12 @@ const SwitchContainer = dt.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-`;
-const Switch = dt.label`
-  position: relative;
-  display: inline-block;
-  width: 48px;
-  height: 24px;
-`;
-const SwitchInput = dt.input`
-  opacity: 0;
-  width: 0;
-  height: 0;
-  
-  &:checked + .slider {
-    background-color: ${(props) => props.theme.primary.main};
-  }
-  
-  &:checked + .slider:before {
-    transform: translateX(24px);
-  }
-`;
-const Slider = dt.span`
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: ${(props) => props.theme.border};
-  transition: ${(props) => props.theme.transition.fast} ease;
-  border-radius: 24px;
-  
-  &:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: ${(props) => props.theme.transition.fast} ease;
-    border-radius: 50%;
-  }
+  padding: ${(props) => props.theme.spacing.md} 0;
 `;
 const ButtonGroup = dt.div`
   display: flex;
-  gap: 12px;
+  gap: ${(props) => props.theme.spacing.sm};
   flex-wrap: wrap;
-`;
-const ToastContainer = dt.div`
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-`;
-const Toast = dt.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  background-color: ${(props) => {
-  switch (props.$type) {
-    case "success":
-      return props.theme.success.main;
-    case "error":
-      return props.theme.error.main;
-    case "info":
-      return props.theme.info.main;
-    default:
-      return props.theme.surfaceVariant;
-  }
-}};
-  color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease forwards;
-  
-  @keyframes slideIn {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes slideOut {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-  }
-  
-  &.exiting {
-    animation: slideOut 0.3s ease forwards;
-  }
-`;
-const ToastIcon = dt.div`
-  display: flex;
-  align-items: center;
-`;
-const ToastContent = dt.div`
-  flex: 1;
-  font-weight: 500;
-`;
-const ToastClose = dt.button`
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 1.2rem;
-  opacity: 0.8;
-  
-  &:hover {
-    opacity: 1;
-  }
 `;
 const SettingsPage = () => {
   const { nickname, avatar, setProfile } = useUser();
@@ -35755,7 +36131,7 @@ const SettingsPage = () => {
     { id: "proxy", label: "代理", icon: Shield },
     { id: "backup", label: "备份", icon: Database }
   ];
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingsContainer, { children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(PageHeader$1, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs(PageTitle$1, { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 28 }),
@@ -35763,20 +36139,18 @@ const SettingsPage = () => {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(PageSubtitle$1, { children: "管理应用程序的各项设置和个性化配置" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(TabsContainer, { children: tabs.map((tab) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(TabsContainer, { children: tabs.map((tab) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       TabButton,
       {
         $active: activeTab === tab.id,
         onClick: () => setActiveTab(tab.id),
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(tab.icon, { size: 16, style: { marginRight: 8 } }),
-          tab.label
-        ]
+        icon: /* @__PURE__ */ jsxRuntimeExports.jsx(tab.icon, { size: 16 }),
+        children: tab.label
       },
       tab.id
     )) }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(TabContent, { children: [
-      activeTab === "user" && /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionCard, { $padding: "large", $variant: "elevated", children: [
+      activeTab === "user" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 20 }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -35843,7 +36217,7 @@ const SettingsPage = () => {
         /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "个人简介" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Textarea$1,
+            Textarea,
             {
               value: userBio,
               onChange: (e) => setUserBio(e.target.value),
@@ -35862,7 +36236,7 @@ const SettingsPage = () => {
           }
         ) })
       ] }),
-      activeTab === "general" && /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionCard, { $padding: "large", $variant: "elevated", children: [
+      activeTab === "general" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -35892,51 +36266,39 @@ const SettingsPage = () => {
             /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "开机启动" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "应用程序将在系统启动时自动运行" })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(Switch, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              SwitchInput,
-              {
-                type: "checkbox",
-                checked: startup,
-                onChange: (e) => setStartup(e.target.checked)
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Slider, { className: "slider" })
-          ] })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Switch,
+            {
+              checked: startup,
+              onChange: setStartup
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "最小化到托盘" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "关闭窗口时将应用程序最小化到系统托盘" })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(Switch, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              SwitchInput,
-              {
-                type: "checkbox",
-                checked: minimizeToTray,
-                onChange: (e) => setMinimizeToTray(e.target.checked)
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Slider, { className: "slider" })
-          ] })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Switch,
+            {
+              checked: minimizeToTray,
+              onChange: setMinimizeToTray
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "通知" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "启用应用程序的通知功能" })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(Switch, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              SwitchInput,
-              {
-                type: "checkbox",
-                checked: notifications,
-                onChange: (e) => setNotifications(e.target.checked)
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Slider, { className: "slider" })
-          ] })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Switch,
+            {
+              checked: notifications,
+              onChange: setNotifications
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(ButtonGroup, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           Button,
@@ -35948,7 +36310,7 @@ const SettingsPage = () => {
           }
         ) })
       ] }),
-      activeTab === "llm" && /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionCard, { $padding: "large", $variant: "elevated", children: [
+      activeTab === "llm" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 20 }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -36015,7 +36377,7 @@ const SettingsPage = () => {
           }
         ) })
       ] }),
-      activeTab === "proxy" && /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionCard, { $padding: "large", $variant: "elevated", children: [
+      activeTab === "proxy" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 20 }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -36039,17 +36401,13 @@ const SettingsPage = () => {
             /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "代理自动启动" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "应用程序启动时自动开启代理服务" })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(Switch, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              SwitchInput,
-              {
-                type: "checkbox",
-                checked: proxyAutoStart,
-                onChange: (e) => setProxyAutoStart(e.target.checked)
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Slider, { className: "slider" })
-          ] })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Switch,
+            {
+              checked: proxyAutoStart,
+              onChange: setProxyAutoStart
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(ButtonGroup, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           Button,
@@ -36061,7 +36419,7 @@ const SettingsPage = () => {
           }
         ) })
       ] }),
-      activeTab === "backup" && /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionCard, { $padding: "large", $variant: "elevated", children: [
+      activeTab === "backup" && /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Database, { size: 20 }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -36100,40 +36458,36 @@ const SettingsPage = () => {
         ] })
       ] }) })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ToastContainer, { children: toasts.map((toast) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ToastContainer, { children: toasts.map((toast) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       Toast,
       {
-        $type: toast.type,
-        className: toast.exiting ? "exiting" : "",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ToastIcon, { children: [
-            toast.type === "success" && /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 20 }),
-            toast.type === "error" && /* @__PURE__ */ jsxRuntimeExports.jsx(Bell, { size: 20 }),
-            toast.type === "info" && /* @__PURE__ */ jsxRuntimeExports.jsx(Bell, { size: 20 })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToastContent, { children: toast.message }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToastClose, { onClick: () => removeToast(toast.id), children: "×" })
-        ]
+        id: toast.id,
+        message: toast.message,
+        type: toast.type,
+        onClose: removeToast,
+        exiting: toast.exiting
       },
       toast.id
     )) })
   ] });
 };
 const InfoContainer = dt.div`
-  padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
 `;
 const PageHeader = dt(motion.div)`
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
 `;
 const PageTitle = dt.h1`
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: ${(props) => props.theme.textPrimary};
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, ${(props) => props.theme.primary.main}, ${(props) => props.theme.accent.main});
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  background: ${(props) => {
+  const primaryColor = typeof props.theme.primary === "string" ? props.theme.primary : props.theme.primary.main;
+  return `linear-gradient(135deg, ${primaryColor}, ${props.theme.accent})`;
+}};
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -36141,34 +36495,34 @@ const PageTitle = dt.h1`
 const PageSubtitle = dt.p`
   font-size: 1.2rem;
   color: ${(props) => props.theme.textSecondary};
-  margin-bottom: 32px;
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
 `;
 const VersionBadge = dt(motion.span)`
   display: inline-block;
-  padding: 8px 16px;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.lg};
   background: ${(props) => props.theme.surfaceVariant};
   color: ${(props) => props.theme.textPrimary};
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
   font-size: 0.9rem;
   font-weight: 500;
 `;
 const Section = dt(motion.section)`
-  margin-bottom: 48px;
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
 `;
 const SectionTitle = dt.h2`
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
-  margin-bottom: 24px;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 const CardGrid = dt.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
+  gap: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
 `;
 const FeatureCard = dt(Card)`
   display: flex;
@@ -36178,19 +36532,22 @@ const FeatureCard = dt(Card)`
 const FeatureIcon = dt.div`
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, ${(props) => props.theme.primary.main}, ${(props) => props.theme.accent.main});
-  border-radius: 12px;
+  background: ${(props) => {
+  const primaryColor = typeof props.theme.primary === "string" ? props.theme.primary : props.theme.primary.main;
+  return `linear-gradient(135deg, ${primaryColor}, ${props.theme.accent})`;
+}};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  margin-bottom: 16px;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 const FeatureTitle = dt.h3`
   font-size: 1.2rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
-  margin-bottom: 12px;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 const FeatureDescription = dt.p`
   color: ${(props) => props.theme.textSecondary};
@@ -36200,26 +36557,32 @@ const FeatureDescription = dt.p`
 const TechStackGrid = dt.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 const TechItem = dt(motion.div)`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.lg};
   background: ${(props) => props.theme.surfaceVariant};
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   transition: all ${(props) => props.theme.transition.fast} ease;
 `;
 const TechIcon = dt.div`
   width: 40px;
   height: 40px;
-  background: ${(props) => props.theme.primary.main}20;
-  border-radius: 8px;
+  background: ${(props) => {
+  const primaryColor = typeof props.theme.primary === "string" ? props.theme.primary : props.theme.primary.main;
+  return `${primaryColor}20`;
+}};
+  border-radius: ${({ theme }) => theme.borderRadius.small};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${(props) => props.theme.primary.main};
+  color: ${(props) => {
+  const primaryColor = typeof props.theme.primary === "string" ? props.theme.primary : props.theme.primary.main;
+  return primaryColor;
+}};
 `;
 const TechName = dt.span`
   font-weight: 500;
@@ -36228,21 +36591,24 @@ const TechName = dt.span`
 const ContactInfo = dt.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: ${({ theme }) => theme.spacing.lg};
 `;
 const ContactItem = dt(motion.a)`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.lg};
   background: ${(props) => props.theme.surfaceVariant};
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   text-decoration: none;
   color: ${(props) => props.theme.textPrimary};
   transition: all ${(props) => props.theme.transition.fast} ease;
   
   &:hover {
-    background: ${(props) => props.theme.primary.main}10;
+    background: ${(props) => {
+  const primaryColor = typeof props.theme.primary === "string" ? props.theme.primary : props.theme.primary.main;
+  return `${primaryColor}10`;
+}};
     transform: translateX(4px);
   }
 `;
@@ -36277,7 +36643,7 @@ const InfoPage = () => {
     { name: "MUI", icon: Settings },
     { name: "Framer Motion", icon: Zap }
   ];
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(InfoContainer, { children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(PageContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(InfoContainer, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       PageHeader,
       {
@@ -36434,11 +36800,11 @@ const InfoPage = () => {
             /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 24 }),
             "许可证"
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { $padding: "large", $variant: "elevated", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { style: { color: "#888", lineHeight: "1.6" }, children: "本项目采用 ISC 许可证开源。您可以自由使用、修改和分发本项目的代码， 但需要遵守许可证的相关条款。详细信息请查看项目根目录的 LICENSE 文件。" }) })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { $padding: "large", $variant: "elevated", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { style: { color: "#9CA3AF", lineHeight: "1.6" }, children: "本项目采用 ISC 许可证开源。您可以自由使用、修改和分发本项目的代码， 但需要遵守许可证的相关条款。详细信息请查看项目根目录的 LICENSE 文件。" }) })
         ]
       }
     )
-  ] });
+  ] }) });
 };
 function App() {
   const themeContext = reactExports.useContext(ThemeContext);

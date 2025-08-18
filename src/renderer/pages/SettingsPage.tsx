@@ -52,6 +52,11 @@ const TabsContainer = styled.div`
   gap: ${props => props.theme.spacing.sm};
   margin-bottom: ${props => props.theme.spacing.lg};
   border-bottom: 1px solid ${props => props.theme.border};
+  
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    padding-bottom: ${props => props.theme.spacing.sm};
+  }
 `;
 
 // 标签页内容
@@ -87,6 +92,10 @@ const FormGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: ${props => props.theme.spacing.lg};
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 // 头像容器

@@ -47,19 +47,24 @@ const Content = styled(motion.main)`
 `;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
+  // 在具体服务页面减少动画效果
+  const isServicePage = window.location.pathname.includes('/proxy-management') || 
+                        window.location.pathname.includes('/chat') || 
+                        window.location.pathname.includes('/dev-environment');
+  
   return (
     <LayoutContainer
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      initial={isServicePage ? false : { opacity: 0 }}
+      animate={isServicePage ? false : { opacity: 1 }}
+      transition={isServicePage ? false : { duration: 0.3 }}
     >
       <TitleBar />
       <MainContent>
         <Sidebar />
         <Content
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
+          initial={isServicePage ? false : { opacity: 0, y: 20 }}
+          animate={isServicePage ? false : { opacity: 1, y: 0 }}
+          transition={isServicePage ? false : { delay: 0.2, duration: 0.4 }}
         >
           {children}
         </Content>

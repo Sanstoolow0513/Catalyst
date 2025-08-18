@@ -85,8 +85,6 @@ const StyledCard = styled(motion.div)<CardProps>`
     }
   `}
   
-  /* 动画性能优化 */
-  will-change: transform, box-shadow;
 `;
 
 const Card: React.FC<CardProps> = ({
@@ -101,6 +99,11 @@ const Card: React.FC<CardProps> = ({
   theme,
   ...props
 }) => {
+  // 使用更优雅的方式判断是否为具体服务页面
+  const isServicePage = ['/proxy-management', '/chat', '/dev-environment'].some(path => 
+    window.location.pathname.includes(path)
+  );
+  
   return (
     <StyledCard
       $variant={$variant}
@@ -110,15 +113,15 @@ const Card: React.FC<CardProps> = ({
       $clickable={$clickable}
       onClick={onClick}
       className={className}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={$hoverable ? {
+      initial={isServicePage ? undefined : { opacity: 0, y: 20 }}
+      animate={isServicePage ? undefined : { opacity: 1, y: 0 }}
+      transition={isServicePage ? { duration: 0.15 } : { duration: 0.3 }}
+      whileHover={$hoverable && !isServicePage ? {
         scale: 1.01,
-        boxShadow: theme.card.shadowHover,
+        boxShadow: theme?.card.shadowHover,
         zIndex: 1
-      } : {}}
-      whileTap={$clickable ? { scale: 0.98, zIndex: 1 } : {}}
+      } : undefined}
+      whileTap={$clickable ? { scale: 0.98, zIndex: 1 } : undefined}
       {...props}
     >
       {children}
