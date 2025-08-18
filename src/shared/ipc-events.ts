@@ -12,6 +12,7 @@ export const IPC_EVENTS = {
   MIHOMO_GET_PROXIES: 'mihomo:get-proxies',
   MIHOMO_SELECT_PROXY: 'mihomo:select-proxy',
   MIHOMO_FETCH_CONFIG_FROM_URL: 'mihomo:fetch-config-from-url',
+  MIHOMO_TEST_PROXY_DELAY: 'mihomo:test-proxy-delay',
   
   // 开发环境相关事件
   DEV_ENV_INSTALL_VSCODE: 'dev-env:install-vscode',

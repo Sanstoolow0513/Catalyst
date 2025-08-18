@@ -12,6 +12,7 @@ import axios, { AxiosInstance } from 'axios';
 class MihomoService {
   private static instance: MihomoService;
   private mihomoProcess: ChildProcess | null = null;
+  private configDir: string;
   private configPath: string;
   private apiClient: AxiosInstance;
 
@@ -20,7 +21,15 @@ class MihomoService {
    * 初始化配置文件路径，并在文件不存在时创建默认配置。
    */
   private constructor() {
-    this.configPath = path.join(app.getPath('userData'), 'mihomo_config.yaml');
+    // 使用专门的配置目录
+    this.configDir = path.join(app.getPath('userData'), 'mihomo_config');
+    this.configPath = path.join(this.configDir, 'config.yaml');
+    
+    // 确保配置目录存在
+    if (!fs.existsSync(this.configDir)) {
+      fs.mkdirSync(this.configDir, { recursive: true });
+    }
+    
     // 确保配置文件存在
     if (!fs.existsSync(this.configPath)) {
       this.createDefaultConfig();
@@ -106,11 +115,25 @@ class MihomoService {
   }
 
   /**
+   * 获取配置目录的路径。
+   * @returns 配置目录的完整路径。
+   */
+  public getConfigDir(): string {
+    return this.configDir;
+  }
+
+  /**
    * 从文件系统加载 Mihomo 配置。
    * @returns 一个 Promise，解析为配置对象。
    */
   public loadConfig(): Promise<any> {
     return new Promise((resolve, reject) => {
+      // 检查配置文件是否存在
+      if (!fs.existsSync(this.configPath)) {
+        // 如果配置文件不存在，创建默认配置
+        this.createDefaultConfig();
+      }
+      
       fs.readFile(this.configPath, 'utf8', (err, data) => {
         if (err) {
           console.error(`[MihomoService] Failed to read config file: ${err}`);
@@ -135,6 +158,11 @@ class MihomoService {
    */
   public saveConfig(config: any): Promise<void> {
     return new Promise((resolve, reject) => {
+      // 确保配置目录存在
+      if (!fs.existsSync(this.configDir)) {
+        fs.mkdirSync(this.configDir, { recursive: true });
+      }
+      
       const yamlStr = yaml.dump(config);
       fs.writeFile(this.configPath, yamlStr, 'utf8', (err) => {
         if (err) {
@@ -148,11 +176,33 @@ class MihomoService {
   }
 
   /**
+   * 检查配置是否有效
+   * @param config 配置对象
+   * @returns 如果配置有效返回 true，否则返回 false
+   */
+  public isConfigValid(config: any): boolean {
+    // 检查配置是否为对象且不为空
+    if (!config || typeof config !== 'object' || Object.keys(config).length === 0) {
+      return false;
+    }
+    
+    // 检查必需的字段
+    const requiredFields = ['port', 'mode'];
+    for (const field of requiredFields) {
+      if (config[field] === undefined) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /**
    * 启动 Mihomo 进程。
    * @returns 一个 Promise，在启动成功时解析。
    */
   public start(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (this.mihomoProcess) {
         console.log('[MihomoService] Mihomo is already running.');
         return resolve();
@@ -166,13 +216,41 @@ class MihomoService {
         return reject(new Error(errorMsg));
       }
 
-      console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
-      console.log(`[MihomoService] Using config file: ${this.configPath}`);
+      // 检查配置文件是否存在
+      if (!fs.existsSync(this.configPath)) {
+        const errorMsg = `Config file not found at: ${this.configPath}`;
+        console.error(`[MihomoService] ${errorMsg}`);
+        return reject(new Error(errorMsg));
+      }
 
-      // 将配置文件路径传递给 Mihomo
+      // 检查配置文件是否为空
+      const configStat = fs.statSync(this.configPath);
+      if (configStat.size === 0) {
+        const errorMsg = `Config file is empty: ${this.configPath}`;
+        console.error(`[MihomoService] ${errorMsg}`);
+        return reject(new Error(errorMsg));
+      }
+
+      // 验证配置是否有效
+      try {
+        const config = await this.loadConfig();
+        if (!this.isConfigValid(config)) {
+          const errorMsg = `Config file is invalid: ${this.configPath}`;
+          console.error(`[MihomoService] ${errorMsg}`);
+          return reject(new Error(errorMsg));
+        }
+      } catch (error) {
+        const errorMsg = `Failed to validate config file: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(`[MihomoService] ${errorMsg}`);
+        return reject(new Error(errorMsg));
+      }
+
+      console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
+      console.log(`[MihomoService] Using config directory: ${this.configDir}`);
+
+      // 使用 -d 参数指定配置目录
       this.mihomoProcess = spawn(mihomoPath, [
-        '-d', path.dirname(this.configPath), // 指定配置文件目录
-        '-f', path.basename(this.configPath)  // 指定配置文件名
+        '-d', this.configDir
       ]);
 
       this.mihomoProcess.stdout?.on('data', (data) => {
@@ -280,6 +358,12 @@ class MihomoService {
       
       // 尝试解析响应内容为YAML
       const config = yaml.load(response.data);
+      
+      // 验证配置是否有效
+      if (!this.isConfigValid(config)) {
+        throw new Error('Fetched config is invalid');
+      }
+      
       console.log('[MihomoService] Config fetched and parsed successfully');
       return config;
     } catch (error) {
@@ -315,6 +399,26 @@ class MihomoService {
       });
     } catch (error) {
       console.error('[MihomoService] Failed to select proxy:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * 测试代理节点的延迟
+   * @param proxyName 代理节点名称
+   * @returns 一个 Promise，解析为延迟测试结果
+   */
+  public async testProxyDelay(proxyName: string): Promise<number> {
+    try {
+      const response = await this.apiClient.get(`/proxies/${encodeURIComponent(proxyName)}/delay`, {
+        params: {
+          timeout: 5000,
+          url: 'http://www.gstatic.com/generate_204'
+        }
+      });
+      return response.data.delay;
+    } catch (error) {
+      console.error(`[MihomoService] Failed to test delay for proxy ${proxyName}:`, error);
       throw error;
     }
   }

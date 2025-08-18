@@ -15,8 +15,8 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background-color: ${({ theme }) => theme.body};
-  border-radius: 8px;
+  background-color: ${({ theme }) => theme.surface};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   max-width: 500px;
   width: 90%;
@@ -33,7 +33,7 @@ const CloseButton = styled.button`
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: ${({ theme }) => theme.text};
+  color: ${({ theme }) => theme.textPrimary};
   z-index: 1001;
 `;
 

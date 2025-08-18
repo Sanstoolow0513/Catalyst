@@ -8,7 +8,7 @@
 
 ## 简介
 
-Catalyst 是一个集成了多种实用功能的现代化桌面应用程序，包括系统代理管理、AI 对话、开发环境部署和统一设置管理等功能。它采用 Electron + React + TypeScript 技术栈构建，支持 Windows、macOS 和 Linux 平台。
+Catalyst 是一个集成了多种实用功能的现代化桌面应用程序，包括系统代理管理、AI 对话、开发环境部署和统一设置管理等功能。它采用 Electron + React + TypeScript 技术栈构建，支持 Windows平台。
 
 ## 核心功能
 
@@ -59,6 +59,22 @@ Catalyst 是一个集成了多种实用功能的现代化桌面应用程序，�
 - 改善了视觉舒适度和用户体验
 - 优化了组件间的视觉层次和对比度
 
+### 页面组件化和简化设计
+- 重构了代理页面和LLM页面，实现更好的组件化结构
+- 减少了不必要的动画效果，专注于内容展示
+- 在具体服务页面中简化了标题和图标，突出核心功能
+
+## 设计规范
+
+Catalyst 遵循统一的设计规范，确保整个应用具有一致的用户体验：
+
+- **圆角规范**：按钮使用 8px 圆角，卡片使用 12px 圆角
+- **颜色系统**：定义了完整的浅色和深色主题配色方案
+- **间距系统**：基于 8px 基础单位的间距系统
+- **组件一致性**：所有 UI 组件遵循统一的设计语言
+
+详细的设计规范请参阅 [设计规范指南](./docs/design_guidelines.md) 和 [设计更新日志](./docs/design_updates_log.md)。
+
 ## 技术栈
 
 - **Electron**: 桌面应用框架
@@ -107,6 +123,10 @@ pnpm package
 - [API 文档](./docs/developer/api/api_documentation.md)
 - [架构设计](./docs/developer/architecture/ui_architecture.md)
 - [编码规范](./docs/developer/guides/coding_standards.md)
+
+### 设计文档
+- [设计规范指南](./docs/design_guidelines.md)
+- [设计更新日志](./docs/design_updates_log.md)
 
 ### 更新日志
 - [更新日志](./docs/developer/changelog/README.md)

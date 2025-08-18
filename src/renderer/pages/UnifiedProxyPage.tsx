@@ -1,104 +1,226 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import yaml from 'js-yaml';
-import { PageContainer, Button, Card, StatusIndicator, Input, Label } from '../components/common';
+import {
+  Card,
+  Button,
+  Input,
+  Textarea,
+  Label,
+  StatusIndicator,
+  PageContainer,
+  FormGroup,
+  FormRow
+} from '../components/common';
 import ProxyGroupManager from '../components/ProxyGroupManager';
+import {
+  Play,
+  Square,
+  Download,
+  RefreshCw,
+  Save,
+  FolderOpen
+} from 'lucide-react';
 
-const Title = styled.h2`
-  margin: 0 0 24px 0;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.8rem;
-  font-weight: 600;
-`;
+// 页面组件
+const PageHeader = () => (
+  <div style={{ marginBottom: '32px' }}>
+    <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>Proxy Management</h1>
+  </div>
+);
 
-const StatusCardContent = styled.div`
-  display: flex;
-  align-items: center;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.textPrimary};
-`;
+// 区块组件
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section style={{ marginBottom: '32px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>{title}</h2>
+    </div>
+    {children}
+  </section>
+);
 
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-`;
-
-const Section = styled.div`
-  margin-bottom: 32px;
-`;
-
-const SectionTitle = styled.h3`
-  margin: 0 0 16px 0;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.3rem;
-  font-weight: 600;
-`;
-
-const URLInputContainer = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-`;
-
-const ConfigTextArea = styled.textarea`
-  flex: 1;
-  width: 100%;
-  padding: 12px;
-  border: 1px solid ${({ theme }) => theme.inputBorder};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background-color: ${({ theme }) => theme.inputBackground};
-  color: ${({ theme }) => theme.textPrimary};
-  font-family: 'Fira Code', 'Consolas', 'Menlo', monospace;
-  font-size: 0.9rem;
-  resize: vertical;
-  min-height: 200px;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.inputFocusBorder};
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.accent}40;
+// 状态区域组件
+const StatusSection: React.FC<{
+  isLoading: boolean;
+  isRunning: boolean;
+  apiAvailable: boolean;
+  onStart: () => void;
+  onStop: () => void;
+  hasConfig: boolean;
+}> = ({ isLoading, isRunning, apiAvailable, onStart, onStop, hasConfig }) => {
+  if (!apiAvailable) {
+    return (
+      <Card $padding="medium" $borderRadius="medium">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <StatusIndicator $status="error" />
+          <div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 8px 0' }}>API Unavailable</h3>
+            <p style={{ margin: 0 }}>Electron API is not available. Please restart the application.</p>
+          </div>
+        </div>
+      </Card>
+    );
   }
-`;
 
-const StatusMessageContainer = styled.div`
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background-color: ${({ theme }) => theme.surface};
-  border: 1px solid ${({ theme }) => theme.border};
-  display: flex;
-  align-items: center;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.textPrimary};
-`;
+  return (
+    <>
+      {isLoading ? (
+        <Card $padding="medium" $borderRadius="medium">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <StatusIndicator $status="info" />
+            <div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 8px 0' }}>Loading Status</h3>
+              <p style={{ margin: 0 }}>Checking Mihomo service status...</p>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <>
+          <Card $padding="medium" $borderRadius="medium">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <StatusIndicator $status={isRunning ? 'success' : 'error'} />
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 8px 0' }}>Service Status</h3>
+                <p style={{ margin: 0 }}>{isRunning ? 'Mihomo is Running' : 'Mihomo is Stopped'}</p>
+              </div>
+            </div>
+          </Card>
+          
+          <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+            <Button
+              onClick={onStart}
+              disabled={isRunning || isLoading || !hasConfig}
+              variant="primary"
+              startIcon={<Play size={16} />}
+            >
+              {isRunning ? 'Running' : 'Start Proxy'}
+            </Button>
+            <Button
+              onClick={onStop}
+              disabled={!isRunning || isLoading}
+              variant="danger"
+              startIcon={<Square size={16} />}
+            >
+              Stop Proxy
+            </Button>
+          </div>
+        </>
+      )}
+    </>
+  );
+};
 
-const ConfigPathDisplay = styled.div`
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background-color: ${({ theme }) => theme.surface};
-  border: 1px solid ${({ theme }) => theme.border};
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.textPrimary};
-  display: flex;
-  align-items: center;
-  word-break: break-all;
-`;
+// 配置卡片组件
+const ConfigCard: React.FC<{
+  title: string;
+  children: React.ReactNode;
+}> = ({ title, children }) => (
+  <Card $padding="medium" $borderRadius="medium">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>{title}</h3>
+    </div>
+    {children}
+  </Card>
+);
 
-const AutoStartContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-`;
+// 控制按钮组组件
+const ControlButtonGroup: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+    {children}
+  </div>
+);
 
-const Checkbox = styled.input`
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-`;
+// 状态消息容器组件
+const StatusMessageContainer: React.FC<{
+  isSuccess: boolean;
+  children: React.ReactNode;
+}> = ({ isSuccess, children }) => (
+  <div style={{ marginTop: '24px' }}>
+    <Card $padding="medium" $borderRadius="medium">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem' }}>
+        <StatusIndicator $status={isSuccess ? 'success' : 'error'} />
+        {children}
+      </div>
+    </Card>
+  </div>
+);
+
+// 代理组区域组件
+const ProxyGroupSection: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <section style={{ marginTop: '32px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>Proxy Group Management</h2>
+    </div>
+    {children}
+  </section>
+);
+
+// 自动启动容器组件
+const AutoStartContainer: React.FC<{
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}> = ({ checked, onChange, disabled = false, children }) => (
+  <div style={{ marginBottom: '24px' }}>
+    <Card $padding="medium" $borderRadius="medium">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          disabled={disabled}
+          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+        />
+        {children}
+      </div>
+    </Card>
+  </div>
+);
+
+// URL输入容器组件
+const URLInputContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+    {children}
+  </div>
+);
+
+// 配置文本区域组件
+const ConfigTextArea: React.FC<{
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}> = ({ value, onChange, placeholder, disabled = false }) => (
+  <Textarea
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    disabled={disabled}
+    style={{
+      minHeight: '300px',
+      fontFamily: "'Fira Code', 'Consolas', 'Menlo', monospace",
+      fontSize: '0.9rem'
+    }}
+  />
+);
+
+// 配置操作组件
+const ConfigActions: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+    {children}
+  </div>
+);
+
+// 配置路径显示组件
+const ConfigPathDisplay: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div style={{ marginTop: '16px' }}>
+    <Card $padding="medium" $borderRadius="medium">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem' }}>
+        {children}
+      </div>
+    </Card>
+  </div>
+);
 
 const UnifiedProxyPage: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
@@ -112,6 +234,7 @@ const UnifiedProxyPage: React.FC = () => {
   const [config, setConfig] = useState('');
   const [autoStart, setAutoStart] = useState(false);
   const [apiAvailable, setApiAvailable] = useState(false);
+  const [hasConfig, setHasConfig] = useState(false);
 
   useEffect(() => {
     if (window.electronAPI && window.electronAPI.mihomo && window.electronAPI.config) {
@@ -172,6 +295,7 @@ const UnifiedProxyPage: React.FC = () => {
       if (result.success && result.data) {
         const yamlStr = yaml.dump(result.data);
         setConfig(yamlStr);
+        setHasConfig(true);
       }
     } catch (error) {
       console.error('Error loading config:', error);
@@ -193,7 +317,12 @@ const UnifiedProxyPage: React.FC = () => {
   };
 
   const handleStart = async () => {
-    if (!apiAvailable) return;
+    if (!apiAvailable || !hasConfig) {
+      setStatusMessage('Please load or save configuration before starting');
+      setIsSuccess(false);
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const result = await window.electronAPI.mihomo.start();
@@ -248,6 +377,7 @@ const UnifiedProxyPage: React.FC = () => {
       if (result.success) {
         setStatusMessage('Configuration saved successfully');
         setIsSuccess(true);
+        setHasConfig(true);
       } else {
         setStatusMessage(`Failed to save configuration: ${result.error}`);
         setIsSuccess(false);
@@ -276,6 +406,7 @@ const UnifiedProxyPage: React.FC = () => {
         setConfig(yamlStr);
         setStatusMessage('Configuration fetched successfully');
         setIsSuccess(true);
+        setHasConfig(true);
         
         // 保存VPN URL
         await window.electronAPI.config.setVpnUrl(configURL);
@@ -325,126 +456,115 @@ const UnifiedProxyPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <Title>System Proxy Management</Title>
+      <PageHeader />
       
       {!apiAvailable ? (
-        <Card $padding="medium">
-          <StatusCardContent>
-            <StatusIndicator $status="error" />
-            Electron API is not available. Please restart the application.
-          </StatusCardContent>
-        </Card>
+        <StatusSection
+          isLoading={isLoading}
+          isRunning={isRunning}
+          apiAvailable={apiAvailable}
+          onStart={handleStart}
+          onStop={handleStop}
+          hasConfig={hasConfig}
+        />
       ) : (
         <>
           {/* 代理状态和控制 */}
-          <Section>
-            <SectionTitle>Proxy Status</SectionTitle>
-            {isLoading ? (
-              <Card $padding="medium">
-                <StatusCardContent>
-                  <StatusIndicator $status="info" />
-                  Loading status...
-                </StatusCardContent>
-              </Card>
-            ) : (
-              <>
-                <Card $padding="medium">
-                  <StatusCardContent>
-                    <StatusIndicator $status={isRunning ? 'success' : 'error'} />
-                    {isRunning ? 'Mihomo is Running' : 'Mihomo is Stopped'}
-                  </StatusCardContent>
-                </Card>
-                <ButtonGroup>
-                  <Button onClick={handleStart} disabled={isRunning || isLoading} variant="primary">
-                    Start
-                  </Button>
-                  <Button onClick={handleStop} disabled={!isRunning || isLoading} variant="danger">
-                    Stop
-                  </Button>
-                </ButtonGroup>
-              </>
-            )}
+          <Section title="Proxy Status">
+            <StatusSection
+              isLoading={isLoading}
+              isRunning={isRunning}
+              apiAvailable={apiAvailable}
+              onStart={handleStart}
+              onStop={handleStop}
+              hasConfig={hasConfig}
+            />
           </Section>
 
-          {/* 快速配置 */}
-          <Section>
-            <SectionTitle>Quick Configuration</SectionTitle>
-            <AutoStartContainer>
-              <Checkbox
-                type="checkbox"
-                checked={autoStart}
-                onChange={(e) => handleAutoStartChange(e.target.checked)}
-                disabled={isLoading}
-              />
+          {/* 配置管理 */}
+          <Section title="Configuration">
+            <AutoStartContainer
+              checked={autoStart}
+              onChange={handleAutoStartChange}
+              disabled={isLoading}
+            >
               <Label>Start proxy automatically when application launches</Label>
             </AutoStartContainer>
             
-            <URLInputContainer>
-              <Input
-                type="text"
-                value={configURL}
-                onChange={(e) => setConfigURL(e.target.value)}
-                placeholder="Enter VPN provider config URL..."
-                disabled={isConfigLoading || isConfigSaving}
-              />
-              <Button onClick={fetchConfigFromURL} disabled={isConfigLoading || isConfigSaving}>
-                {isConfigLoading ? 'Fetching...' : 'Fetch Config'}
-              </Button>
-            </URLInputContainer>
-          </Section>
-
-          {/* 高级配置 */}
-          <Section>
-            <SectionTitle>Advanced Configuration</SectionTitle>
-            <div style={{ margin: '0 0 20px 0' }}>
-              <Card>
-                <ConfigTextArea
-                  value={config}
-                  onChange={(e) => setConfig(e.target.value)}
-                  placeholder="Enter your Mihomo configuration in YAML format..."
+            <ConfigCard title="Quick Configuration">
+              <URLInputContainer>
+                <Input
+                  type="text"
+                  value={configURL}
+                  onChange={(e) => setConfigURL(e.target.value)}
+                  placeholder="Enter VPN provider config URL..."
                   disabled={isConfigLoading || isConfigSaving}
                 />
-              </Card>
-            </div>
-            
-            <ButtonGroup>
-              <Button onClick={loadConfig} disabled={isConfigLoading || isConfigSaving}>
-                {isConfigLoading ? 'Loading...' : 'Reload Config'}
-              </Button>
-              <Button onClick={saveConfig} disabled={isConfigLoading || isConfigSaving}>
-                {isConfigSaving ? 'Saving...' : 'Save Config'}
-              </Button>
-              {configPath && (
                 <Button
-                  onClick={openConfigDirectory}
-                  variant="outline"
+                  onClick={fetchConfigFromURL}
+                  disabled={isConfigLoading || isConfigSaving}
+                  startIcon={isConfigLoading ? <RefreshCw size={16} /> : <Download size={16} />}
                 >
-                  Open Directory
+                  {isConfigLoading ? 'Fetching...' : 'Fetch Config'}
                 </Button>
+              </URLInputContainer>
+            </ConfigCard>
+            
+            <ConfigCard title="Advanced Configuration">
+              <ConfigTextArea
+                value={config}
+                onChange={(e) => setConfig(e.target.value)}
+                placeholder="Enter your Mihomo configuration in YAML format..."
+                disabled={isConfigLoading || isConfigSaving}
+              />
+              
+              <ConfigActions>
+                <Button
+                  onClick={loadConfig}
+                  disabled={isConfigLoading || isConfigSaving}
+                  variant="outline"
+                  startIcon={<RefreshCw size={16} />}
+                >
+                  {isConfigLoading ? 'Loading...' : 'Reload Config'}
+                </Button>
+                <Button
+                  onClick={saveConfig}
+                  disabled={isConfigLoading || isConfigSaving}
+                  variant="primary"
+                  startIcon={<Save size={16} />}
+                >
+                  {isConfigSaving ? 'Saving...' : 'Save Config'}
+                </Button>
+                {configPath && (
+                  <Button
+                    onClick={openConfigDirectory}
+                    variant="outline"
+                    startIcon={<FolderOpen size={16} />}
+                  >
+                    Open Directory
+                  </Button>
+                )}
+              </ConfigActions>
+              
+              {configPath && (
+                <ConfigPathDisplay>
+                  <strong>Config Path:</strong> {configPath}
+                </ConfigPathDisplay>
               )}
-            </ButtonGroup>
-
-            {configPath && (
-              <ConfigPathDisplay>
-                <strong>Config Path:</strong> {configPath}
-              </ConfigPathDisplay>
+            </ConfigCard>
+            
+            {statusMessage && (
+              <StatusMessageContainer isSuccess={isSuccess}>
+                {statusMessage}
+              </StatusMessageContainer>
             )}
           </Section>
 
           {/* 代理组管理 */}
           {isRunning && (
-            <Section>
-              <SectionTitle>Proxy Group Management</SectionTitle>
+            <ProxyGroupSection>
               <ProxyGroupManager />
-            </Section>
-          )}
-
-          {/* 状态消息 */}
-          {statusMessage && (
-            <StatusMessageContainer>
-              <StatusIndicator $status={isSuccess ? 'success' : 'error'} />
-              {statusMessage}
-            </StatusMessageContainer>
+            </ProxyGroupSection>
           )}
         </>
       )}

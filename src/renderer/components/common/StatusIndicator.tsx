@@ -2,28 +2,39 @@ import styled from 'styled-components';
 
 interface StatusIndicatorProps {
   $status: 'success' | 'error' | 'warning' | 'info';
+  $size?: 'small' | 'medium' | 'large';
 }
 
-const getColor = ($status: StatusIndicatorProps['$status']) => {
-  switch ($status) {
-    case 'success':
-      return '#28A745';
-    case 'error':
-      return '#DC3545';
-    case 'warning':
-      return '#FFC107';
-    case 'info':
-      return '#17A2B8';
+const getSize = ($size: StatusIndicatorProps['$size'] = 'medium') => {
+  switch ($size) {
+    case 'small':
+      return '8px';
+    case 'large':
+      return '12px';
+    case 'medium':
     default:
-      return '#6C757D';
+      return '10px';
   }
 };
 
 export const StatusIndicator = styled.span<StatusIndicatorProps>`
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: ${(props) => getSize(props.$size)};
+  height: ${(props) => getSize(props.$size)};
   border-radius: 50%;
-  background-color: ${(props) => getColor(props.$status)};
+  background-color: ${(props) => {
+    switch (props.$status) {
+      case 'success':
+        return props.theme.success.main;
+      case 'error':
+        return props.theme.error.main;
+      case 'warning':
+        return props.theme.warning.main;
+      case 'info':
+        return props.theme.info.main;
+      default:
+        return props.theme.textSecondary;
+    }
+  }};
   margin-right: 8px;
 `;

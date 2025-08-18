@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { PageContainer, Button, Card, StatusIndicator } from '../components/common';
 import { FaJava } from 'react-icons/fa';
 import { VscCode } from 'react-icons/vsc';
-import { 
+import {
   SiIntellijidea,
   SiPycharm,
   SiWebstorm,
@@ -24,7 +24,7 @@ import {
   SiJuejin,
   SiMedium
 } from 'react-icons/si';
-import { 
+import {
   Code as CodeIcon,
   Terminal as TerminalIcon,
   Database as DatabaseIcon,
@@ -37,19 +37,20 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const Title = styled.h2`
   margin: 0;
   color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.8rem;
+  font-size: 1.5rem;
+  font-weight: 600;
 `;
 
 const SectionsContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: ${({ theme }) => theme.spacing.xl};
 `;
 
 const Section = styled.div``;
@@ -57,8 +58,8 @@ const Section = styled.div``;
 const SectionHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
 const SectionTitle = styled.h3`
@@ -71,8 +72,11 @@ const SectionTitle = styled.h3`
 const SectionIcon = styled.div`
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, ${props => props.theme.primary.main}, ${props => props.theme.accent.main});
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  background: ${({ theme }) => {
+    const primaryColor = typeof theme.primary === 'string' ? theme.primary : theme.primary.main;
+    return `linear-gradient(135deg, ${primaryColor}, ${theme.accent})`;
+  }};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +86,7 @@ const SectionIcon = styled.div`
 const ToolsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 const ToolCard = styled(Card)`
@@ -94,14 +98,14 @@ const ToolCard = styled(Card)`
 const ToolHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
 const ToolIcon = styled.div`
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.borderRadius.small};
   background-color: ${props => props.theme.surfaceVariant};
   display: flex;
   align-items: center;
@@ -115,14 +119,14 @@ const ToolInfo = styled.div`
 `;
 
 const ToolName = styled.h4`
-  margin: 0 0 8px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.sm} 0;
   color: ${({ theme }) => theme.textPrimary};
   font-size: 1.1rem;
   font-weight: 600;
 `;
 
 const ToolDescription = styled.p`
-  margin: 0 0 16px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.9rem;
   line-height: 1.5;
@@ -141,27 +145,27 @@ const ToolCategory = styled.span`
   color: ${({ theme }) => theme.textTertiary};
   background-color: ${({ theme }) => theme.surfaceVariant};
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.borderRadius.small};
 `;
 
 const WebsiteCard = styled(Card)`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: ${({ theme }) => theme.spacing.md};
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s ease;
+  transition: all ${({ theme }) => theme.transition.fast} ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    box-shadow: ${props => props.theme.card.shadowHover};
   }
 `;
 
 const WebsiteIcon = styled.div`
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   background-color: ${props => props.theme.surfaceVariant};
   display: flex;
   align-items: center;
@@ -175,7 +179,7 @@ const WebsiteInfo = styled.div`
 `;
 
 const WebsiteName = styled.h4`
-  margin: 0 0 4px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.xs} 0;
   color: ${({ theme }) => theme.textPrimary};
   font-size: 1.1rem;
 `;
@@ -187,9 +191,9 @@ const WebsiteDescription = styled.p`
 `;
 
 const StatusMessageContainer = styled.div`
-  margin-top: 24px;
-  padding: 16px;
-  border-radius: 8px;
+  margin-top: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   background-color: ${({ theme }) => theme.surfaceVariant};
   border: 1px solid ${({ theme }) => theme.border};
   display: flex;
@@ -355,7 +359,7 @@ const DevEnvironmentPage: React.FC = () => {
           </SectionHeader>
           <ToolsGrid>
             {ideTools.map(tool => (
-              <ToolCard key={tool.id} $padding="20px">
+              <ToolCard key={tool.id} $padding="medium">
                 <ToolHeader>
                   <ToolIcon><tool.icon /></ToolIcon>
                   <ToolInfo>
@@ -390,7 +394,7 @@ const DevEnvironmentPage: React.FC = () => {
           </SectionHeader>
           <ToolsGrid>
             {runtimeTools.map(tool => (
-              <ToolCard key={tool.id} $padding="20px">
+              <ToolCard key={tool.id} $padding="medium">
                 <ToolHeader>
                   <ToolIcon><tool.icon /></ToolIcon>
                   <ToolInfo>
@@ -425,7 +429,7 @@ const DevEnvironmentPage: React.FC = () => {
           </SectionHeader>
           <ToolsGrid>
             {databaseTools.map(tool => (
-              <ToolCard key={tool.id} $padding="20px">
+              <ToolCard key={tool.id} $padding="medium">
                 <ToolHeader>
                   <ToolIcon><tool.icon /></ToolIcon>
                   <ToolInfo>
@@ -460,7 +464,7 @@ const DevEnvironmentPage: React.FC = () => {
           </SectionHeader>
           <ToolsGrid>
             {otherTools.map(tool => (
-              <ToolCard key={tool.id} $padding="20px">
+              <ToolCard key={tool.id} $padding="medium">
                 <ToolHeader>
                   <ToolIcon><tool.icon /></ToolIcon>
                   <ToolInfo>

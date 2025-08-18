@@ -99,4 +99,14 @@ export function registerMihomoIpcHandlers() {
       return { success: false, error: (error as Error).message };
     }
   });
+  
+  ipcMain.handle(IPC_EVENTS.MIHOMO_TEST_PROXY_DELAY, async (_event, proxyName: string) => {
+    try {
+      const delay = await mihomoService.testProxyDelay(proxyName);
+      return { success: true, data: delay };
+    } catch (error) {
+      console.error('Failed to test proxy delay:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
 }
