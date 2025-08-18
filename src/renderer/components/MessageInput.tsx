@@ -23,7 +23,7 @@ const TextArea = styled.textarea`
   max-height: 200px;
   padding: 18px 20px;
   border: 1px solid ${({ theme }) => theme.inputBorder};
-  border-radius: ${({ theme }) => theme.borderRadius.large};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   background-color: ${({ theme }) => theme.inputBackground};
   color: ${({ theme }) => theme.textPrimary};
   resize: none;
@@ -34,11 +34,16 @@ const TextArea = styled.textarea`
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.inputFocusBorder};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.accent}40;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.accent}40;
   }
   
   &::placeholder {
     color: ${({ theme }) => theme.textTertiary};
+  }
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+    min-height: 50px;
   }
 `;
 
@@ -78,11 +83,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
           onClick={handleSend} 
           disabled={!message.trim() || disabled}
           variant="primary"
-          style={{ 
-            height: 'fit-content',
-            padding: '18px 28px',
-            fontWeight: 600
-          }}
+          size="medium"
         >
           Send
         </Button>

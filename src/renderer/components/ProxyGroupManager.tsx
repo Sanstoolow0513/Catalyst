@@ -4,7 +4,7 @@ import { Card, Button } from '../components/common';
 import { RotateCw, Wifi, Zap } from 'lucide-react';
 
 const ProxyGroupContainer = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   border: 1px solid ${props => props.theme.border};
   border-radius: ${props => props.theme.borderRadius.medium};
   overflow: hidden;
@@ -50,12 +50,16 @@ const ProxyList = styled.div`
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
+  
+  @media (max-width: 768px) {
+    gap: 6px;
+  }
 `;
 
 const ProxyItem = styled(Button)<{ $selected?: boolean; $delay?: number }>`
   padding: 8px 16px;
   font-size: 0.9rem;
-  border-radius: 8px;
+  border-radius: ${props => props.theme.borderRadius.small};
   position: relative;
   
   ${props => props.$selected && `
@@ -80,11 +84,21 @@ const ProxyItem = styled(Button)<{ $selected?: boolean; $delay?: number }>`
       font-weight: bold;
     }
   `}
+  
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
 `;
 
 const TestLatencyButton = styled(Button)`
   font-size: 0.9rem;
   padding: 8px 16px;
+  
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
 `;
 
 const NoProxiesMessage = styled.div`

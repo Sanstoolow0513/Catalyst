@@ -41,6 +41,8 @@ Catalyst 基于 Electron，采用多进程架构：
 ## 关键服务
 
 主进程包含多个服务模块，负责核心业务逻辑：
-*   `ConfigManager`: 管理应用配置的读取、保存。
-*   `MihomoService`: 管理 Mihomo 代理进程的启动、停止、配置。
-*   `LLMService`: 管理与 LLM 提供商的通信。
+*   `ConfigManager`: 管理应用配置的读取、保存、导入、导出、备份和恢复。
+*   `MihomoService`: 管理 Mihomo 代理进程的启动、停止、配置和代理选择。
+*   `LLMService`: 管理与 LLM 提供商的通信，支持多种提供商和模型。
+*   `ApiKeyManager`: 管理 LLM 服务的 API 密钥，支持多个提供商。
+*   `DevEnvironmentService`: 管理开发环境的安装和配置。

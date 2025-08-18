@@ -15,10 +15,12 @@
 
 *   **事件常量**:
     *   所有 IPC 事件名称都定义在 `src/shared/ipc-events.ts` 文件的 `IPC_EVENTS` 对象中。
-    *   例如: `export const IPC_EVENTS = { CONFIG_GET: 'config:get', ... };`
+    *   例如: `export const IPC_EVENTS = { CONFIG_GET_ALL: 'config:get-all', ... };`
 *   **调用方式**:
     *   在渲染进程中，通过 `window.electronAPI` 对象访问预加载脚本暴露的方法。
-    *   例如: `const result = await window.electronAPI.config.getConfig();`
+    *   例如: `const config = await window.electronAPI.config.getAll();`
+    *   例如: `await window.electronAPI.mihomo.start();`
+    *   例如: `const result = await window.electronAPI.llm.generateCompletion(request);`
 *   **响应处理**:
     *   IPC 调用通常是异步的，使用 `async/await`。
     *   主进程返回的响应通常遵循统一格式: `{ success: boolean, data?: any, error?: string }`。

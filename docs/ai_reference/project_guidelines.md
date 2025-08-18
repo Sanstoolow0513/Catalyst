@@ -60,17 +60,34 @@ Catalyst 是一个集成化的桌面工具平台，旨在将开发者常用的�
 ```
 Catalyst/
 ├── docs/                     # 项目文档
-│   ├── ai_quickref/         # (你在这里) AI 快速参考
-│   ├── planning/            # 需求与规划
-│   ├── dev_context/         # 开发上下文
-│   └── project/design/      # 设计文档
+│   ├── ai_reference/        # (你在这里) AI 快速参考
+│   ├── ai_workflow/         # AI 工作流 (上下文编码模式)
+│   │   ├── context/         # 项目上下文
+│   │   │   ├── design_decisions/     # 设计决策记录
+│   │   │   ├── development_history/  # 开发历史
+│   │   │   └── code_patterns/        # 代码模式
+│   │   ├── collaboration/   # AI 协作模式
+│   │   │   ├── prompt_templates/     # 提示词模板
+│   │   │   ├── interaction_patterns/  # 交互模式
+│   │   │   └── best_practices/        # 最佳实践
+│   │   └── sessions/        # 开发会话记录
+│   └── README.md            # 文档主索引
 ├── resources/                # 静态资源 (如 Mihomo 可执行文件)
 ├── src/                      # 源代码目录
 │   ├── main/                # 主进程代码 (Node.js, Electron APIs)
 │   │   ├── index.ts         # 主进程入口
 │   │   ├── preload.ts       # 预加载脚本 (安全桥接)
 │   │   ├── ipc-handlers/    # 处理来自渲染进程的 IPC 请求
-│   │   └── services/        # 核心业务逻辑服务 (ConfigManager, MihomoService)
+│   │   │   ├── config-ipc.ts
+│   │   │   ├── llm-ipc.ts
+│   │   │   ├── mihomo-ipc.ts
+│   │   │   └── dev-environment-ipc.ts
+│   │   └── services/        # 核心业务逻辑服务
+│   │       ├── config-manager.ts     # 配置管理
+│   │       ├── llm-service.ts        # LLM 服务
+│   │       ├── mihomo-service.ts     # Mihomo 服务
+│   │       ├── api-key-manager.ts    # API 密钥管理
+│   │       └── dev-environment-service.ts  # 开发环境服务
 │   ├── renderer/            # 渲染进程代码 (React UI)
 │   │   ├── App.tsx          # React 应用根组件
 │   │   ├── main.tsx         # 渲染进程入口
@@ -110,9 +127,11 @@ Catalyst/
 
 ### 4.4 IPC 通信 (IPC Communication)
 *   **事件常量**: 所有 IPC 事件名称都定义在 `src/shared/ipc-events.ts` 文件的 `IPC_EVENTS` 对象中。
-    *   例如: `export const IPC_EVENTS = { CONFIG_GET: 'config:get', ... };`
+    *   例如: `export const IPC_EVENTS = { CONFIG_GET_ALL: 'config:get-all', ... };`
 *   **调用方式**: 在渲染进程中，通过 `window.electronAPI` 对象访问预加载脚本暴露的方法。
-    *   例如: `const result = await window.electronAPI.config.getConfig();`
+    *   例如: `const config = await window.electronAPI.config.getAll();`
+    *   例如: `await window.electronAPI.mihomo.start();`
+    *   例如: `const result = await window.electronAPI.llm.generateCompletion(request);`
 *   **响应处理**: IPC 调用通常是异步的，使用 `async/await`。主进程返回的响应遵循统一格式: `{ success: boolean, data?: any, error?: string }`。务必检查 `response.success` 并处理 `error` 情况。
 
 ### 4.5 错误处理与用户体验 (Error Handling & UX)
@@ -122,56 +141,161 @@ Catalyst/
 
 ## 5. 核心概念与对象 (Core Concepts & Objects)
 
-### 5.1 配置 (Config)
+### 5.1 配置 (AppConfig)
 ```typescript
-// src/renderer/types/electron.d.ts 或类似文件中定义
-interface Config {
-  general: GeneralConfig; // 通用设置 (主题、语言、开机启动等)
-  llm: LLMConfig;        // LLM 设置 (提供商、模型、API密钥等)
-  proxy: ProxyConfig;    // 代理设置 (VPN URL, 自动启动等)
-  user: UserConfig;      // 用户信息 (姓名、邮箱、头像等)
-  // ... 其他配置项
+// src/main/services/config-manager.ts 中定义
+interface AppConfig {
+  // LLM配置
+  llm: {
+    provider: string;
+    model: string;
+    apiKeys: {
+      [provider: string]: string;
+    };
+  };
+  
+  // 代理配置
+  proxy: {
+    vpnProviderUrl?: string;
+    autoStart?: boolean;
+    configPath?: string;
+  };
+  
+  // 应用设置
+  app: {
+    theme?: 'light' | 'dark' | 'auto';
+    language?: string;
+    autoUpdate?: boolean;
+    startup?: boolean;
+    minimizeToTray?: boolean;
+    notifications?: boolean;
+  };
+  
+  // 用户偏好
+  user: {
+    name?: string;
+    email?: string;
+    lastUsed?: string;
+    usageStats?: {
+      proxyUsage: number;
+      chatUsage: number;
+      lastActive: string;
+    };
+  };
 }
 ```
 
-### 5.2 消息 (Message)
+### 5.2 LLM 消息 (LLMMessage)
 ```typescript
-interface ILLMMessage { // 注意命名约定，可能以 I 开头
-  role: 'user' | 'assistant' | 'system'; // 注意包含 'system'
+// src/main/services/llm-service.ts 中定义
+export type LLMMessage = {
+  role: 'user' | 'assistant' | 'system';
   content: string;
-  // 可能还有 id, timestamp 等
-}
-```
-
-### 5.3 LLM 参数 (LLM Parameters)
-```typescript
-interface ILLMParams {
-  temperature?: number;
-  max_tokens?: number;
-  top_p?: number;
-  // ... 其他 LLM 参数
-}
-```
-
-### 5.4 IPC 事件常量 (IPC_EVENTS)
-```typescript
-// src/shared/ipc-events.ts
-export const IPC_EVENTS = {
-  // 配置
-  CONFIG_GET_ALL: 'config:get-all',
-  CONFIG_SET_USER_NAME: 'config:set-user-name',
-  // Mihomo 代理
-  MIHOMO_START: 'mihomo:start',
-  MIHOMO_STOP: 'mihomo:stop',
-  // LLM
-  LLM_GENERATE_COMPLETION: 'llm:generate-completion',
-  // 窗口控制
-  WINDOW_MINIMIZE: 'window:minimize',
-  // ... 更多事件
 };
 ```
 
-### 5.5 IPC 响应通用格式
+### 5.3 LLM 参数 (LLMParams)
+```typescript
+// src/main/services/llm-service.ts 中定义
+export type LLMParams = {
+  temperature?: number;
+  top_p?: number;
+  top_k?: number;
+  max_tokens?: number;
+};
+```
+
+### 5.4 生成补全请求 (GenerateCompletionRequest)
+```typescript
+// src/main/ipc-handlers/llm-ipc.ts 中定义
+interface GenerateCompletionRequest {
+  provider: string;
+  model: string;
+  messages: LLMMessage[];
+  params?: LLMParams;
+}
+```
+
+### 5.5 提供商配置 (ProviderConfig)
+```typescript
+// src/main/services/llm-service.ts 中定义
+interface ProviderConfig {
+  baseUrl: string;
+  apiKey: string;
+  defaultHeaders?: Record<string>;
+}
+```
+
+### 5.6 IPC 事件常量 (IPC_EVENTS)
+```typescript
+// src/shared/ipc-events.ts 中定义
+export const IPC_EVENTS = {
+  // Mihomo 相关事件
+  MIHOMO_START: 'mihomo:start',
+  MIHOMO_STOP: 'mihomo:stop',
+  MIHOMO_STATUS: 'mihomo:status',
+  MIHOMO_STATUS_UPDATE: 'mihomo:status-update',
+  MIHOMO_LOAD_CONFIG: 'mihomo:load-config',
+  MIHOMO_SAVE_CONFIG: 'mihomo:save-config',
+  MIHOMO_GET_CONFIG_PATH: 'mihomo:get-config-path',
+  MIHOMO_OPEN_CONFIG_DIR: 'mihomo:open-config-dir',
+  
+  // Mihomo 代理组相关事件
+  MIHOMO_GET_PROXIES: 'mihomo:get-proxies',
+  MIHOMO_SELECT_PROXY: 'mihomo:select-proxy',
+  MIHOMO_FETCH_CONFIG_FROM_URL: 'mihomo:fetch-config-from-url',
+  MIHOMO_TEST_PROXY_DELAY: 'mihomo:test-proxy-delay',
+  
+  // 开发环境相关事件
+  DEV_ENV_INSTALL_VSCODE: 'dev-env:install-vscode',
+  DEV_ENV_INSTALL_NODEJS: 'dev-env:install-nodejs',
+  DEV_ENV_INSTALL_PYTHON: 'dev-env:install-python',
+  
+  // LLM 相关事件
+  LLM_GENERATE_COMPLETION: 'llm:generate-completion',
+  LLM_SET_API_KEY: 'llm:set-api-key',
+  LLM_GET_API_KEY: 'llm:get-api-key',
+  LLM_GET_ALL_API_KEYS: 'llm:get-all-api-keys',
+  LLM_DELETE_API_KEY: 'llm:delete-api-key',
+  LLM_SET_PROVIDER_CONFIG: 'llm:set-provider-config',
+  LLM_GET_PROVIDER_CONFIG: 'llm:get-provider-config',
+  LLM_GET_PROVIDERS: 'llm:get-providers',
+  LLM_GET_MODELS: 'llm:get-models',
+  
+  // 配置管理相关事件
+  CONFIG_GET_ALL: 'config:get-all',
+  CONFIG_SET_VPN_URL: 'config:set-vpn-url',
+  CONFIG_GET_VPN_URL: 'config:get-vpn-url',
+  CONFIG_SET_PROXY_AUTO_START: 'config:set-proxy-auto-start',
+  CONFIG_GET_PROXY_AUTO_START: 'config:get-proxy-auto-start',
+  CONFIG_EXPORT: 'config:export',
+  CONFIG_IMPORT: 'config:import',
+  CONFIG_RESET: 'config:reset',
+  CONFIG_SET_USER_NAME: 'config:set-user-name',
+  CONFIG_GET_USER_NAME: 'config:get-user-name',
+  CONFIG_SET_USER_EMAIL: 'config:set-user-email',
+  CONFIG_GET_USER_EMAIL: 'config:get-user-email',
+  CONFIG_SET_STARTUP: 'config:set-startup',
+  CONFIG_GET_STARTUP: 'config:get-startup',
+  CONFIG_SET_MINIMIZE_TO_TRAY: 'config:set-minimize-to-tray',
+  CONFIG_GET_MINIMIZE_TO_TRAY: 'config:get-minimize-to-tray',
+  CONFIG_SET_NOTIFICATIONS: 'config:set-notifications',
+  CONFIG_GET_NOTIFICATIONS: 'config:get-notifications',
+  CONFIG_GET_USAGE_STATS: 'config:get-usage-stats',
+  CONFIG_CREATE_BACKUP: 'config:create-backup',
+  CONFIG_RESTORE_FROM_BACKUP: 'config:restore-from-backup',
+  CONFIG_GET_BACKUP_FILES: 'config:get-backup-files',
+  CONFIG_VALIDATE_CONFIG: 'config:validate-config',
+  CONFIG_MIGRATE_CONFIG: 'config:migrate-config',
+  
+  // 窗口控制事件
+  WINDOW_MINIMIZE: 'window:minimize',
+  WINDOW_MAXIMIZE: 'window:maximize',
+  WINDOW_CLOSE: 'window:close',
+};
+```
+
+### 5.7 IPC 响应通用格式
 ```typescript
 // 在任何处理 IPC 响应的地方都应遵循此格式
 {

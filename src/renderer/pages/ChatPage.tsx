@@ -20,13 +20,7 @@ import {
   ChevronRight as ChevronRightIcon
 } from 'lucide-react';
 
-// 页面标题组件
-const PageHeader = styled.h1`
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0 0 ${props => props.theme.spacing.xl} 0;
-`;
+// 页面标题组件 - 根据设计规范，具体服务页面不需要标题
 
 // 内容区域容器
 const Content = styled.div`
@@ -695,7 +689,6 @@ const ChatPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader>聊天助手</PageHeader>
       <Content>
         {/* 配置面板 */}
         <div className="config-panel-wrapper" style={{

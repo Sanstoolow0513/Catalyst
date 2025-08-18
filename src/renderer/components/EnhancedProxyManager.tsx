@@ -28,10 +28,18 @@ const ProxyManagerContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 24px;
+  
+  @media (max-width: 768px) {
+    gap: 16px;
+  }
 `;
 
 const Section = styled.section`
   margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 16px;
+  }
 `;
 
 const SectionHeader = styled.div`
@@ -39,6 +47,10 @@ const SectionHeader = styled.div`
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
+  }
 `;
 
 const SectionTitle = styled.h3`
@@ -46,6 +58,10 @@ const SectionTitle = styled.h3`
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
   margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+  }
 `;
 
 const StatusCard = styled(Card)`
@@ -53,6 +69,16 @@ const StatusCard = styled(Card)`
   align-items: center;
   gap: 16px;
   padding: 24px;
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 `;
 
 const StatusContent = styled.div`
@@ -64,21 +90,45 @@ const StatusTitle = styled.h4`
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
   margin: 0 0 8px 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 `;
 
 const StatusDescription = styled.p`
   color: ${props => props.theme.textSecondary};
   margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
 `;
 
 const ControlButtonGroup = styled.div`
   display: flex;
   gap: 12px;
   margin-top: 24px;
+  
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+  }
+  
+  @media (max-width: 480px) {
+    width: 100%;
+    
+    & > ${Button} {
+      flex: 1;
+    }
+  }
 `;
 
 const ConfigCard = styled(Card)`
   margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 16px;
+  }
 `;
 
 const ConfigHeader = styled.div`
@@ -86,6 +136,12 @@ const ConfigHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 `;
 
 const ConfigTitle = styled.h4`
@@ -93,12 +149,24 @@ const ConfigTitle = styled.h4`
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
   margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 `;
 
 const URLInputContainer = styled.div`
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
 `;
 
 const ConfigTextArea = styled.textarea`

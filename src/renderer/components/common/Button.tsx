@@ -40,7 +40,6 @@ const StyledButton = styled(motion.button)<ButtonProps>`
           color: ${props.theme.primary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.primary.dark};
-            
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -54,7 +53,6 @@ const StyledButton = styled(motion.button)<ButtonProps>`
           color: ${props.theme.secondary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.secondary.dark};
-            
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -68,7 +66,6 @@ const StyledButton = styled(motion.button)<ButtonProps>`
           color: ${props.theme.error.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.error.dark};
-            
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -115,7 +112,6 @@ const StyledButton = styled(motion.button)<ButtonProps>`
           color: ${props.theme.primary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.primary.dark};
-            
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -204,6 +200,11 @@ const Button: React.FC<ButtonProps> = ({
   className,
   ...props 
 }) => {
+  // 使用更优雅的方式判断是否为具体服务页面
+  const isServicePage = ['/proxy-management', '/chat', '/dev-environment'].some(path => 
+    window.location.pathname.includes(path)
+  );
+  
   return (
     <StyledButton
       variant={variant}
@@ -214,8 +215,9 @@ const Button: React.FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       className={className}
-      whileHover={{ scale: $loading || disabled ? 1 : 1.01, zIndex: $loading || disabled ? 0 : 1 }}
-      whileTap={{ scale: $loading || disabled ? 1 : 0.99, zIndex: $loading || disabled ? 0 : 1 }}
+      whileHover={isServicePage ? undefined : { scale: $loading || disabled ? 1 : 1.01, zIndex: $loading || disabled ? 0 : 1 }}
+      whileTap={isServicePage ? undefined : { scale: $loading || disabled ? 1 : 0.99, zIndex: $loading || disabled ? 0 : 1 }}
+      transition={isServicePage ? { duration: 0.15 } : { duration: 0.2 }}
       {...props}
     >
       {$loading ? null : startIcon}
