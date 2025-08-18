@@ -2,86 +2,64 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import yaml from 'js-yaml';
 import { PageContainer, Button, Card, StatusIndicator } from '../components/common';
+import { Input, Textarea, FormGroup } from '../components/common/FormControl';
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   flex-wrap: wrap;
-  gap: 10px;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 const Title = styled.h2`
   margin: 0;
-  color: ${({ theme }) => theme.textPrimary}; /* 使用新的 textPrimary */
-  font-size: 1.8rem;
+  color: ${({ theme }) => theme.textPrimary};
+  font-size: 1.5rem;
+  font-weight: 600;
 `;
 
 const URLInputContainer = styled.div`
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   flex: 1;
   min-width: 300px;
 `;
 
-const URLInput = styled.input`
+const URLInput = styled(Input)`
   flex: 1;
-  padding: 10px 15px;
-  border: 1px solid ${({ theme }) => theme.inputBorder};
-  border-radius: 8px;
-  background-color: ${({ theme }) => theme.inputBackground};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1rem;
-  
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.inputFocusBorder};
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.accent}40;
-  }
 `;
 
-const StyledTextArea = styled.textarea`
+const StyledTextArea = styled(Textarea)`
   flex: 1;
   width: 100%;
-  padding: 15px;
-  border: 1px solid ${({ theme }) => theme.inputBorder}; /* 使用新的 inputBorder */
-  border-radius: 8px;
-  background-color: ${({ theme }) => theme.inputBackground}; /* 使用新的 inputBackground */
-  color: ${({ theme }) => theme.textPrimary}; /* 使用新的 textPrimary */
   font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
   font-size: 0.95rem;
-  resize: vertical; /* Allow vertical resizing */
-  min-height: 200px; /* Minimum height */
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.inputFocusBorder}; /* 使用新的 inputFocusBorder */
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.accent}40;
-  }
+  min-height: 200px;
 `;
 
 const StatusMessageContainer = styled.div`
-  margin-top: 15px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  background-color: ${({ theme }) => theme.surface}; /* 使用 surface 背景色 */
+  margin-top: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  background-color: ${({ theme }) => theme.surface};
   border: 1px solid ${({ theme }) => theme.border};
   display: flex;
   align-items: center;
   font-size: 0.9rem;
-  color: ${({ theme }) => theme.textPrimary}; /* 使用新的 textPrimary */
+  color: ${({ theme }) => theme.textPrimary};
 `;
 
 const ConfigPathDisplay = styled.div`
-  margin-top: 15px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  background-color: ${({ theme }) => theme.surface}; /* 使用 surface 背景色 */
+  margin-top: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  background-color: ${({ theme }) => theme.surface};
   border: 1px solid ${({ theme }) => theme.border};
   font-size: 0.9rem;
-  color: ${({ theme }) => theme.textPrimary}; /* 使用新的 textPrimary */
+  color: ${({ theme }) => theme.textPrimary};
   display: flex;
   align-items: center;
   word-break: break-all;
@@ -239,16 +217,16 @@ const MihomoConfigPage: React.FC = () => {
           </Button>
         </URLInputContainer>
 
-      <div style={{ margin: '0 0 20px 0' }}>
-        <Card>
-        <StyledTextArea
-          value={config}
-          onChange={(e) => setConfig(e.target.value)}
-          placeholder="Enter your Mihomo configuration in YAML format..."
-          disabled={isLoading || isSaving}
-        />
-      </Card>
-    </div>
+      <FormGroup style={{ margin: '0 0 20px 0' }}>
+        <Card $padding="medium">
+          <StyledTextArea
+            value={config}
+            onChange={(e) => setConfig(e.target.value)}
+            placeholder="Enter your Mihomo configuration in YAML format..."
+            disabled={isLoading || isSaving}
+          />
+        </Card>
+      </FormGroup>
 
       {configPath && (
         <ConfigPathDisplay>

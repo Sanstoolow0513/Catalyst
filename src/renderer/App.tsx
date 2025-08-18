@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import { ThemeContext } from './contexts/ThemeContext';
 import HomePage from './pages/HomePage';
-import UnifiedProxyPage from './pages/UnifiedProxyPage';
+import ProxyPage from './pages/ProxyPage';
 import ChatPage from './pages/ChatPage';
 import DevEnvironmentPage from './pages/DevEnvironmentPage';
 import SettingsPage from './pages/SettingsPage';
@@ -22,7 +22,7 @@ function App() {
       <MainLayout>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/proxy-management" element={<UnifiedProxyPage />} />
+          <Route path="/proxy-management" element={<ProxyPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/dev-environment" element={<DevEnvironmentPage />} />
           <Route path="/settings" element={<SettingsPage />} />

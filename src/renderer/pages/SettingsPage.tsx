@@ -8,7 +8,13 @@ import {
   Select, 
   SelectWrapper, 
   FormGroup,
-  Textarea
+  Textarea,
+  PageContainer,
+  TabButton,
+  Switch,
+  ToastContainer,
+  ToastComponent,
+  FormRow
 } from '../components/common';
 import { useUser } from '../contexts/UserContext';
 import { 
@@ -17,29 +23,22 @@ import {
   Shield as ShieldIcon,
   MessageSquare as MessageIcon,
   Database as DatabaseIcon,
-  Bell as BellIcon,
-  Upload as UploadIcon,
-  CheckCircle as CheckIcon
+  Upload as UploadIcon
 } from 'lucide-react';
 
-const SettingsContainer = styled.div`
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
+// 页面标题样式
 const PageHeader = styled.div`
-  margin-bottom: 32px;
+  margin-bottom: ${props => props.theme.spacing.xl};
 `;
 
 const PageTitle = styled.h1`
   font-size: 2rem;
   font-weight: 700;
   color: ${props => props.theme.textPrimary};
-  margin-bottom: 8px;
+  margin-bottom: ${props => props.theme.spacing.sm};
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: ${props => props.theme.spacing.sm};
 `;
 
 const PageSubtitle = styled.p`
@@ -47,48 +46,31 @@ const PageSubtitle = styled.p`
   margin: 0;
 `;
 
+// 标签页容器
 const TabsContainer = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: ${props => props.theme.spacing.sm};
+  margin-bottom: ${props => props.theme.spacing.lg};
   border-bottom: 1px solid ${props => props.theme.border};
 `;
 
-const TabButton = styled.button<{ $active: boolean }>`
-  padding: 12px 24px;
-  border: none;
-  background: none;
-  color: ${props => props.$active ? props.theme.primary.main : props.theme.textSecondary};
-  font-weight: 500;
-  cursor: pointer;
-  border-bottom: 2px solid ${props => props.$active ? props.theme.primary.main : 'transparent'};
-  transition: all ${props => props.theme.transition.fast} ease;
-  
-  &:hover {
-    color: ${props => props.theme.primary.main};
-  }
-`;
-
+// 标签页内容
 const TabContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: ${props => props.theme.spacing.xl};
 `;
 
-const SectionCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-`;
-
+// 区块标题
 const SectionHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: ${props => props.theme.spacing.sm};
+  margin-bottom: ${props => props.theme.spacing.lg};
 `;
 
 const SectionTitle = styled.h3`
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
   margin: 0;
@@ -100,17 +82,19 @@ const SectionDescription = styled.p`
   line-height: 1.5;
 `;
 
+// 表单网格
 const FormGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: ${props => props.theme.spacing.lg};
 `;
 
+// 头像容器
 const AvatarContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: ${props => props.theme.spacing.lg};
 `;
 
 const Avatar = styled.div`
@@ -134,11 +118,11 @@ const Avatar = styled.div`
 const UploadButton = styled.label`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: ${props => props.theme.spacing.sm};
+  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
   background-color: ${props => props.theme.primary.main};
   color: white;
-  border-radius: 6px;
+  border-radius: ${props => props.theme.borderRadius.small};
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
@@ -153,137 +137,19 @@ const HiddenInput = styled.input`
   display: none;
 `;
 
+// 开关容器
 const SwitchContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: ${props => props.theme.spacing.md} 0;
 `;
 
-const Switch = styled.label`
-  position: relative;
-  display: inline-block;
-  width: 48px;
-  height: 24px;
-`;
-
-const SwitchInput = styled.input`
-  opacity: 0;
-  width: 0;
-  height: 0;
-  
-  &:checked + .slider {
-    background-color: ${props => props.theme.primary.main};
-  }
-  
-  &:checked + .slider:before {
-    transform: translateX(24px);
-  }
-`;
-
-const Slider = styled.span`
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: ${props => props.theme.border};
-  transition: ${props => props.theme.transition.fast} ease;
-  border-radius: 24px;
-  
-  &:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: ${props => props.theme.transition.fast} ease;
-    border-radius: 50%;
-  }
-`;
-
+// 按钮组
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 12px;
+  gap: ${props => props.theme.spacing.sm};
   flex-wrap: wrap;
-`;
-
-// 全局浮窗提醒样式
-const ToastContainer = styled.div`
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-`;
-
-const Toast = styled.div<{ $type: 'success' | 'error' | 'info' }>`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  background-color: ${props => {
-    switch (props.$type) {
-      case 'success': return props.theme.success.main;
-      case 'error': return props.theme.error.main;
-      case 'info': return props.theme.info.main;
-      default: return props.theme.surfaceVariant;
-    }
-  }};
-  color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease forwards;
-  
-  @keyframes slideIn {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes slideOut {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-  }
-  
-  &.exiting {
-    animation: slideOut 0.3s ease forwards;
-  }
-`;
-
-const ToastIcon = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const ToastContent = styled.div`
-  flex: 1;
-  font-weight: 500;
-`;
-
-const ToastClose = styled.button`
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 1.2rem;
-  opacity: 0.8;
-  
-  &:hover {
-    opacity: 1;
-  }
 `;
 
 type TabType = 'user' | 'general' | 'llm' | 'proxy' | 'backup';
@@ -292,6 +158,7 @@ interface ToastMessage {
   id: number;
   message: string;
   type: 'success' | 'error' | 'info';
+  exiting?: boolean;
 }
 
 const SettingsPage: React.FC = () => {
@@ -537,7 +404,7 @@ const SettingsPage: React.FC = () => {
   ] as const;
 
   return (
-    <SettingsContainer>
+    <PageContainer>
       <PageHeader>
         <PageTitle>
           <SettingsIcon size={28} />
@@ -554,8 +421,8 @@ const SettingsPage: React.FC = () => {
             key={tab.id}
             $active={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id as TabType)}
+            icon={<tab.icon size={16} />}
           >
-            <tab.icon size={16} style={{ marginRight: 8 }} />
             {tab.label}
           </TabButton>
         ))}
@@ -563,7 +430,7 @@ const SettingsPage: React.FC = () => {
 
       <TabContent>
         {activeTab === 'user' && (
-          <SectionCard $padding="large" $variant="elevated">
+          <Card $variant="elevated" $padding="large">
             <SectionHeader>
               <UserIcon size={20} />
               <div>
@@ -647,11 +514,11 @@ const SettingsPage: React.FC = () => {
                 {loading ? '保存中...' : '保存设置'}
               </Button>
             </ButtonGroup>
-          </SectionCard>
+          </Card>
         )}
 
         {activeTab === 'general' && (
-          <SectionCard $padding="large" $variant="elevated">
+          <Card $variant="elevated" $padding="large">
             <SectionHeader>
               <SettingsIcon size={20} />
               <div>
@@ -692,14 +559,10 @@ const SettingsPage: React.FC = () => {
                   应用程序将在系统启动时自动运行
                 </SectionDescription>
               </div>
-              <Switch>
-                <SwitchInput
-                  type="checkbox"
-                  checked={startup}
-                  onChange={(e) => setStartup(e.target.checked)}
-                />
-                <Slider className="slider" />
-              </Switch>
+              <Switch
+                checked={startup}
+                onChange={setStartup}
+              />
             </SwitchContainer>
 
             <SwitchContainer>
@@ -709,14 +572,10 @@ const SettingsPage: React.FC = () => {
                   关闭窗口时将应用程序最小化到系统托盘
                 </SectionDescription>
               </div>
-              <Switch>
-                <SwitchInput
-                  type="checkbox"
-                  checked={minimizeToTray}
-                  onChange={(e) => setMinimizeToTray(e.target.checked)}
-                />
-                <Slider className="slider" />
-              </Switch>
+              <Switch
+                checked={minimizeToTray}
+                onChange={setMinimizeToTray}
+              />
             </SwitchContainer>
 
             <SwitchContainer>
@@ -726,14 +585,10 @@ const SettingsPage: React.FC = () => {
                   启用应用程序的通知功能
                 </SectionDescription>
               </div>
-              <Switch>
-                <SwitchInput
-                  type="checkbox"
-                  checked={notifications}
-                  onChange={(e) => setNotifications(e.target.checked)}
-                />
-                <Slider className="slider" />
-              </Switch>
+              <Switch
+                checked={notifications}
+                onChange={setNotifications}
+              />
             </SwitchContainer>
 
             <ButtonGroup>
@@ -745,11 +600,11 @@ const SettingsPage: React.FC = () => {
                 {loading ? '保存中...' : '保存设置'}
               </Button>
             </ButtonGroup>
-          </SectionCard>
+          </Card>
         )}
 
         {activeTab === 'llm' && (
-          <SectionCard $padding="large" $variant="elevated">
+          <Card $variant="elevated" $padding="large">
             <SectionHeader>
               <MessageIcon size={20} />
               <div>
@@ -815,11 +670,11 @@ const SettingsPage: React.FC = () => {
                 {loading ? '保存中...' : '保存设置'}
               </Button>
             </ButtonGroup>
-          </SectionCard>
+          </Card>
         )}
 
         {activeTab === 'proxy' && (
-          <SectionCard $padding="large" $variant="elevated">
+          <Card $variant="elevated" $padding="large">
             <SectionHeader>
               <ShieldIcon size={20} />
               <div>
@@ -846,14 +701,10 @@ const SettingsPage: React.FC = () => {
                   应用程序启动时自动开启代理服务
                 </SectionDescription>
               </div>
-              <Switch>
-                <SwitchInput
-                  type="checkbox"
-                  checked={proxyAutoStart}
-                  onChange={(e) => setProxyAutoStart(e.target.checked)}
-                />
-                <Slider className="slider" />
-              </Switch>
+              <Switch
+                checked={proxyAutoStart}
+                onChange={setProxyAutoStart}
+              />
             </SwitchContainer>
 
             <ButtonGroup>
@@ -865,12 +716,12 @@ const SettingsPage: React.FC = () => {
                 {loading ? '保存中...' : '保存设置'}
               </Button>
             </ButtonGroup>
-          </SectionCard>
+          </Card>
         )}
 
         {activeTab === 'backup' && (
           <>
-            <SectionCard $padding="large" $variant="elevated">
+            <Card $variant="elevated" $padding="large">
               <SectionHeader>
                 <DatabaseIcon size={20} />
                 <div>
@@ -904,7 +755,7 @@ const SettingsPage: React.FC = () => {
                   重置配置
                 </Button>
               </ButtonGroup>
-            </SectionCard>
+            </Card>
           </>
         )}
       </TabContent>
@@ -912,24 +763,17 @@ const SettingsPage: React.FC = () => {
       {/* 全局浮窗提醒 */}
       <ToastContainer>
         {toasts.map((toast) => (
-          <Toast 
+          <ToastComponent 
             key={toast.id} 
-            $type={toast.type}
-            className={toast.exiting ? 'exiting' : ''}
-          >
-            <ToastIcon>
-              {toast.type === 'success' && <CheckIcon size={20} />}
-              {toast.type === 'error' && <BellIcon size={20} />}
-              {toast.type === 'info' && <BellIcon size={20} />}
-            </ToastIcon>
-            <ToastContent>{toast.message}</ToastContent>
-            <ToastClose onClick={() => removeToast(toast.id)}>
-              &times;
-            </ToastClose>
-          </Toast>
+            id={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={removeToast}
+            exiting={toast.exiting}
+          />
         ))}
       </ToastContainer>
-    </SettingsContainer>
+    </PageContainer>
   );
 };
 

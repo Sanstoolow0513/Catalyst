@@ -1,21 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
-import { 
-  Shield, 
-  MessageSquare, 
-  Code, 
+import { useNavigate } from 'react-router-dom';
+import {
+  Shield,
+  MessageSquare,
+  Code,
   Settings,
   Moon,
-  Sun
+  Sun,
+  Play,
+  Wifi
 } from 'lucide-react';
+import { Button, Card } from '../components/common';
+import { PageContainer } from '../components/common/PageContainer';
 
 const HomePageContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 24px;
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.textPrimary};
 `;
@@ -24,11 +28,12 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
+  padding: 0 ${({ theme }) => theme.spacing.xl};
 `;
 
 const Title = styled.h1`
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: ${props => props.theme.textPrimary};
   margin: 0;
@@ -37,7 +42,7 @@ const Title = styled.h1`
 const ThemeToggle = styled.button`
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
   background: ${props => props.theme.surfaceVariant};
   border: none;
   display: flex;
@@ -45,7 +50,7 @@ const ThemeToggle = styled.button`
   justify-content: center;
   cursor: pointer;
   color: ${props => props.theme.textPrimary};
-  transition: all 0.2s ease;
+  transition: all ${props => props.theme.transition.fast} ease;
   
   &:hover {
     background: ${props => props.theme.border};
@@ -54,15 +59,15 @@ const ThemeToggle = styled.button`
 
 const HeroSection = styled(motion.div)`
   text-align: center;
-  margin-bottom: 50px;
-  padding: 40px 20px;
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
+  padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.lg};
 `;
 
 const AppName = styled.h1`
   font-size: 4rem;
   font-weight: 800;
-  margin: 0 0 20px 0;
-  background: ${props => props.theme.isDarkMode
+  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
+  background: ${props => props.theme.name === 'dark'
     ? 'linear-gradient(135deg, #3B82F6, #8B5CF6)'
     : 'linear-gradient(135deg, #2563EB, #7C3AED)'};
   -webkit-background-clip: text;
@@ -74,40 +79,75 @@ const AppDescription = styled.p`
   font-size: 1.2rem;
   color: ${props => props.theme.textSecondary};
   max-width: 600px;
-  margin: 0 auto 30px;
+  margin: 0 auto ${({ theme }) => theme.spacing.xl};
   line-height: 1.6;
+`;
+
+const QuickActions = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+  }
+`;
+
+const QuickActionCard = styled(Card)`
+  text-align: center;
+  width: 250px;
+  cursor: pointer;
+  $hoverable: true;
+`;
+
+const QuickActionIcon = styled.div<{ $color: string }>`
+  width: 60px;
+  height: 60px;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto ${({ theme }) => theme.spacing.lg};
+  background: ${props => props.$color}20;
+  color: ${props => props.$color};
+`;
+
+const QuickActionTitle = styled.h3`
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: ${props => props.theme.textPrimary};
+  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
+`;
+
+const QuickActionDescription = styled.p`
+  color: ${props => props.theme.textSecondary};
+  line-height: 1.6;
+  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
+  font-size: 0.9rem;
 `;
 
 const FeaturesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
+  gap: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
 `;
 
-const FeatureCard = styled(motion.div)`
-  background: ${props => props.theme.foreground};
-  border-radius: 16px;
-  padding: 24px;
+const FeatureCard = styled(Card)`
   text-align: center;
-  box-shadow: ${props => props.theme.card.shadow};
-  transition: all 0.3s ease;
-  border: 1px solid ${props => props.theme.border};
-  
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${props => props.theme.card.shadowHover};
-  }
+  $hoverable: true;
 `;
 
 const FeatureIcon = styled.div<{ $color: string }>`
   width: 60px;
   height: 60px;
-  border-radius: 16px;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin: 0 auto ${({ theme }) => theme.spacing.lg};
   background: ${props => props.$color}20;
   color: ${props => props.$color};
 `;
@@ -116,7 +156,7 @@ const FeatureTitle = styled.h3`
   font-size: 1.3rem;
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
-  margin: 0 0 12px 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
 `;
 
 const FeatureDescription = styled.p`
@@ -128,13 +168,57 @@ const FeatureDescription = styled.p`
 const Footer = styled.div`
   margin-top: auto;
   text-align: center;
-  padding: 20px 0;
+  padding: ${({ theme }) => theme.spacing.lg} 0;
   color: ${props => props.theme.textTertiary};
   font-size: 0.9rem;
 `;
 
 const HomePage: React.FC = () => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const [proxyStatus, setProxyStatus] = useState<{ isRunning: boolean } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Check proxy status on mount
+  useEffect(() => {
+    checkProxyStatus();
+  }, []);
+
+  const checkProxyStatus = async () => {
+    try {
+      if (window.electronAPI?.mihomo) {
+        const status = await window.electronAPI.mihomo.status();
+        setProxyStatus(status);
+      }
+    } catch (error) {
+      console.error('Failed to check proxy status:', error);
+    }
+  };
+
+  const toggleProxy = async () => {
+    if (!window.electronAPI?.mihomo) return;
+    
+    setLoading(true);
+    try {
+      if (proxyStatus?.isRunning) {
+        // Stop proxy
+        const result = await window.electronAPI.mihomo.stop();
+        if (result.success) {
+          setProxyStatus({ isRunning: false });
+        }
+      } else {
+        // Start proxy
+        const result = await window.electronAPI.mihomo.start();
+        if (result.success) {
+          setProxyStatus({ isRunning: true });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle proxy:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const features = [
     {
@@ -164,7 +248,7 @@ const HomePage: React.FC = () => {
   ];
 
   return (
-    <HomePageContainer>
+    <PageContainer>
       <Header>
         <Title>欢迎使用 Catalyst</Title>
         <ThemeToggle onClick={toggleTheme}>
@@ -183,28 +267,81 @@ const HomePage: React.FC = () => {
         </AppDescription>
       </HeroSection>
       
+      <QuickActions>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <QuickActionCard
+            $padding="large"
+            onClick={toggleProxy}
+          >
+          <QuickActionIcon $color="#3B82F6">
+            <Wifi size={28} />
+          </QuickActionIcon>
+          <QuickActionTitle>代理服务</QuickActionTitle>
+          <QuickActionDescription>
+            {proxyStatus?.isRunning ? '代理正在运行' : '代理已停止'}
+          </QuickActionDescription>
+          <Button
+            variant={proxyStatus?.isRunning ? "danger" : "primary"}
+            disabled={loading}
+            startIcon={<Play size={16} />}
+          >
+            {loading ? '处理中...' : proxyStatus?.isRunning ? '停止代理' : '启动代理'}
+          </Button>
+          </QuickActionCard>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <QuickActionCard
+            $padding="large"
+            onClick={() => navigate('/proxy-management')}
+          >
+          <QuickActionIcon $color="#10B981">
+            <Shield size={28} />
+          </QuickActionIcon>
+          <QuickActionTitle>代理管理</QuickActionTitle>
+          <QuickActionDescription>
+            配置和管理您的代理设置
+          </QuickActionDescription>
+          <Button variant="outline">
+            前往管理
+          </Button>
+          </QuickActionCard>
+        </motion.div>
+      </QuickActions>
+      
       <FeaturesGrid>
         {features.map((feature, index) => (
-          <FeatureCard
+          <motion.div
             key={feature.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 * index, duration: 0.5 }}
-            whileHover={{ y: -5 }}
+            transition={{ delay: 0.1 * index + 0.4, duration: 0.5 }}
           >
+            <FeatureCard
+              $padding="large"
+            >
             <FeatureIcon $color={feature.color}>
               <feature.icon size={28} />
             </FeatureIcon>
             <FeatureTitle>{feature.title}</FeatureTitle>
             <FeatureDescription>{feature.description}</FeatureDescription>
-          </FeatureCard>
+            </FeatureCard>
+          </motion.div>
         ))}
       </FeaturesGrid>
       
       <Footer>
         © {new Date().getFullYear()} Catalyst - All rights reserved
       </Footer>
-    </HomePageContainer>
+    </PageContainer>
   );
 };
 

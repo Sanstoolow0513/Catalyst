@@ -24,7 +24,6 @@ const MainContent = styled.div`
 const Content = styled(motion.main)`
   flex-grow: 1;
   overflow-y: auto;
-  padding: 24px;
   background-color: ${props => props.theme.background};
   
   /* 自定义滚动条 */

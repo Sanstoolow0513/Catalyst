@@ -20,10 +20,10 @@ const StyledCard = styled(motion.div)<CardProps>`
   border-radius: ${props => {
     switch (props.$borderRadius) {
       case 'none': return '0';
-      case 'small': return '4px';
-      case 'large': return '16px';
-      case 'medium':
-      default: return '8px';
+      case 'small': return props.theme.borderRadius.small;
+      case 'medium': return props.theme.borderRadius.medium;
+      case 'large': return props.theme.borderRadius.large;
+      default: return props.theme.borderRadius.medium;
     }
   }};
   
@@ -70,9 +70,8 @@ const StyledCard = styled(motion.div)<CardProps>`
     cursor: pointer;
     
     &:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: ${props.theme.card.shadowHover};
-      border-color: ${props.theme.primary.main}20;
     }
   `}
   
@@ -115,7 +114,7 @@ const Card: React.FC<CardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={$hoverable ? {
-        scale: 1.02,
+        scale: 1.01,
         boxShadow: theme.card.shadowHover,
         zIndex: 1
       } : {}}

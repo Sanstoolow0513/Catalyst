@@ -18,6 +18,7 @@ try {
       selectProxy: (groupName: string, proxyName: string) =>
         ipcRenderer.invoke(IPC_EVENTS.MIHOMO_SELECT_PROXY, groupName, proxyName),
       fetchConfigFromURL: (url: string) => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_FETCH_CONFIG_FROM_URL, url),
+      testProxyDelay: (proxyName: string) => ipcRenderer.invoke(IPC_EVENTS.MIHOMO_TEST_PROXY_DELAY, proxyName),
     },
     
     llm: {

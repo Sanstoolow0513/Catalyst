@@ -11,6 +11,7 @@ export interface IMihomoAPI {
   getProxies: () => Promise<{ success: boolean; data?: any; error?: string }>;
   selectProxy: (groupName: string, proxyName: string) => Promise<{ success: boolean; error?: string }>;
   fetchConfigFromURL: (url: string) => Promise<{ success: boolean; data?: any; error?: string }>;
+  testProxyDelay: (proxyName: string) => Promise<{ success: boolean; data?: number; error?: string }>;
 }
 
 // Mihomo 配置类型定义
@@ -27,6 +28,19 @@ export interface IMihomoConfig {
   proxies?: any[];
   'proxy-groups'?: any[];
   rules?: any[];
+  tun?: {
+    enable?: boolean;
+    stack?: string;
+    'dns-hijack'?: string[];
+    'auto-route'?: boolean;
+    'auto-detect-interface'?: boolean;
+  };
+  'unified-delay'?: boolean;
+  'tcp-concurrent'?: boolean;
+  sniffer?: {
+    enable?: boolean;
+    'parse-pure-ip'?: boolean;
+  };
   [key: string]: any; // 允许其他自定义字段
 }
 

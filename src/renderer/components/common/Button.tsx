@@ -19,7 +19,7 @@ interface ButtonProps {
 const StyledButton = styled(motion.button)<ButtonProps>`
   text-transform: none;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: ${props => props.theme.borderRadius.small};
   transition: all ${props => props.theme.transition.fast} ease;
   position: relative;
   overflow: hidden;
@@ -40,7 +40,7 @@ const StyledButton = styled(motion.button)<ButtonProps>`
           color: ${props.theme.primary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.primary.dark};
-            box-shadow: 0 4px 12px ${props.theme.primary.main}40;
+            
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -54,7 +54,7 @@ const StyledButton = styled(motion.button)<ButtonProps>`
           color: ${props.theme.secondary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.secondary.dark};
-            box-shadow: 0 4px 12px ${props.theme.secondary.main}40;
+            
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -68,7 +68,7 @@ const StyledButton = styled(motion.button)<ButtonProps>`
           color: ${props.theme.error.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.error.dark};
-            box-shadow: 0 4px 12px ${props.theme.error.main}40;
+            
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -115,7 +115,7 @@ const StyledButton = styled(motion.button)<ButtonProps>`
           color: ${props.theme.primary.contrastText};
           &:hover:not(:disabled) {
             background-color: ${props.theme.primary.dark};
-            box-shadow: 0 4px 12px ${props.theme.primary.main}40;
+            
           }
           &:disabled {
             background-color: ${props.theme.border};
@@ -214,8 +214,8 @@ const Button: React.FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       className={className}
-      whileHover={{ scale: $loading || disabled ? 1 : 1.02, zIndex: $loading || disabled ? 0 : 1 }}
-      whileTap={{ scale: $loading || disabled ? 1 : 0.98, zIndex: $loading || disabled ? 0 : 1 }}
+      whileHover={{ scale: $loading || disabled ? 1 : 1.01, zIndex: $loading || disabled ? 0 : 1 }}
+      whileTap={{ scale: $loading || disabled ? 1 : 0.99, zIndex: $loading || disabled ? 0 : 1 }}
       {...props}
     >
       {$loading ? null : startIcon}

@@ -4,9 +4,10 @@ import { PageContainer, Button, Card, StatusIndicator } from '../components/comm
 import ProxyGroupManager from '../components/ProxyGroupManager';
 
 const Title = styled.h2`
-  margin: 0 0 20px 0;
-  color: ${({ theme }) => theme.textPrimary}; /* 使用新的 textPrimary */
-  font-size: 1.8rem;
+  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
+  color: ${({ theme }) => theme.textPrimary};
+  font-size: 1.5rem;
+  font-weight: 600;
 `;
 
 const StatusCardContent = styled.div`
@@ -14,13 +15,20 @@ const StatusCardContent = styled.div`
   align-items: center;
   font-size: 1.1rem;
   font-weight: bold;
-  color: ${({ theme }) => theme.textPrimary}; /* 使用新的 textPrimary */
+  color: ${({ theme }) => theme.textPrimary};
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-top: ${({ theme }) => theme.spacing.lg};
+`;
+
+const SectionTitle = styled.h3`
+  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
+  color: ${({ theme }) => theme.textPrimary};
+  font-size: 1.3rem;
+  font-weight: 600;
 `;
 
 const SystemProxyPage = () => {
@@ -126,7 +134,7 @@ const SystemProxyPage = () => {
       {/* 代理组管理 */}
       {isRunning && (
         <div style={{ marginTop: '30px' }}>
-          <h3>代理组管理</h3>
+          <SectionTitle>代理组管理</SectionTitle>
           <ProxyGroupManager />
         </div>
       )}
