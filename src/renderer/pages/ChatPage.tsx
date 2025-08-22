@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled, { ThemeContext } from 'styled-components';
+import styled from 'styled-components';
 import {
   Card,
   Button,
@@ -252,11 +252,11 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   onToggleAdvancedSettings,
   onToggleSystemPrompt
 }) => {
-  const providerBaseUrls: Record<string, string> = {
-    openai: 'https://api.openai.com/v1',
-    gemini: 'https://generativelanguage.googleapis.com/v1beta',
-    openrouter: 'https://openrouter.ai/api/v1',
-  };
+  // const providerBaseUrls: Record<string, string> = {
+  //   openai: 'https://api.openai.com/v1',
+  //   gemini: 'https://generativelanguage.googleapis.com/v1beta',
+  //   openrouter: 'https://openrouter.ai/api/v1',
+  // };
 
   return (
     <div className="config-panel">

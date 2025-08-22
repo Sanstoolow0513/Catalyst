@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Button, Card, StatusIndicator, Label, Input, Select, SelectWrapper, FormGroup, Textarea } from './common';
+import { Button, Card, StatusIndicator, Label, Input, Select, SelectWrapper, FormGroup } from './common';
 
 const Title = styled.h3`
   margin: 0 0 24px 0;
@@ -130,8 +130,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onSettingsChange }) => {
         if (result.success && result.data) {
           setApiKey(result.data);
         }
-      } catch (error) {
-        console.error('Failed to load API key:', error);
+      } catch {
+        console.error('Failed to load API key');
       }
     };
     loadApiKey();
@@ -159,7 +159,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onSettingsChange }) => {
         setStatusMessage(`Failed to save API key: ${result.error}`);
         setIsSuccess(false);
       }
-    } catch (error) {
+    } catch {
       setStatusMessage('Failed to save API key');
       setIsSuccess(false);
     } finally {
@@ -179,7 +179,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onSettingsChange }) => {
         setStatusMessage(`Failed to delete API key: ${result.error}`);
         setIsSuccess(false);
       }
-    } catch (error) {
+    } catch {
       setStatusMessage('Failed to delete API key');
       setIsSuccess(false);
     } finally {
@@ -214,7 +214,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onSettingsChange }) => {
           setStatusMessage(`Failed to add custom provider: ${configResult.error}`);
           setIsSuccess(false);
         }
-      } catch (error) {
+      } catch {
         setStatusMessage('Failed to add custom provider');
         setIsSuccess(false);
       } finally {
@@ -236,7 +236,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onSettingsChange }) => {
       }
       setStatusMessage('Custom provider removed');
       setIsSuccess(true);
-    } catch (error) {
+    } catch {
       setStatusMessage('Failed to remove custom provider');
       setIsSuccess(false);
     } finally {

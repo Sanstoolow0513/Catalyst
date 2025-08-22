@@ -163,6 +163,50 @@ export function registerConfigIpcHandlers() {
     }
   });
 
+  // 主题设置
+  ipcMain.handle(IPC_EVENTS.CONFIG_SET_THEME, async (_event: IpcMainInvokeEvent, theme: 'light' | 'dark' | 'auto') => {
+    try {
+      configManager.setTheme(theme);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to set theme:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 获取主题设置
+  ipcMain.handle(IPC_EVENTS.CONFIG_GET_THEME, async () => {
+    try {
+      const theme = configManager.getTheme();
+      return { success: true, data: theme };
+    } catch (error) {
+      console.error('Failed to get theme:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 语言设置
+  ipcMain.handle(IPC_EVENTS.CONFIG_SET_LANGUAGE, async (_event: IpcMainInvokeEvent, language: string) => {
+    try {
+      configManager.setLanguage(language);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to set language:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 获取语言设置
+  ipcMain.handle(IPC_EVENTS.CONFIG_GET_LANGUAGE, async () => {
+    try {
+      const language = configManager.getLanguage();
+      return { success: true, data: language };
+    } catch (error) {
+      console.error('Failed to get language:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
   // 开机启动设置
   ipcMain.handle(IPC_EVENTS.CONFIG_SET_STARTUP, async (_event: IpcMainInvokeEvent, startup: boolean) => {
     try {

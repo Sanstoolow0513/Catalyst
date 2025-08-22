@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Card, Button } from '../components/common';
-import { RotateCw, Wifi, Zap } from 'lucide-react';
+import { Button } from '../components/common';
+import { Wifi, Zap } from 'lucide-react';
 
 const ProxyGroupContainer = styled.div`
   margin-bottom: 24px;

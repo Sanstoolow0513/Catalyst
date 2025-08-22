@@ -8,8 +8,6 @@ import {
   Label,
   StatusIndicator,
   PageContainer,
-  FormGroup,
-  FormRow
 } from '../components/common';
 import ProxyGroupManager from '../components/ProxyGroupManager';
 import {
@@ -117,12 +115,6 @@ const ConfigCard: React.FC<{
   </Card>
 );
 
-// 控制按钮组组件
-const ControlButtonGroup: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-    {children}
-  </div>
-);
 
 // 状态消息容器组件
 const StatusMessageContainer: React.FC<{

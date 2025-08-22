@@ -34,18 +34,18 @@ import {
 } from 'lucide-react';
 
 // Header组件 - 根据设计规范，具体服务页面不需要标题
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
+// const Header = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
+//   margin-bottom: ${({ theme }) => theme.spacing.lg};
   
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: ${({ theme }) => theme.spacing.md};
-  }
-`;
+//   @media (max-width: 768px) {
+//     flex-direction: column;
+//     align-items: flex-start;
+//     gap: ${({ theme }) => theme.spacing.md};
+//   }
+// `;
 
 // Title组件 - 根据设计规范，具体服务页面不需要标题
 

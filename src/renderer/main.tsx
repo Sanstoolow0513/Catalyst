@@ -5,7 +5,7 @@ import { CustomThemeProvider } from './contexts/ThemeContext';
 import { UserProvider } from './contexts/UserContext';
 import GlobalStyles from './styles/globalStyles';
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+ReactDOM.createRoot(document.getElementById('root') as any).render(
   <React.StrictMode>
     <CustomThemeProvider>
       <UserProvider>

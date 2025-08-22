@@ -201,50 +201,50 @@ class MihomoService {
    * 启动 Mihomo 进程。
    * @returns 一个 Promise，在启动成功时解析。
    */
-  public start(): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      if (this.mihomoProcess) {
-        console.log('[MihomoService] Mihomo is already running.');
-        return resolve();
-      }
+  public async start(): Promise<void> {
+    if (this.mihomoProcess) {
+      console.log('[MihomoService] Mihomo is already running.');
+      return;
+    }
 
-      const mihomoPath = this.getMihomoPath();
+    const mihomoPath = this.getMihomoPath();
 
-      if (!fs.existsSync(mihomoPath)) {
-        const errorMsg = `Mihomo executable not found at: ${mihomoPath}`;
+    if (!fs.existsSync(mihomoPath)) {
+      const errorMsg = `Mihomo executable not found at: ${mihomoPath}`;
+      console.error(`[MihomoService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+
+    // 检查配置文件是否存在
+    if (!fs.existsSync(this.configPath)) {
+      const errorMsg = `Config file not found at: ${this.configPath}`;
+      console.error(`[MihomoService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+
+    // 检查配置文件是否为空
+    const configStat = fs.statSync(this.configPath);
+    if (configStat.size === 0) {
+      const errorMsg = `Config file is empty: ${this.configPath}`;
+      console.error(`[MihomoService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+
+    // 验证配置是否有效
+    try {
+      const config = await this.loadConfig();
+      if (!this.isConfigValid(config)) {
+        const errorMsg = `Config file is invalid: ${this.configPath}`;
         console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
+        throw new Error(errorMsg);
       }
+    } catch (error) {
+      const errorMsg = `Failed to validate config file: ${error instanceof Error ? error.message : String(error)}`;
+      console.error(`[MihomoService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
 
-      // 检查配置文件是否存在
-      if (!fs.existsSync(this.configPath)) {
-        const errorMsg = `Config file not found at: ${this.configPath}`;
-        console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
-      }
-
-      // 检查配置文件是否为空
-      const configStat = fs.statSync(this.configPath);
-      if (configStat.size === 0) {
-        const errorMsg = `Config file is empty: ${this.configPath}`;
-        console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
-      }
-
-      // 验证配置是否有效
-      try {
-        const config = await this.loadConfig();
-        if (!this.isConfigValid(config)) {
-          const errorMsg = `Config file is invalid: ${this.configPath}`;
-          console.error(`[MihomoService] ${errorMsg}`);
-          return reject(new Error(errorMsg));
-        }
-      } catch (error) {
-        const errorMsg = `Failed to validate config file: ${error instanceof Error ? error.message : String(error)}`;
-        console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
-      }
-
+    return new Promise((resolve, reject) => {
       console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
       console.log(`[MihomoService] Using config directory: ${this.configDir}`);
 

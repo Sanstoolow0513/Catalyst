@@ -9,8 +9,9 @@ export const PageContainer = styled.div`
   flex-direction: column;
   overflow: hidden;
   height: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
 
   @media (max-width: 768px) {
     padding: ${(props) => props.theme.spacing.lg};

@@ -1,5 +1,5 @@
 // src/renderer/styles/theme.ts
-import { createTheme, Theme as MUITheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles';
 
 // 主题类型定义
 export interface ThemeColors {
@@ -165,6 +165,21 @@ export const lightTheme: Theme = {
   // 强调色
   accent: '#7C3AED',
   accentHover: '#6D28D9',
+  
+  // 渐变色
+  gradient: {
+    primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    success: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+    warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    info: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+  },
+  
+  // 卡片层次色
+  cardLayer: {
+    primary: '#F0F9FF',
+    secondary: '#F8FAFC',
+    accent: '#FEF3C7',
+  },
 
   // 状态颜色
   success: { main: '#10B981', light: '#34D399', dark: '#059669', contrastText: '#FFFFFF' },
@@ -282,6 +297,21 @@ export const darkTheme: Theme = {
   // 强调色
   accent: '#A78BFA',
   accentHover: '#8B5CF6',
+  
+  // 渐变色
+  gradient: {
+    primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    success: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+    warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    info: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+  },
+  
+  // 卡片层次色
+  cardLayer: {
+    primary: '#1E3A8A',
+    secondary: '#1F2937',
+    accent: '#78350F',
+  },
 
   // 状态颜色
   success: { main: '#34D399', light: '#6EE7B7', dark: '#10B981', contrastText: '#FFFFFF' },
@@ -428,9 +458,7 @@ export const muiLightTheme = createTheme({
       },
     },
   },
-  spacing: {
-    unit: 8, // 基础间距单位为8px
-  },
+  spacing: 8,
   transitions: {
     duration: {
       shortest: 150,
@@ -516,9 +544,7 @@ export const muiDarkTheme = createTheme({
       },
     },
   },
-  spacing: {
-    unit: 8, // 基础间距单位为8px
-  },
+  spacing: 8,
   transitions: {
     duration: {
       shortest: 150,

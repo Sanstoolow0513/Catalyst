@@ -7,6 +7,7 @@ import {
   Home as HomeIcon,
   Shield as ShieldIcon,
   MessageSquare as MessageIcon,
+  Bot as BotIcon,
   Settings as SettingsIcon,
   Code as CodeIcon,
   Info as InfoIcon,
@@ -215,7 +216,7 @@ const navigationItems = [
     items: [
       { path: '/', label: '首页', icon: HomeIcon },
       { path: '/proxy-management', label: '代理管理', icon: ShieldIcon },
-      { path: '/chat', label: 'AI 对话', icon: MessageIcon },
+      { path: '/chat', label: 'AI 对话', icon: BotIcon },
     ]
   },
   {
@@ -240,7 +241,7 @@ const navigationItems = [
 
 const Sidebar = () => {
   const location = useLocation();
-  const { theme, isSidebarCollapsed, toggleSidebar } = useTheme();
+  const { isSidebarCollapsed, toggleSidebar } = useTheme();
   const [tooltip, setTooltip] = React.useState<{ text: string; x: number; y: number } | null>(null);
 
   const handleMouseEnter = (e: React.MouseEvent, label: string) => {
