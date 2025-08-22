@@ -1,4 +1,4 @@
-import { ipcMain, IpcMainInvokeEvent, shell } from 'electron';
+import { ipcMain, shell } from 'electron';
 import { IPC_EVENTS } from '../../shared/ipc-events';
 import { mihomoService } from '../services/mihomo-service';
 import path from 'path';

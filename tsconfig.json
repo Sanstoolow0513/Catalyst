@@ -10,6 +10,20 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "jsx": "react-jsx"
-  }
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": ["src/renderer/*"],
+      "@main/*": ["src/main/*"],
+      "@shared/*": ["src/shared/*"],
+      "@components/*": ["src/renderer/components/*"],
+      "@pages/*": ["src/renderer/pages/*"],
+      "@hooks/*": ["src/renderer/hooks/*"],
+      "@contexts/*": ["src/renderer/contexts/*"],
+      "@styles/*": ["src/renderer/styles/*"],
+      "@types/*": ["src/renderer/types/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "out", "dist"]
 }

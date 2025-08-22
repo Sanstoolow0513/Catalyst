@@ -79,6 +79,10 @@ const IPC_EVENTS = {
   CONFIG_GET_USER_NAME: "config:get-user-name",
   CONFIG_SET_USER_EMAIL: "config:set-user-email",
   CONFIG_GET_USER_EMAIL: "config:get-user-email",
+  CONFIG_SET_THEME: "config:set-theme",
+  CONFIG_GET_THEME: "config:get-theme",
+  CONFIG_SET_LANGUAGE: "config:set-language",
+  CONFIG_GET_LANGUAGE: "config:get-language",
   CONFIG_SET_STARTUP: "config:set-startup",
   CONFIG_GET_STARTUP: "config:get-startup",
   CONFIG_SET_MINIMIZE_TO_TRAY: "config:set-minimize-to-tray",
@@ -11460,41 +11464,41 @@ class MihomoService {
    * 启动 Mihomo 进程。
    * @returns 一个 Promise，在启动成功时解析。
    */
-  start() {
-    return new Promise(async (resolve2, reject) => {
-      if (this.mihomoProcess) {
-        console.log("[MihomoService] Mihomo is already running.");
-        return resolve2();
-      }
-      const mihomoPath = this.getMihomoPath();
-      if (!fs.existsSync(mihomoPath)) {
-        const errorMsg = `Mihomo executable not found at: ${mihomoPath}`;
+  async start() {
+    if (this.mihomoProcess) {
+      console.log("[MihomoService] Mihomo is already running.");
+      return;
+    }
+    const mihomoPath = this.getMihomoPath();
+    if (!fs.existsSync(mihomoPath)) {
+      const errorMsg = `Mihomo executable not found at: ${mihomoPath}`;
+      console.error(`[MihomoService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+    if (!fs.existsSync(this.configPath)) {
+      const errorMsg = `Config file not found at: ${this.configPath}`;
+      console.error(`[MihomoService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+    const configStat = fs.statSync(this.configPath);
+    if (configStat.size === 0) {
+      const errorMsg = `Config file is empty: ${this.configPath}`;
+      console.error(`[MihomoService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+    try {
+      const config = await this.loadConfig();
+      if (!this.isConfigValid(config)) {
+        const errorMsg = `Config file is invalid: ${this.configPath}`;
         console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
+        throw new Error(errorMsg);
       }
-      if (!fs.existsSync(this.configPath)) {
-        const errorMsg = `Config file not found at: ${this.configPath}`;
-        console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
-      }
-      const configStat = fs.statSync(this.configPath);
-      if (configStat.size === 0) {
-        const errorMsg = `Config file is empty: ${this.configPath}`;
-        console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
-      }
-      try {
-        const config = await this.loadConfig();
-        if (!this.isConfigValid(config)) {
-          const errorMsg = `Config file is invalid: ${this.configPath}`;
-          console.error(`[MihomoService] ${errorMsg}`);
-          return reject(new Error(errorMsg));
-        }
-      } catch (error) {
-        const errorMsg = `Failed to validate config file: ${error instanceof Error ? error.message : String(error)}`;
-        console.error(`[MihomoService] ${errorMsg}`);
-        return reject(new Error(errorMsg));
-      }
+    } catch (error) {
+      const errorMsg = `Failed to validate config file: ${error instanceof Error ? error.message : String(error)}`;
+      console.error(`[MihomoService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+    return new Promise((resolve2, reject) => {
       console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
       console.log(`[MihomoService] Using config directory: ${this.configDir}`);
       this.mihomoProcess = child_process.spawn(mihomoPath, [
@@ -22335,7 +22339,7 @@ class ConfigManager {
     try {
       const files = fs__namespace.readdirSync(this.configDir);
       return files.filter((file) => file.startsWith("backup-") && file.endsWith(".json")).map((file) => path__namespace.join(this.configDir, file)).sort((a, b) => fs__namespace.statSync(b).mtime.getTime() - fs__namespace.statSync(a).mtime.getTime());
-    } catch (error) {
+    } catch {
       return [];
     }
   }
@@ -22397,7 +22401,7 @@ class ConfigManager {
       this.store.set("app.language", "zh-CN");
       migrated = true;
     }
-    if (config.app && !config.app.hasOwnProperty("notifications")) {
+    if (config.app && !Object.prototype.hasOwnProperty.call(config.app, "notifications")) {
       this.store.set("app.notifications", true);
       migrated = true;
     }
@@ -22976,6 +22980,42 @@ function registerConfigIpcHandlers() {
       return { success: true, data: email };
     } catch (error) {
       console.error("Failed to get user email:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_THEME, async (_event, theme) => {
+    try {
+      configManager.setTheme(theme);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set theme:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_THEME, async () => {
+    try {
+      const theme = configManager.getTheme();
+      return { success: true, data: theme };
+    } catch (error) {
+      console.error("Failed to get theme:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_LANGUAGE, async (_event, language) => {
+    try {
+      configManager.setLanguage(language);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to set language:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_LANGUAGE, async () => {
+    try {
+      const language = configManager.getLanguage();
+      return { success: true, data: language };
+    } catch (error) {
+      console.error("Failed to get language:", error);
       return { success: false, error: error.message };
     }
   });

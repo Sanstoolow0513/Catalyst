@@ -20,8 +20,7 @@ import {
   Wifi,
   Gauge,
   Timer,
-  CheckCircle,
-  AlertCircle
+  CheckCircle
 } from 'lucide-react';
 
 const ProxyManagerContainer = styled.div`
@@ -337,7 +336,7 @@ const ProxyManager: React.FC = () => {
       try {
         const configObj = yaml.load(config) as any;
         setIsValidConfig(!!configObj && typeof configObj === 'object');
-      } catch (e) {
+      } catch {
         setIsValidConfig(false);
       }
     } else {

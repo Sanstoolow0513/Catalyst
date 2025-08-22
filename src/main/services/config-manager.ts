@@ -329,7 +329,7 @@ class ConfigManager {
         .filter(file => file.startsWith('backup-') && file.endsWith('.json'))
         .map(file => path.join(this.configDir, file))
         .sort((a, b) => fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime());
-    } catch (error) {
+    } catch {
       return [];
     }
   }
@@ -410,7 +410,7 @@ class ConfigManager {
       migrated = true;
     }
 
-    if (config.app && !config.app.hasOwnProperty('notifications')) {
+    if (config.app && !Object.prototype.hasOwnProperty.call(config.app, 'notifications')) {
       this.store.set('app.notifications', true);
       migrated = true;
     }
