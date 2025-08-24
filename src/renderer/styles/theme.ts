@@ -172,6 +172,12 @@ export const lightTheme: Theme = {
     success: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
     warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
     info: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    modern: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #EC4899 100%)',
+    sunset: 'linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%)',
+    ocean: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    forest: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+    fire: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+    luxury: 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
   },
   
   // 卡片层次色
@@ -179,6 +185,25 @@ export const lightTheme: Theme = {
     primary: '#F0F9FF',
     secondary: '#F8FAFC',
     accent: '#FEF3C7',
+  },
+
+  // 卡片阴影
+  cardShadow: {
+    default: '0 2px 8px rgba(0, 0, 0, 0.08)',
+    hover: '0 4px 12px rgba(0, 0, 0, 0.12)',
+    important: '0 4px 16px rgba(37, 99, 235, 0.1)',
+    importantHover: '0 6px 20px rgba(37, 99, 235, 0.15)',
+  },
+
+  // 文本阴影
+  textShadow: {
+    light: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    medium: '0 1px 2px rgba(0, 0, 0, 0.1)',
+  },
+
+  // 图标颜色
+  iconColor: {
+    default: '#999999',
   },
 
   // 状态颜色
@@ -251,10 +276,11 @@ export const lightTheme: Theme = {
 
   // 圆角系统
   borderRadius: {
-    small: '8px',    // 8px - 用于按钮、标签等小元素
-    medium: '12px',  // 12px - 用于卡片、输入框等
-    large: '16px',   // 16px - 用于页面容器、模态框等
-    xlarge: '20px',  // 20px - 用于特殊场景
+    small: '8px',      // 8px - 用于按钮、标签等小元素
+    medium: '12px',   // 12px - 用于卡片、输入框等
+    large: '16px',    // 16px - 用于页面容器、模态框等
+    xlarge: '20px',   // 20px - 用于特殊场景
+    extraLarge: '24px', // 24px - 用于特殊大圆角场景
   },
 
   name: 'light',
@@ -311,6 +337,25 @@ export const darkTheme: Theme = {
     primary: '#1E3A8A',
     secondary: '#1F2937',
     accent: '#78350F',
+  },
+
+  // 卡片阴影
+  cardShadow: {
+    default: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    hover: '0 4px 12px rgba(0, 0, 0, 0.25)',
+    important: '0 4px 16px rgba(59, 130, 246, 0.15)',
+    importantHover: '0 6px 20px rgba(59, 130, 246, 0.25)',
+  },
+
+  // 文本阴影
+  textShadow: {
+    light: '0 2px 4px rgba(0, 0, 0, 0.2)',
+    medium: '0 1px 2px rgba(0, 0, 0, 0.2)',
+  },
+
+  // 图标颜色
+  iconColor: {
+    default: '#999999',
   },
 
   // 状态颜色
@@ -383,10 +428,11 @@ export const darkTheme: Theme = {
 
   // 圆角系统
   borderRadius: {
-    small: '8px',    // 8px - 用于按钮、标签等小元素
-    medium: '12px',  // 12px - 用于卡片、输入框等
-    large: '16px',   // 16px - 用于页面容器、模态框等
-    xlarge: '20px',  // 20px - 用于特殊场景
+    small: '8px',      // 8px - 用于按钮、标签等小元素
+    medium: '12px',   // 12px - 用于卡片、输入框等
+    large: '16px',    // 16px - 用于页面容器、模态框等
+    xlarge: '20px',   // 20px - 用于特殊场景
+    extraLarge: '24px', // 24px - 用于特殊大圆角场景
   },
 
   name: 'dark',

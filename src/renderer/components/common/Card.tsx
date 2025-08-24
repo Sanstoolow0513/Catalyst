@@ -4,20 +4,21 @@ import styled from 'styled-components';
 
 interface CardProps {
   children: React.ReactNode;
-  $variant?: 'elevated' | 'outlined' | 'filled';
+  $variant?: 'elevated' | 'outlined' | 'filled' | 'gradient' | 'glass' | 'floating' | 'neumorphic';
   $padding?: 'none' | 'small' | 'medium' | 'large';
   $borderRadius?: 'none' | 'small' | 'medium' | 'large';
   $hoverable?: boolean;
   $clickable?: boolean;
+  $gradient?: string;
+  $glassIntensity?: 'light' | 'medium' | 'heavy';
   onClick?: () => void;
   className?: string;
-  theme?: any;
 }
 
 const StyledCard = styled(motion.div)<CardProps>`
   background-color: ${props => props.theme.card.background};
   border: 1px solid ${props => props.theme.card.border};
-  border-radius: ${props => {
+    border-radius: ${props => {
     switch (props.$borderRadius) {
       case 'none': return '0';
       case 'small': return props.theme.borderRadius.small;
@@ -34,6 +35,7 @@ const StyledCard = styled(motion.div)<CardProps>`
         return `
           box-shadow: ${props.theme.card.shadow};
           border: none;
+          background: ${props.theme.card.background};
         `;
       case 'outlined':
         return `
@@ -45,10 +47,47 @@ const StyledCard = styled(motion.div)<CardProps>`
           background-color: ${props.theme.surfaceVariant};
           border: none;
         `;
+      case 'gradient':
+        return `
+          background: ${props.$gradient || props.theme.gradient.primary};
+          border: none;
+          color: white;
+          box-shadow: ${props.theme.cardShadow.hover};
+        `;
+      case 'glass': {
+        const glassOpacity = props.$glassIntensity === 'light' ? '0.1' : 
+                           props.$glassIntensity === 'medium' ? '0.2' : '0.3';
+        return `
+          background: rgba(255, 255, 255, ${glassOpacity});
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        `;
+      }
+      case 'floating':
+        return `
+          background: ${props.theme.card.background};
+          border: none;
+          box-shadow: ${props.theme.cardShadow.important};
+          transform: translateY(0);
+          transition: all 0.3s ease;
+        `;
+      case 'neumorphic': {
+        const isDark = props.theme.name === 'dark';
+        return `
+          background: ${props.theme.background};
+          border: none;
+          box-shadow: ${isDark ? 
+            'inset 0 2px 4px rgba(255, 255, 255, 0.1), 0 4px 8px rgba(0, 0, 0, 0.3)' :
+            'inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(255, 255, 255, 0.8)'
+          };
+        `;
+      }
       default:
         return `
           box-shadow: ${props.theme.card.shadow};
           border: none;
+          background: ${props.theme.card.background};
         `;
     }
   }}
@@ -70,8 +109,14 @@ const StyledCard = styled(motion.div)<CardProps>`
     cursor: pointer;
     
     &:hover {
-      transform: translateY(-1px);
-      box-shadow: ${props.theme.card.shadowHover};
+      transform: translateY(-2px) scale(1.01);
+      ${props.$variant === 'glass' ? `
+        backdrop-filter: blur(15px);
+        background: rgba(255, 255, 255, ${props.$glassIntensity === 'light' ? '0.15' : 
+                                      props.$glassIntensity === 'medium' ? '0.25' : '0.35'});
+      ` : `
+        box-shadow: ${props.theme.cardShadow.importantHover};
+      `}
     }
   `}
   
@@ -94,9 +139,10 @@ const Card: React.FC<CardProps> = ({
   $borderRadius = 'medium',
   $hoverable = false,
   $clickable = false,
+  $gradient,
+  $glassIntensity = 'medium',
   onClick,
   className,
-  theme,
   ...props
 }) => {
   // 使用更优雅的方式判断是否为具体服务页面
@@ -111,14 +157,16 @@ const Card: React.FC<CardProps> = ({
       $borderRadius={$borderRadius}
       $hoverable={$hoverable}
       $clickable={$clickable}
+      $gradient={$gradient}
+      $glassIntensity={$glassIntensity}
       onClick={onClick}
       className={className}
       initial={isServicePage ? undefined : { opacity: 0, y: 20 }}
       animate={isServicePage ? undefined : { opacity: 1, y: 0 }}
       transition={isServicePage ? { duration: 0.15 } : { duration: 0.3 }}
       whileHover={$hoverable && !isServicePage ? {
-        scale: 1.01,
-        boxShadow: theme?.card.shadowHover,
+        scale: 1.02,
+        y: -2,
         zIndex: 1
       } : undefined}
       whileTap={$clickable ? { scale: 0.98, zIndex: 1 } : undefined}

@@ -8,23 +8,12 @@ import {
   Shield,
   MessageSquare,
   Code,
-  Settings,
   Moon,
   Sun,
-  Play,
   Wifi,
   User,
-  Clock,
-  TrendingUp,
-  Star,
-  Zap,
-  Target,
-  Sparkles,
-  ArrowRight,
-  Plus,
-  Calendar
+  Sparkles
 } from 'lucide-react';
-import { Button, Card } from '../components/common';
 import { PageContainer } from '../components/common/PageContainer';
 
 // const HomePageContainer = styled.div`
@@ -68,116 +57,21 @@ const ThemeToggle = styled.button`
   }
 `;
 
-const HeroSection = styled(motion.div)`
-  text-align: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xxl};
-  padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.lg};
-`;
 
-const AppName = styled.h1`
-  font-size: 4rem;
-  font-weight: 800;
-  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
-  background: ${props => props.theme.name === 'dark'
-    ? 'linear-gradient(135deg, #3B82F6, #8B5CF6)'
-    : 'linear-gradient(135deg, #2563EB, #7C3AED)'};
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-`;
 
-const AppDescription = styled.p`
-  font-size: 1.2rem;
-  color: ${props => props.theme.textSecondary};
-  max-width: 600px;
-  margin: 0 auto ${({ theme }) => theme.spacing.xl};
-  line-height: 1.6;
-`;
 
-const QuickActions = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: ${({ theme }) => theme.spacing.lg};
-  margin-bottom: ${({ theme }) => theme.spacing.xxl};
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: center;
-  }
-`;
 
-const QuickActionCard = styled(Card)`
-  text-align: center;
-  width: 250px;
-  cursor: pointer;
-  $hoverable: true;
-`;
 
-const QuickActionIcon = styled.div<{ $color: string }>`
-  width: 60px;
-  height: 60px;
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto ${({ theme }) => theme.spacing.lg};
-  background: ${props => props.$color}20;
-  color: ${props => props.$color};
-`;
 
-const QuickActionTitle = styled.h3`
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
-`;
 
-const QuickActionDescription = styled.p`
-  color: ${props => props.theme.textSecondary};
-  line-height: 1.6;
-  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
-  font-size: 0.9rem;
-`;
 
-const FeaturesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: ${({ theme }) => theme.spacing.lg};
-  margin-bottom: ${({ theme }) => theme.spacing.xxl};
-`;
 
-const FeatureCard = styled(Card)`
-  text-align: center;
-  $hoverable: true;
-`;
 
-const FeatureIcon = styled.div<{ $color: string }>`
-  width: 60px;
-  height: 60px;
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto ${({ theme }) => theme.spacing.lg};
-  background: ${props => props.$color}20;
-  color: ${props => props.$color};
-`;
 
-const FeatureTitle = styled.h3`
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
-`;
 
-const FeatureDescription = styled.p`
-  color: ${props => props.theme.textSecondary};
-  line-height: 1.6;
-  margin: 0;
-`;
 
-const WelcomeCard = styled(motion.div)`
-  background: ${props => props.theme.name === 'dark' 
+const WelcomeCard = styled(motion.div)<{ $isDarkMode?: boolean }>`
+  background: ${props => props.$isDarkMode 
     ? 'linear-gradient(135deg, #1e293b, #334155)' 
     : 'linear-gradient(135deg, #f8fafc, #e2e8f0)'};
   border-radius: 20px;
@@ -197,7 +91,7 @@ const WelcomeCard = styled(motion.div)`
     right: -50%;
     width: 200%;
     height: 200%;
-    background: ${props => props.theme.name === 'dark' 
+    background: ${props => props.$isDarkMode 
       ? 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)' 
       : 'radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)'};
     animation: float 6s ease-in-out infinite;
@@ -211,11 +105,6 @@ const WelcomeCard = styled(motion.div)`
   @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
-  }
-  
-  @media (max-width: 768px) {
-    padding: 2rem;
-    min-height: 160px;
   }
 `;
 
@@ -235,13 +124,6 @@ const WelcomeTitle = styled.h1`
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
-  
-  @media (max-width: 768px) {
-    font-size: 1.8rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
 `;
 
 const WelcomeSubtitle = styled.p`
@@ -252,15 +134,11 @@ const WelcomeSubtitle = styled.p`
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
-  
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
 `;
 
 const QuickActionsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
 `;
@@ -382,7 +260,7 @@ const Footer = styled.div`
 
 const HomePage: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
-  const { nickname, avatar } = useUser();
+  const { nickname } = useUser();
   const navigate = useNavigate();
   const [proxyStatus, setProxyStatus] = useState<{ isRunning: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -460,7 +338,7 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const addActivity = (text: string, icon: any, color: string) => {
+  const addActivity = (text: string, icon: React.ComponentType<{ size?: number }>, color: string) => {
     const newActivity = {
       id: Date.now(),
       text,
@@ -521,6 +399,7 @@ const HomePage: React.FC = () => {
       </Header>
       
       <WelcomeCard
+        $isDarkMode={isDarkMode}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}

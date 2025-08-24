@@ -1,412 +1,174 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import yaml from 'js-yaml';
-import { 
-  Card, 
-  Button, 
-  Input, 
-  Label, 
-  StatusIndicator,
-  Select,
-  SelectWrapper
-} from './common';
-import { 
-  Play, 
-  Square, 
-  Download, 
-  RefreshCw, 
-  Save, 
-  FolderOpen,
-  Wifi,
-  Gauge,
-  Timer,
-  CheckCircle
-} from 'lucide-react';
+import { useProxyState } from '../hooks/useProxyState';
+import ErrorBoundary from './common/ErrorBoundary';
+import ProxyStatus from './proxy/ProxyStatus';
+import WorkflowSteps from './proxy/WorkflowSteps';
+import ConfigManager from './proxy/ConfigManager';
+import AdvancedSettings from './proxy/AdvancedSettings';
 
 const ProxyManagerContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  
-  @media (max-width: 768px) {
-    gap: 16px;
-  }
-`;
-
-const Section = styled.section`
-  margin-bottom: 24px;
-  
-  @media (max-width: 768px) {
-    margin-bottom: 16px;
-  }
-`;
-
-const SectionHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  
-  @media (max-width: 768px) {
-    margin-bottom: 12px;
-  }
-`;
-
-const SectionTitle = styled.h3`
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0;
-  
-  @media (max-width: 768px) {
-    font-size: 1.1rem;
-  }
-`;
-
-const StatusCard = styled(Card)`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px;
-  
-  @media (max-width: 768px) {
-    padding: 16px;
-    gap: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-`;
-
-const StatusContent = styled.div`
-  flex: 1;
-`;
-
-const StatusTitle = styled.h4`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0 0 8px 0;
-  
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
-`;
-
-const StatusDescription = styled.p`
-  color: ${props => props.theme.textSecondary};
-  margin: 0;
-  
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
-`;
-
-const ControlButtonGroup = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-  
-  @media (max-width: 768px) {
-    flex-wrap: wrap;
-  }
-  
-  @media (max-width: 480px) {
-    width: 100%;
-    
-    & > ${Button} {
-      flex: 1;
-    }
-  }
-`;
-
-const ConfigCard = styled(Card)`
-  margin-bottom: 24px;
-  
-  @media (max-width: 768px) {
-    margin-bottom: 16px;
-  }
-`;
-
-const ConfigHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  
-  @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-`;
-
-const ConfigTitle = styled.h4`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0;
-  
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
-`;
-
-const URLInputContainer = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-  
-  @media (max-width: 480px) {
-    gap: 8px;
-  }
-`;
-
-const ConfigTextArea = styled.textarea`
-  width: 100%;
-  padding: 16px;
-  border: 1px solid ${props => props.theme.inputBorder};
-  border-radius: ${props => props.theme.borderRadius.medium};
-  background-color: ${props => props.theme.inputBackground};
-  color: ${props => props.theme.textPrimary};
-  font-family: 'Fira Code', 'Consolas', 'Menlo', monospace;
-  font-size: 0.9rem;
-  resize: vertical;
-  min-height: 300px;
-
-  &:focus {
-    outline: none;
-    border-color: ${props => props.theme.inputFocusBorder};
-    box-shadow: 0 0 0 2px ${props => props.theme.accent}40;
-  }
-`;
-
-const ConfigActions = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-`;
-
-const ConfigPathDisplay = styled.div`
-  padding: 16px;
-  border-radius: ${props => props.theme.borderRadius.medium};
-  background-color: ${props => props.theme.surface};
-  border: 1px solid ${props => props.theme.border};
-  font-size: 0.9rem;
-  color: ${props => props.theme.textPrimary};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
-const AutoStartContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding: 16px;
-  border-radius: ${props => props.theme.borderRadius.medium};
-  background-color: ${props => props.theme.surface};
-  border: 1px solid ${props => props.theme.border};
-`;
-
-const Checkbox = styled.input`
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
+  gap: 2rem;
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
 const StatusMessageContainer = styled.div`
-  margin-top: 24px;
-  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
   border-radius: ${props => props.theme.borderRadius.medium};
-  background-color: ${props => props.theme.surface};
-  border: 1px solid ${props => props.theme.border};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.9rem;
-  color: ${props => props.theme.textPrimary};
-`;
-
-const AdvancedSettingsContainer = styled.div`
-  margin-top: 24px;
-  padding: 16px;
-  border-radius: ${props => props.theme.borderRadius.medium};
-  background-color: ${props => props.theme.surface};
-  border: 1px solid ${props => props.theme.border};
-`;
-
-const SettingRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  background: ${props => props.theme.surfaceVariant};
+  margin-top: 1rem;
   
-  &:last-child {
-    margin-bottom: 0;
-  }
+  ${props => props.isSuccess ? `
+    border: 1px solid ${props.theme.success.main};
+    color: ${props.theme.success.main};
+  ` : `
+    border: 1px solid ${props.theme.error.main};
+    color: ${props.theme.error.main};
+  `}
 `;
 
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-`;
+const EnhancedProxyManager: React.FC = () => {
+  const { state, ...actions } = useProxyState();
 
-const StepIndicator = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding: 12px;
-  border-radius: ${props => props.theme.borderRadius.medium};
-  background-color: ${props => props.theme.surfaceVariant};
-`;
+  // 缓存依赖项，避免重复计算
+  const apiDependencies = useMemo(() => ({
+    apiAvailable: state.apiAvailable,
+    hasConfig: state.hasConfig,
+    isValidConfig: state.isValidConfig,
+    configURL: state.configURL,
+    config: state.config,
+    tunMode: state.tunMode,
+    unifiedDelay: state.unifiedDelay,
+    tcpConcurrent: state.tcpConcurrent,
+    enableSniffer: state.enableSniffer,
+    port: state.port,
+    socksPort: state.socksPort,
+    mixedPort: state.mixedPort,
+    mode: state.mode,
+    logLevel: state.logLevel
+  }), [
+    state.apiAvailable,
+    state.hasConfig,
+    state.isValidConfig,
+    state.configURL,
+    state.config,
+    state.tunMode,
+    state.unifiedDelay,
+    state.tcpConcurrent,
+    state.enableSniffer,
+    state.port,
+    state.socksPort,
+    state.mixedPort,
+    state.mode,
+    state.logLevel
+  ]);
 
-const Step = styled.div<{ $active: boolean; $completed: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  background-color: ${props => 
-    props.$completed ? props.theme.success.main : 
-    props.$active ? props.theme.primary.main : 
-    props.theme.border};
-  color: ${props => 
-    props.$completed || props.$active ? '#FFFFFF' : props.theme.textSecondary};
-  font-weight: 500;
-  transition: all 0.3s ease;
-`;
+  // 计算操作状态
+  const operationStatus = useMemo(() => {
+    const isAnyLoading = state.isLoading || state.isConfigLoading || state.isConfigSaving;
+    const canStart = state.apiAvailable && state.hasConfig && state.isValidConfig && !isAnyLoading;
+    const canStop = state.apiAvailable && state.isRunning && !isAnyLoading;
+    const canTest = state.apiAvailable && state.isRunning && !isAnyLoading;
+    
+    return {
+      isAnyLoading,
+      canStart,
+      canStop,
+      canTest,
+      statusMessage: isAnyLoading ? '正在处理中，请稍候...' : state.statusMessage
+    };
+  }, [state]);
 
-const ProxyManager: React.FC = () => {
-  const [isRunning, setIsRunning] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isConfigLoading, setIsConfigLoading] = useState(false);
-  const [isConfigSaving, setIsConfigSaving] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [configPath, setConfigPath] = useState('');
-  const [configURL, setConfigURL] = useState('');
-  const [config, setConfig] = useState('');
-  const [autoStart, setAutoStart] = useState(false);
-  const [apiAvailable, setApiAvailable] = useState(false);
-  const [hasConfig, setHasConfig] = useState(false);
-  const [isValidConfig, setIsValidConfig] = useState(false);
-  
-  // Workflow steps
-  const [currentStep, setCurrentStep] = useState(1); // 1: Set URL, 2: Fetch Config, 3: Validate Config, 4: Start Proxy
-  
-  // Advanced settings
-  const [tunMode, setTunMode] = useState(false);
-  const [unifiedDelay, setUnifiedDelay] = useState(false);
-  const [tcpConcurrent, setTcpConcurrent] = useState(false);
-  const [enableSniffer, setEnableSniffer] = useState(false);
-  const [port, setPort] = useState(7890);
-  const [socksPort, setSocksPort] = useState(7891);
-  const [mixedPort, setMixedPort] = useState(7892);
-  const [mode, setMode] = useState('rule');
-  const [logLevel, setLogLevel] = useState('info');
-
+  // 初始化
   useEffect(() => {
-    if (window.electronAPI && window.electronAPI.mihomo && window.electronAPI.config) {
-      setApiAvailable(true);
+    if (state.apiAvailable) {
       checkStatus();
       loadVpnUrl();
       loadAutoStart();
       loadConfig();
       getConfigPath();
     } else {
-      console.error('Electron API is not available.');
-      setIsLoading(false);
+      actions.setLoading(false);
     }
-  }, []);
+  }, [state.apiAvailable]);
 
-  useEffect(() => {
-    // Check if config is valid
-    if (config.trim()) {
-      try {
-        const configObj = yaml.load(config) as any;
-        setIsValidConfig(!!configObj && typeof configObj === 'object');
-      } catch {
-        setIsValidConfig(false);
-      }
-    } else {
-      setIsValidConfig(false);
-    }
-  }, [config]);
-
-  const checkStatus = async () => {
-    if (!apiAvailable) return;
-    setIsLoading(true);
+  // 检查状态
+  const checkStatus = useCallback(async () => {
+    if (!apiDependencies.apiAvailable) return;
+    
+    actions.setLoading(true);
     try {
       const status = await window.electronAPI.mihomo.status();
-      setIsRunning(status.isRunning);
-      if (status.isRunning) {
-        setCurrentStep(4); // If running, we're at the final step
-      }
+      actions.setRunning(status.isRunning);
     } catch (error) {
       console.error('Error checking Mihomo status:', error);
+      actions.setStatusMessage('检查状态失败', false);
     } finally {
-      setIsLoading(false);
+      actions.setLoading(false);
     }
-  };
+  }, [apiDependencies.apiAvailable, actions]);
 
-  const loadVpnUrl = async () => {
-    if (!apiAvailable) return;
+  // 加载 VPN URL
+  const loadVpnUrl = useCallback(async () => {
+    if (!apiDependencies.apiAvailable) return;
+    
     try {
       const result = await window.electronAPI.config.getVpnUrl();
       if (result.success && result.data) {
-        setConfigURL(result.data);
+        actions.setConfigURL(result.data);
       }
     } catch (error) {
       console.error('Error loading VPN URL:', error);
     }
-  };
+  }, [apiDependencies.apiAvailable, actions]);
 
-  const loadAutoStart = async () => {
-    if (!apiAvailable) return;
+  // 加载自动启动设置
+  const loadAutoStart = useCallback(async () => {
+    if (!apiDependencies.apiAvailable) return;
+    
     try {
       const result = await window.electronAPI.config.getProxyAutoStart();
       if (result.success && result.data !== undefined) {
-        setAutoStart(result.data);
+        actions.setAutoStart(result.data);
       }
     } catch (error) {
       console.error('Error loading auto start setting:', error);
     }
-  };
+  }, [apiDependencies.apiAvailable, actions]);
 
-  const loadConfig = async () => {
-    if (!apiAvailable) return;
-    setIsConfigLoading(true);
+  // 加载配置
+  const loadConfig = useCallback(async () => {
+    if (!apiDependencies.apiAvailable) return;
+    
+    actions.setConfigLoading(true);
     try {
       const result = await window.electronAPI.mihomo.loadConfig();
       if (result.success && result.data) {
         const yamlStr = yaml.dump(result.data);
-        setConfig(yamlStr);
-        setHasConfig(true);
+        actions.setConfig(yamlStr);
+        actions.setHasConfig(true);
         
-        // Extract advanced settings from config
+        // 提取高级设置
         try {
           const configObj = yaml.load(yamlStr) as any;
           if (configObj) {
-            setTunMode(!!configObj.tun);
-            setUnifiedDelay(configObj['unified-delay'] || false);
-            setTcpConcurrent(configObj['tcp-concurrent'] || false);
-            setEnableSniffer(configObj.sniffer?.enable || false);
-            setPort(configObj.port || 7890);
-            setSocksPort(configObj['socks-port'] || 7891);
-            setMixedPort(configObj['mixed-port'] || 7892);
-            setMode(configObj.mode || 'rule');
-            setLogLevel(configObj['log-level'] || 'info');
+            actions.setTunMode(!!configObj.tun);
+            actions.setUnifiedDelay(configObj['unified-delay'] || false);
+            actions.setTcpConcurrent(configObj['tcp-concurrent'] || false);
+            actions.setEnableSniffer(configObj.sniffer?.enable || false);
+            actions.setPort(configObj.port || 7890);
+            actions.setSocksPort(configObj['socks-port'] || 7891);
+            actions.setMixedPort(configObj['mixed-port'] || 7892);
+            actions.setMode(configObj.mode || 'rule');
+            actions.setLogLevel(configObj['log-level'] || 'info');
           }
         } catch (e) {
           console.error('Error parsing config for advanced settings:', e);
@@ -414,86 +176,133 @@ const ProxyManager: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading config:', error);
+      actions.setStatusMessage('加载配置失败', false);
     } finally {
-      setIsConfigLoading(false);
+      actions.setConfigLoading(false);
     }
-  };
+  }, [apiDependencies.apiAvailable, actions]);
 
-  const getConfigPath = async () => {
-    if (!apiAvailable) return;
+  // 获取配置路径
+  const getConfigPath = useCallback(async () => {
+    if (!apiDependencies.apiAvailable) return;
+    
     try {
       const result = await window.electronAPI.mihomo.getConfigPath();
       if (result.success && result.data) {
-        setConfigPath(result.data);
+        actions.setConfigPath(result.data);
       }
     } catch (error) {
       console.error('Error getting config path:', error);
     }
-  };
+  }, [apiDependencies.apiAvailable, actions]);
 
-  const handleStart = async () => {
-    if (!apiAvailable || !hasConfig || !isValidConfig) {
-      setStatusMessage('Please fetch and validate configuration before starting');
-      setIsSuccess(false);
+  // 启动代理
+  const handleStart = useCallback(async () => {
+    if (!apiDependencies.apiAvailable || !apiDependencies.hasConfig || !apiDependencies.isValidConfig) {
+      actions.setStatusMessage('请先获取并验证配置', false);
       return;
     }
     
-    setIsLoading(true);
+    actions.setLoading(true);
     try {
       const result = await window.electronAPI.mihomo.start();
       if (result.success) {
-        setStatusMessage('Mihomo started successfully');
-        setIsSuccess(true);
-        setCurrentStep(4); // Move to final step
+        actions.setStatusMessage('Mihomo 启动成功', true);
+        actions.setCurrentStep(4);
       } else {
-        setStatusMessage(`Failed to start Mihomo: ${result.error}`);
-        setIsSuccess(false);
+        actions.setStatusMessage(`启动失败: ${result.error}`, false);
       }
     } catch (error) {
-      setStatusMessage('An error occurred while trying to start Mihomo');
-      setIsSuccess(false);
+      actions.setStatusMessage('启动时发生错误', false);
       console.error('Error starting Mihomo:', error);
     } finally {
       await checkStatus();
     }
-  };
+  }, [apiDependencies.apiAvailable, apiDependencies.hasConfig, apiDependencies.isValidConfig, actions, checkStatus]);
 
-  const handleStop = async () => {
-    if (!apiAvailable) return;
-    setIsLoading(true);
+  // 停止代理
+  const handleStop = useCallback(async () => {
+    if (!apiDependencies.apiAvailable) return;
+    
+    actions.setLoading(true);
     try {
       const result = await window.electronAPI.mihomo.stop();
       if (result.success) {
-        setStatusMessage('Mihomo stopped successfully');
-        setIsSuccess(true);
-        setCurrentStep(3); // Go back to config validation step
+        actions.setStatusMessage('Mihomo 停止成功', true);
+        actions.setCurrentStep(3);
       } else {
-        setStatusMessage(`Failed to stop Mihomo: ${result.error}`);
-        setIsSuccess(false);
+        actions.setStatusMessage(`停止失败: ${result.error}`, false);
       }
     } catch (error) {
-      setStatusMessage('An error occurred while trying to stop Mihomo');
-      setIsSuccess(false);
+      actions.setStatusMessage('停止时发生错误', false);
       console.error('Error stopping Mihomo:', error);
     } finally {
       await checkStatus();
     }
-  };
+  }, [apiDependencies.apiAvailable, actions, checkStatus]);
 
-  const saveConfig = async () => {
-    if (!config.trim()) {
-      setStatusMessage('Configuration cannot be empty');
-      setIsSuccess(false);
+  // 测试延迟
+  const testLatency = useCallback(async () => {
+    if (!apiDependencies.apiAvailable) return;
+    
+    actions.setStatusMessage('正在测试所有代理的延迟...', false);
+    
+    try {
+      const result = await window.electronAPI.mihomo.getProxies();
+      if (result.success && result.data) {
+        actions.setStatusMessage('延迟测试完成', true);
+      } else {
+        actions.setStatusMessage(`延迟测试失败: ${result.error}`, false);
+      }
+    } catch (error) {
+      actions.setStatusMessage('延迟测试时发生错误', false);
+      console.error('Error testing latency:', error);
+    }
+  }, [apiDependencies.apiAvailable, actions]);
+
+  // 从 URL 获取配置
+  const fetchConfigFromURL = useCallback(async () => {
+    if (!apiDependencies.configURL.trim()) {
+      actions.setStatusMessage('请输入有效的 URL', false);
       return;
     }
 
-    setIsConfigSaving(true);
+    actions.setConfigLoading(true);
     try {
-      // Parse the current config
-      const configObj = yaml.load(config) as any || {};
+      const result = await window.electronAPI.mihomo.fetchConfigFromURL(state.configURL);
+      if (result.success && result.data) {
+        const yamlStr = yaml.dump(result.data);
+        actions.setConfig(yamlStr);
+        actions.setStatusMessage('配置获取成功', true);
+        actions.setHasConfig(true);
+        actions.setCurrentStep(2);
+        
+        // 保存 VPN URL
+        await window.electronAPI.config.setVpnUrl(state.configURL);
+      } else {
+        actions.setStatusMessage(`获取配置失败: ${result.error}`, false);
+      }
+    } catch (error) {
+      actions.setStatusMessage('获取配置时发生错误', false);
+      console.error('Error fetching config:', error);
+    } finally {
+      actions.setConfigLoading(false);
+    }
+  }, [apiDependencies.configURL, actions]);
+
+  // 保存配置
+  const saveConfig = useCallback(async () => {
+    if (!apiDependencies.config.trim()) {
+      actions.setStatusMessage('配置不能为空', false);
+      return;
+    }
+
+    actions.setConfigSaving(true);
+    try {
+      const configObj = yaml.load(state.config) as any || {};
       
-      // Apply advanced settings to config
-      if (tunMode) {
+      // 应用高级设置
+      if (state.tunMode) {
         configObj.tun = {
           enable: true,
           stack: 'system',
@@ -505,10 +314,10 @@ const ProxyManager: React.FC = () => {
         delete configObj.tun;
       }
       
-      configObj['unified-delay'] = unifiedDelay;
-      configObj['tcp-concurrent'] = tcpConcurrent;
+      configObj['unified-delay'] = state.unifiedDelay;
+      configObj['tcp-concurrent'] = state.tcpConcurrent;
       
-      if (enableSniffer) {
+      if (state.enableSniffer) {
         configObj.sniffer = {
           enable: true,
           'parse-pure-ip': true
@@ -517,91 +326,55 @@ const ProxyManager: React.FC = () => {
         delete configObj.sniffer;
       }
       
-      configObj.port = port;
-      configObj['socks-port'] = socksPort;
-      configObj['mixed-port'] = mixedPort;
-      configObj.mode = mode;
-      configObj['log-level'] = logLevel;
+      configObj.port = state.port;
+      configObj['socks-port'] = state.socksPort;
+      configObj['mixed-port'] = state.mixedPort;
+      configObj.mode = state.mode;
+      configObj['log-level'] = state.logLevel;
       
-      // Save the modified config
       const result = await window.electronAPI.mihomo.saveConfig(configObj);
       if (result.success) {
-        // Update the YAML display
         const yamlStr = yaml.dump(configObj);
-        setConfig(yamlStr);
-        
-        setStatusMessage('Configuration saved successfully');
-        setIsSuccess(true);
-        setHasConfig(true);
-        setIsValidConfig(true);
-        setCurrentStep(3); // Move to validation step
+        actions.setConfig(yamlStr);
+        actions.setStatusMessage('配置保存成功', true);
+        actions.setHasConfig(true);
+        actions.setValidConfig(true);
+        actions.setCurrentStep(3);
       } else {
-        setStatusMessage(`Failed to save configuration: ${result.error}`);
-        setIsSuccess(false);
+        actions.setStatusMessage(`保存配置失败: ${result.error}`, false);
       }
     } catch (error) {
-      setStatusMessage('Failed to save configuration. Please check the YAML format.');
-      setIsSuccess(false);
+      actions.setStatusMessage('保存配置时发生错误', false);
       console.error('Error saving config:', error);
     } finally {
-      setIsConfigSaving(false);
+      actions.setConfigSaving(false);
     }
-  };
+  }, [apiDependencies.config, apiDependencies.tunMode, apiDependencies.unifiedDelay, apiDependencies.tcpConcurrent, 
+      apiDependencies.enableSniffer, apiDependencies.port, apiDependencies.socksPort, apiDependencies.mixedPort, 
+      apiDependencies.mode, apiDependencies.logLevel, actions]);
 
-  const fetchConfigFromURL = async () => {
-    if (!configURL.trim()) {
-      setStatusMessage('Please enter a valid URL');
-      setIsSuccess(false);
-      return;
-    }
-
-    setIsConfigLoading(true);
-    try {
-      const result = await window.electronAPI.mihomo.fetchConfigFromURL(configURL);
-      if (result.success && result.data) {
-        const yamlStr = yaml.dump(result.data);
-        setConfig(yamlStr);
-        setStatusMessage('Configuration fetched successfully');
-        setIsSuccess(true);
-        setHasConfig(true);
-        setCurrentStep(2); // Move to config fetched step
-        
-        // Save VPN URL
-        await window.electronAPI.config.setVpnUrl(configURL);
-      } else {
-        setStatusMessage(`Failed to fetch configuration: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setStatusMessage('Failed to fetch configuration');
-      setIsSuccess(false);
-      console.error('Error fetching config:', error);
-    } finally {
-      setIsConfigLoading(false);
-    }
-  };
-
-  const handleAutoStartChange = async (checked: boolean) => {
-    if (!apiAvailable) return;
+  // 自动启动设置
+  const handleAutoStartChange = useCallback(async (checked: boolean) => {
+    if (!apiDependencies.apiAvailable) return;
+    
     try {
       const result = await window.electronAPI.config.setProxyAutoStart(checked);
       if (result.success) {
-        setAutoStart(checked);
-        setStatusMessage(`Auto-start ${checked ? 'enabled' : 'disabled'}`);
-        setIsSuccess(true);
+        actions.setAutoStart(checked);
+        actions.setStatusMessage(`自动启动已${checked ? '启用' : '禁用'}`, true);
       } else {
-        setStatusMessage(`Failed to update auto-start: ${result.error}`);
-        setIsSuccess(false);
+        actions.setStatusMessage(`更新自动启动设置失败: ${result.error}`, false);
       }
     } catch (error) {
-      setStatusMessage('Failed to update auto-start setting');
-      setIsSuccess(false);
+      actions.setStatusMessage('更新自动启动设置时发生错误', false);
       console.error('Error updating auto-start:', error);
     }
-  };
+  }, [apiDependencies.apiAvailable, actions]);
 
-  const openConfigDirectory = async () => {
-    if (!apiAvailable) return;
+  // 打开配置目录
+  const openConfigDirectory = useCallback(async () => {
+    if (!apiDependencies.apiAvailable) return;
+    
     try {
       const result = await window.electronAPI.mihomo.openConfigDir();
       if (!result.success) {
@@ -610,328 +383,69 @@ const ProxyManager: React.FC = () => {
     } catch (error) {
       console.error('Error opening config directory:', error);
     }
-  };
-
-  const testLatency = async () => {
-    if (!apiAvailable) return;
-    setStatusMessage('Testing latency for all proxies...');
-    setIsSuccess(false);
-    
-    try {
-      const result = await window.electronAPI.mihomo.getProxies();
-      if (result.success && result.data) {
-        setStatusMessage('Latency test completed for all proxies');
-        setIsSuccess(true);
-      } else {
-        setStatusMessage(`Failed to test latency: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setStatusMessage('Failed to test latency');
-      setIsSuccess(false);
-      console.error('Error testing latency:', error);
-    }
-  };
+  }, [apiDependencies.apiAvailable]);
 
   return (
-    <ProxyManagerContainer>
-      {/* Workflow Steps */}
-      <Section>
-        <SectionHeader>
-          <Gauge size={20} />
-          <SectionTitle>Setup Workflow</SectionTitle>
-        </SectionHeader>
+    <ErrorBoundary>
+      <ProxyManagerContainer>
+        <WorkflowSteps currentStep={state.currentStep} />
         
-        <StepIndicator>
-          <Step $active={currentStep === 1} $completed={currentStep > 1}>
-            {currentStep > 1 ? <CheckCircle size={16} /> : '1'} Set Provider URL
-          </Step>
-          <Step $active={currentStep === 2} $completed={currentStep > 2}>
-            {currentStep > 2 ? <CheckCircle size={16} /> : (currentStep === 2 ? '2' : '‧‧‧')} Fetch Config
-          </Step>
-          <Step $active={currentStep === 3} $completed={currentStep > 3}>
-            {currentStep > 3 ? <CheckCircle size={16} /> : (currentStep === 3 ? '3' : '‧‧‧')} Validate Config
-          </Step>
-          <Step $active={currentStep === 4} $completed={currentStep > 4}>
-            {currentStep > 4 ? <CheckCircle size={16} /> : (currentStep === 4 ? '4' : '‧‧‧')} Start Proxy
-          </Step>
-        </StepIndicator>
-      </Section>
-      
-      {/* Service Status */}
-      <Section>
-        <SectionHeader>
-          <Wifi size={20} />
-          <SectionTitle>Service Status</SectionTitle>
-        </SectionHeader>
+        <ProxyStatus
+          isRunning={state.isRunning}
+          isLoading={state.isLoading}
+          onStart={handleStart}
+          onStop={handleStop}
+          onTestLatency={testLatency}
+          hasConfig={state.hasConfig}
+          isValidConfig={state.isValidConfig}
+        />
         
-        {isLoading ? (
-          <StatusCard>
-            <StatusIndicator $status="info" />
-            <StatusContent>
-              <StatusTitle>Loading Status</StatusTitle>
-              <StatusDescription>
-                Checking Mihomo service status...
-              </StatusDescription>
-            </StatusContent>
-          </StatusCard>
-        ) : (
-          <>
-            <StatusCard>
-              <StatusIndicator $status={isRunning ? 'success' : 'error'} />
-              <StatusContent>
-                <StatusTitle>Service Status</StatusTitle>
-                <StatusDescription>
-                  {isRunning ? 'Mihomo is Running' : 'Mihomo is Stopped'}
-                </StatusDescription>
-              </StatusContent>
-            </StatusCard>
-            
-            <ControlButtonGroup>
-              <Button 
-                onClick={handleStart} 
-                disabled={isRunning || isLoading || !hasConfig || !isValidConfig}
-                variant="primary"
-                startIcon={<Play size={16} />}
-              >
-                {isRunning ? 'Running' : 'Start Proxy'}
-              </Button>
-              <Button 
-                onClick={handleStop} 
-                disabled={!isRunning || isLoading}
-                variant="danger"
-                startIcon={<Square size={16} />}
-              >
-                Stop Proxy
-              </Button>
-              <Button 
-                onClick={testLatency} 
-                disabled={!isRunning || isLoading}
-                variant="outline"
-                startIcon={<Timer size={16} />}
-              >
-                Test Latency
-              </Button>
-            </ControlButtonGroup>
-          </>
-        )}
-      </Section>
-
-      {/* Configuration Management */}
-      <Section>
-        <SectionHeader>
-          <Gauge size={20} />
-          <SectionTitle>Configuration Management</SectionTitle>
-        </SectionHeader>
+        <ConfigManager
+          configURL={state.configURL}
+          config={state.config}
+          configPath={state.configPath}
+          isValidConfig={state.isValidConfig}
+          isConfigLoading={state.isConfigLoading}
+          isConfigSaving={state.isConfigSaving}
+          onConfigURLChange={actions.setConfigURL}
+          onConfigChange={actions.setConfig}
+          onFetchConfig={fetchConfigFromURL}
+          onSaveConfig={saveConfig}
+          onLoadConfig={loadConfig}
+          onOpenConfigDir={openConfigDirectory}
+        />
         
-        <AutoStartContainer>
-          <Checkbox
-            type="checkbox"
-            checked={autoStart}
-            onChange={(e) => handleAutoStartChange(e.target.checked)}
-            disabled={isLoading}
-          />
-          <Label>Start proxy automatically when application launches</Label>
-        </AutoStartContainer>
+        <AdvancedSettings
+          autoStart={state.autoStart}
+          tunMode={state.tunMode}
+          unifiedDelay={state.unifiedDelay}
+          tcpConcurrent={state.tcpConcurrent}
+          enableSniffer={state.enableSniffer}
+          port={state.port}
+          socksPort={state.socksPort}
+          mixedPort={state.mixedPort}
+          mode={state.mode}
+          logLevel={state.logLevel}
+          onAutoStartChange={handleAutoStartChange}
+          onTunModeChange={actions.setTunMode}
+          onUnifiedDelayChange={actions.setUnifiedDelay}
+          onTcpConcurrentChange={actions.setTcpConcurrent}
+          onEnableSnifferChange={actions.setEnableSniffer}
+          onPortChange={actions.setPort}
+          onSocksPortChange={actions.setSocksPort}
+          onMixedPortChange={actions.setMixedPort}
+          onModeChange={actions.setMode}
+          onLogLevelChange={actions.setLogLevel}
+        />
         
-        <ConfigCard>
-          <ConfigHeader>
-            <ConfigTitle>Step 1: Provider Configuration</ConfigTitle>
-          </ConfigHeader>
-          
-          <URLInputContainer>
-            <Input
-              type="text"
-              value={configURL}
-              onChange={(e) => setConfigURL(e.target.value)}
-              placeholder="Enter VPN provider config URL..."
-              disabled={isConfigLoading || isConfigSaving}
-            />
-            <Button 
-              onClick={fetchConfigFromURL} 
-              disabled={isConfigLoading || isConfigSaving || !configURL.trim()}
-              startIcon={isConfigLoading ? <RefreshCw size={16} /> : <Download size={16} />}
-            >
-              {isConfigLoading ? 'Fetching...' : 'Fetch Config'}
-            </Button>
-          </URLInputContainer>
-        </ConfigCard>
-        
-        <ConfigCard>
-          <ConfigHeader>
-            <ConfigTitle>Step 2: Advanced Configuration</ConfigTitle>
-          </ConfigHeader>
-          
-          <ConfigTextArea
-            value={config}
-            onChange={(e) => setConfig(e.target.value)}
-            placeholder="Enter your Mihomo configuration in YAML format..."
-            disabled={isConfigLoading || isConfigSaving}
-          />
-          
-          <ConfigActions>
-            <Button 
-              onClick={loadConfig} 
-              disabled={isConfigLoading || isConfigSaving}
-              variant="outline"
-              startIcon={<RefreshCw size={16} />}
-            >
-              {isConfigLoading ? 'Loading...' : 'Reload Config'}
-            </Button>
-            <Button 
-              onClick={saveConfig} 
-              disabled={isConfigLoading || isConfigSaving || !config.trim()}
-              variant="primary"
-              startIcon={<Save size={16} />}
-            >
-              {isConfigSaving ? 'Saving...' : 'Save Config'}
-            </Button>
-            {configPath && (
-              <Button
-                onClick={openConfigDirectory}
-                variant="outline"
-                startIcon={<FolderOpen size={16} />}
-              >
-                Open Directory
-              </Button>
-            )}
-          </ConfigActions>
-          
-          {configPath && (
-            <ConfigPathDisplay>
-              <strong>Config Path:</strong> {configPath}
-            </ConfigPathDisplay>
-          )}
-          
-          {/* Config validation status */}
-          <StatusMessageContainer style={{ marginTop: 16 }}>
-            {isValidConfig ? (
-              <>
-                <StatusIndicator $status="success" />
-                Configuration is valid and ready to use
-              </>
-            ) : (
-              <>
-                <StatusIndicator $status="error" />
-                Configuration is invalid or empty. Please fetch or enter a valid configuration.
-              </>
-            )}
-          </StatusMessageContainer>
-        </ConfigCard>
-        
-        {/* Advanced Settings */}
-        <AdvancedSettingsContainer>
-          <SectionHeader>
-            <SectionTitle>Advanced Settings</SectionTitle>
-          </SectionHeader>
-          
-          <SettingRow>
-            <Checkbox
-              type="checkbox"
-              checked={tunMode}
-              onChange={(e) => setTunMode(e.target.checked)}
-            />
-            <Label>TUN Mode (System Proxy)</Label>
-          </SettingRow>
-          
-          <SettingRow>
-            <Checkbox
-              type="checkbox"
-              checked={unifiedDelay}
-              onChange={(e) => setUnifiedDelay(e.target.checked)}
-            />
-            <Label>Unified Delay</Label>
-          </SettingRow>
-          
-          <SettingRow>
-            <Checkbox
-              type="checkbox"
-              checked={tcpConcurrent}
-              onChange={(e) => setTcpConcurrent(e.target.checked)}
-            />
-            <Label>TCP Concurrent</Label>
-          </SettingRow>
-          
-          <SettingRow>
-            <Checkbox
-              type="checkbox"
-              checked={enableSniffer}
-              onChange={(e) => setEnableSniffer(e.target.checked)}
-            />
-            <Label>Enable Sniffer</Label>
-          </SettingRow>
-          
-          <SettingRow>
-            <FormGroup>
-              <Label>Port</Label>
-              <Input
-                type="number"
-                value={port}
-                onChange={(e) => setPort(Number(e.target.value))}
-                min="1"
-                max="65535"
-              />
-            </FormGroup>
-            
-            <FormGroup>
-              <Label>SOCKS Port</Label>
-              <Input
-                type="number"
-                value={socksPort}
-                onChange={(e) => setSocksPort(Number(e.target.value))}
-                min="1"
-                max="65535"
-              />
-            </FormGroup>
-            
-            <FormGroup>
-              <Label>Mixed Port</Label>
-              <Input
-                type="number"
-                value={mixedPort}
-                onChange={(e) => setMixedPort(Number(e.target.value))}
-                min="1"
-                max="65535"
-              />
-            </FormGroup>
-          </SettingRow>
-          
-          <SettingRow>
-            <FormGroup>
-              <Label>Mode</Label>
-              <SelectWrapper>
-                <Select value={mode} onChange={(e) => setMode(e.target.value)}>
-                  <option value="rule">Rule</option>
-                  <option value="global">Global</option>
-                  <option value="direct">Direct</option>
-                </Select>
-              </SelectWrapper>
-            </FormGroup>
-            
-            <FormGroup>
-              <Label>Log Level</Label>
-              <SelectWrapper>
-                <Select value={logLevel} onChange={(e) => setLogLevel(e.target.value)}>
-                  <option value="silent">Silent</option>
-                  <option value="error">Error</option>
-                  <option value="warning">Warning</option>
-                  <option value="info">Info</option>
-                  <option value="debug">Debug</option>
-                </Select>
-              </SelectWrapper>
-            </FormGroup>
-          </SettingRow>
-        </AdvancedSettingsContainer>
-        
-        {statusMessage && (
-          <StatusMessageContainer>
-            <StatusIndicator $status={isSuccess ? 'success' : 'error'} />
-            {statusMessage}
+        {operationStatus.statusMessage && (
+          <StatusMessageContainer isSuccess={state.isSuccess}>
+            {state.isSuccess ? '✓' : '✗'} {operationStatus.statusMessage}
           </StatusMessageContainer>
         )}
-      </Section>
-    </ProxyManagerContainer>
+      </ProxyManagerContainer>
+    </ErrorBoundary>
   );
 };
 
-export default ProxyManager;
+export default EnhancedProxyManager;

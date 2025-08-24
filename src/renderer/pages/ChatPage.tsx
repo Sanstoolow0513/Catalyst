@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
 import {
   Card,
   Button,
@@ -22,181 +23,201 @@ import {
 
 // 页面标题组件 - 根据设计规范，具体服务页面不需要标题
 
-// 内容区域容器
+// 现代化内容区域容器
 const Content = styled.div`
   display: flex;
   gap: ${props => props.theme.spacing.xl};
   flex: 1;
   overflow: hidden;
-
-  @media (max-width: 1024px) {
-    gap: ${props => props.theme.spacing.lg};
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: ${props => props.theme.spacing.md};
-  }
-
-  @media (max-width: 480px) {
-    gap: ${props => props.theme.spacing.sm};
-  }
+  padding: ${props => props.theme.spacing.lg};
 `;
 
-
-// 面板头部
+// 现代化面板头部
 const PanelHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: ${props => props.theme.spacing.md};
-  margin-bottom: ${props => props.theme.spacing.lg};
-`;
-
-// 面板标题
-const PanelTitle = styled.h2`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0;
-`;
-
-// 通用区块容器
-const Section = styled.section`
+  gap: ${props => props.theme.spacing.lg};
   margin-bottom: ${props => props.theme.spacing.xl};
 `;
 
-// 区块头部
+// 现代化面板标题
+const PanelTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: ${props => props.theme.textPrimary};
+  margin: 0;
+  background: ${props => props.theme.gradient.primary};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing.md};
+`;
+
+// 现代化通用区块容器
+const Section = styled(motion.section)`
+  margin-bottom: ${props => props.theme.spacing.xxl};
+`;
+
+// 现代化区块头部
 const SectionHeader = styled.div<{ $customPadding?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: ${props => props.$customPadding ? props.theme.spacing.sm : props.theme.spacing.md};
-  border-radius: ${props => props.theme.borderRadius.medium};
-  background-color: ${props => props.theme.surface};
-  border: ${props => props.$customPadding ? 'none' : `1px solid ${props.theme.border}`};
+  padding: ${props => props.theme.spacing.lg};
+  border-radius: ${props => props.theme.borderRadius.large};
+  background: ${props => props.theme.surface};
+  border: none;
   margin-bottom: ${props => props.theme.spacing.lg};
-  transition: all ${props => props.theme.transition.fast} ease;
+  transition: all ${props => props.theme.transition.normal} ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 
   &:hover {
-    background-color: ${props => props.$customPadding ? 'transparent' : props.theme.surfaceVariant};
+    background: ${props => props.theme.surfaceVariant};
+    transform: translateY(-1px);
   }
 `;
 
-// 区块标题
+// 现代化区块标题
 const SectionTitle = styled.h3`
   margin: 0;
   color: ${props => props.theme.textPrimary};
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing.sm};
 `;
 
-// 切换图标
-const ToggleIcon = styled.div<{ $isOpen?: boolean }>`
+// 现代化切换图标
+const ToggleIcon = styled(motion.div)<{ $isOpen?: boolean }>`
   display: flex;
   align-items: center;
   color: ${props => props.theme.textTertiary};
-  transition: transform ${props => props.theme.transition.fast} ease;
+  transition: transform ${props => props.theme.transition.normal} ease;
   transform: ${props => props.$isOpen ? 'rotate(0deg)' : 'rotate(-90deg)'};
 `;
 
-// 区块内容
+// 现代化区块内容
 const SectionContent = styled.div`
-  padding: 0 ${props => props.theme.spacing.md};
+  padding: 0 ${props => props.theme.spacing.lg};
 `;
 
-// 配置网格
+// 现代化配置网格
 const ConfigGrid = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${props => props.theme.spacing.md};
-  margin-bottom: ${props => props.theme.spacing.lg};
+  gap: ${props => props.theme.spacing.lg};
+  margin-bottom: ${props => props.theme.spacing.xl};
 `;
 
 
-// 提供商信息标题
+// 现代化提供商信息标题
 const ProviderInfoTitle = styled.h4`
   margin: 0 0 ${props => props.theme.spacing.lg} 0;
   color: ${props => props.theme.textPrimary};
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing.sm};
 `;
 
-// 提供商列表
+// 现代化提供商列表
 const ProviderList = styled.ul`
   margin: 0;
   padding-left: ${props => props.theme.spacing.xl};
   color: ${props => props.theme.textSecondary};
+  font-size: 1rem;
+  line-height: 1.6;
 `;
 
-// 提供商列表项
+// 现代化提供商列表项
 const ProviderItem = styled.li`
-  margin-bottom: ${props => props.theme.spacing.md};
+  margin-bottom: ${props => props.theme.spacing.lg};
+  padding: ${props => props.theme.spacing.md};
+  border-radius: ${props => props.theme.borderRadius.medium};
+  background: ${props => props.theme.surface};
+  border: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: all ${props => props.theme.transition.normal} ease;
+
+  &:hover {
+    background: ${props => props.theme.surfaceVariant};
+    transform: translateY(-1px);
+  }
 
   &:last-child {
     margin-bottom: 0;
   }
 `;
 
-// 状态消息
-const StatusMessage = styled.div<{ $status?: 'success' | 'error' }>`
+// 现代化状态消息
+const StatusMessage = styled(motion.div)<{ $status?: 'success' | 'error' }>`
   display: flex;
   align-items: center;
-  gap: ${props => props.theme.spacing.md};
-  padding: ${props => props.theme.spacing.md};
-  border-radius: ${props => props.theme.borderRadius.medium};
-  background-color: ${props => {
-    if (props.$status === 'success') return `${props.theme.success.main}20`;
+  gap: ${props => props.theme.spacing.lg};
+  padding: ${props => props.theme.spacing.lg};
+  border-radius: ${props => props.theme.borderRadius.large};
+  background: ${props => {
+    if (props.$status === 'success') return props.theme.gradient.success;
     return props.theme.surface;
   }};
-  border: 1px solid ${props => {
-    if (props.$status === 'success') return `${props.theme.success.main}40`;
-    return props.theme.border;
-  }};
+  border: none;
   color: ${props => {
-    if (props.$status === 'success') return props.theme.success.main;
+    if (props.$status === 'success') return '#FFFFFF';
     return props.theme.textPrimary;
   }};
-  font-size: 0.9rem;
-  margin-top: ${props => props.theme.spacing.lg};
+  font-size: 1rem;
+  margin-top: ${props => props.theme.spacing.xl};
+  box-shadow: ${props => {
+    if (props.$status === 'success') return '0 4px 12px rgba(16, 185, 129, 0.3)';
+    return 'inset 0 2px 4px rgba(0, 0, 0, 0.06)';
+  }};
 `;
 
-// 状态图标
+// 现代化状态图标
 const StatusIcon = styled.div`
   display: flex;
   align-items: center;
 `;
 
-
-// 聊天头部
+// 现代化聊天头部
 const ChatHeader = styled.div`
   padding: ${props => props.theme.spacing.lg} ${props => props.theme.spacing.xl};
   border-bottom: 1px solid ${props => props.theme.border};
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: ${props => props.theme.surface};
 `;
 
-// 聊天标题
+// 现代化聊天标题
 const ChatTitle = styled.h3`
   margin: 0;
   color: ${props => props.theme.textPrimary};
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing.sm};
 `;
 
-// 聊天消息区域
+// 现代化聊天消息区域
 const ChatMessages = styled.div`
   flex: 1;
   overflow: hidden;
 `;
 
-// 错误消息
+// 现代化错误消息
 const ErrorMessage = styled.div`
   color: ${props => props.theme.error.main};
   text-align: center;
-  padding: ${props => props.theme.spacing.md};
+  padding: ${props => props.theme.spacing.lg};
   font-weight: 500;
+  font-size: 1rem;
 `;
 
 // 配置面板组件的Props类型定义

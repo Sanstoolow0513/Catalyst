@@ -100,11 +100,6 @@ export const FormRow = styled.div`
   gap: 20px;
   margin-bottom: 20px;
   
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 0;
-  }
-  
   & > ${FormGroup} {
     flex: 1;
     margin-bottom: 0;

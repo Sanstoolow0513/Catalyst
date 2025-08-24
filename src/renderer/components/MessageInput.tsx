@@ -40,11 +40,6 @@ const TextArea = styled.textarea`
   &::placeholder {
     color: ${({ theme }) => theme.textTertiary};
   }
-  
-  @media (max-width: 768px) {
-    padding: 16px;
-    min-height: 50px;
-  }
 `;
 
 interface MessageInputProps {

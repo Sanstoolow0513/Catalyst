@@ -17,16 +17,19 @@ interface ToastProps {
 
 const ToastContainer = styled.div`
   position: fixed;
-  top: ${props => props.theme.spacing.xl};
+  top: 60px;
   right: ${props => props.theme.spacing.xl};
   z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing.sm};
 `;
 
 const StyledToast = styled.div<{ $type: 'success' | 'error' | 'info' }>`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing.sm};
-  padding: ${props => props.theme.spacing.md} ${props => props.theme.spacing.lg};
+  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
   background-color: ${props => {
     switch (props.$type) {
       case 'success': return props.theme.success.main;
@@ -36,10 +39,12 @@ const StyledToast = styled.div<{ $type: 'success' | 'error' | 'info' }>`
     }
   }};
   color: white;
-  border-radius: ${props => props.theme.borderRadius.large};
+  border-radius: ${props => props.theme.borderRadius.medium};
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: slideIn ${props => props.theme.transition.normal} ease forwards;
-  min-width: 300px;
+  min-width: 280px;
+  max-width: 400px;
+  font-size: 0.9rem;
   
   @keyframes slideIn {
     from {
@@ -77,6 +82,8 @@ const ToastIcon = styled.div`
 const ToastContent = styled.div`
   flex: 1;
   font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.4;
 `;
 
 const ToastClose = styled.button`
@@ -84,7 +91,7 @@ const ToastClose = styled.button`
   border: none;
   color: white;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1rem;
   opacity: 0.8;
   display: flex;
   align-items: center;
@@ -106,13 +113,13 @@ const Toast: React.FC<ToastProps> = ({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckIcon size={20} />;
+        return <CheckIcon size={18} />;
       case 'error':
-        return <ErrorIcon size={20} />;
+        return <ErrorIcon size={18} />;
       case 'info':
-        return <InfoIcon size={20} />;
+        return <InfoIcon size={18} />;
       default:
-        return <InfoIcon size={20} />;
+        return <InfoIcon size={18} />;
     }
   };
 
@@ -123,7 +130,7 @@ const Toast: React.FC<ToastProps> = ({
       </ToastIcon>
       <ToastContent>{message}</ToastContent>
       <ToastClose onClick={() => onClose(id)}>
-        <CloseIcon size={16} />
+        <CloseIcon size={14} />
       </ToastClose>
     </StyledToast>
   );

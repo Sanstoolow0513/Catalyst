@@ -318,7 +318,7 @@ export function registerConfigIpcHandlers() {
   });
 
   // 验证配置
-  ipcMain.handle(IPC_EVENTS.CONFIG_VALIDATE_CONFIG, async (_event: IpcMainInvokeEvent, config: any) => {
+  ipcMain.handle(IPC_EVENTS.CONFIG_VALIDATE_CONFIG, async (_event: IpcMainInvokeEvent, config: unknown) => {
     try {
       const validation = configManager.validateConfig(config);
       return { success: true, data: validation };

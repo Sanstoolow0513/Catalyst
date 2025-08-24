@@ -22,28 +22,12 @@ const MainContent = styled.div`
 `;
 
 const Content = styled(motion.main)`
-  flex-grow: 1;
-  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background-color: ${props => props.theme.background};
-  
-  /* 自定义滚动条 */
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: ${props => props.theme.surfaceVariant};
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.border};
-    border-radius: 4px;
-    
-    &:hover {
-      background: ${props => props.theme.textTertiary};
-    }
-  }
+  height: 100%;
 `;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {

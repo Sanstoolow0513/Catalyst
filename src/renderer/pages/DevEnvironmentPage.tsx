@@ -1,508 +1,189 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { PageContainer, Button, Card, StatusIndicator } from '../components/common';
-import { FaJava } from 'react-icons/fa';
-import { VscCode } from 'react-icons/vsc';
-import {
-  SiIntellijidea,
-  SiPycharm,
-  SiWebstorm,
-  SiNodedotjs,
-  SiPython,
-  SiDotnet,
-  SiMysql,
-  SiPostgresql,
-  SiMongodb,
-  SiDocker,
-  SiGit,
-  SiNpm,
-  SiReact,
-  SiVuedotjs,
-  SiAngular,
-  SiGithub,
-  SiStackoverflow,
-  SiJuejin,
-  SiMedium
-} from 'react-icons/si';
-import {
-  Code as CodeIcon,
-  Terminal as TerminalIcon,
-  Database as DatabaseIcon,
-  Globe as GlobeIcon,
-  Zap as ZapIcon,
-  Link as LinkIcon
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { PageContainer, ContentArea } from '../components/common';
+import SimpleToolCard from '../components/common/SimpleToolCard';
+import { devToolsSimple } from '../data/devToolsSimple';
+import { 
+  FaCode, 
+  FaLaptopCode, 
+  FaTerminal, 
+  FaUser 
+} from 'react-icons/fa';
 
-// Header组件 - 根据设计规范，具体服务页面不需要标题
-// const Header = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   margin-bottom: ${({ theme }) => theme.spacing.lg};
-  
-//   @media (max-width: 768px) {
-//     flex-direction: column;
-//     align-items: flex-start;
-//     gap: ${({ theme }) => theme.spacing.md};
-//   }
-// `;
-
-// Title组件 - 根据设计规范，具体服务页面不需要标题
-
-const SectionsContainer = styled.div`
+// 页面容器
+const PageLayout = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xl};
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 `;
 
-const Section = styled.div``;
+// 分类标题
+const CategorySection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
 
-const SectionHeader = styled.div`
+const CategoryHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+  gap: 12px;
+  margin-bottom: 8px;
 `;
 
-const SectionTitle = styled.h2`
+const CategoryIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: ${props => props.theme?.borderRadius?.medium || '12px'};
+  background: ${props => props.theme?.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.2)' 
+    : 'rgba(37, 99, 235, 0.1)'
+  };
+  color: ${props => props.theme?.primary?.main || '#2563EB'};
+`;
+
+const CategoryTitle = styled.h2`
   margin: 0;
-  color: ${({ theme }) => theme.textPrimary};
+  color: ${props => props.theme?.textPrimary || '#111827'};
   font-size: 1.5rem;
   font-weight: 600;
 `;
 
-const SectionIcon = styled.div`
-  width: 36px;
-  height: 36px;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background: ${({ theme }) => {
-    const primaryColor = typeof theme.primary === 'string' ? theme.primary : theme.primary.main;
-    return `linear-gradient(135deg, ${primaryColor}, ${theme.accent})`;
-  }};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-`;
-
-const ToolsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-  
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const ToolCard = styled(Card)`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-`;
-
-const ToolHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`;
-
-const ToolIcon = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-  background-color: ${props => props.theme.surfaceVariant};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: ${props => props.theme.primary.main};
-  font-size: 24px;
-`;
-
-const ToolInfo = styled.div`
-  flex: 1;
-`;
-
-const ToolName = styled.h4`
-  margin: 0 0 ${({ theme }) => theme.spacing.sm} 0;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.1rem;
-  font-weight: 600;
-`;
-
-const ToolDescription = styled.p`
-  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
-  color: ${({ theme }) => theme.textSecondary};
+const CategoryDescription = styled.p`
+  margin: 0;
+  color: ${props => props.theme?.textSecondary || '#4B5563'};
   font-size: 0.9rem;
   line-height: 1.5;
-  flex-grow: 1;
 `;
 
-const ToolFooter = styled.div`
+// 工具网格
+const ToolsGrid = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-`;
-
-const ToolCategory = styled.span`
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.textTertiary};
-  background-color: ${({ theme }) => theme.surfaceVariant};
-  padding: 4px 8px;
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-`;
-
-const WebsiteCard = styled(Card)`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  text-decoration: none;
-  color: inherit;
-  transition: all ${({ theme }) => theme.transition.fast} ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${props => props.theme.card.shadowHover};
+  flex-direction: column;
+  gap: 12px;
+  
+  @media (min-width: 768px) {
+    gap: 16px;
   }
 `;
 
-const WebsiteIcon = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background-color: ${props => props.theme.surfaceVariant};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  color: ${props => props.theme.textPrimary};
-`;
-
-const WebsiteInfo = styled.div`
-  flex: 1;
-`;
-
-const WebsiteName = styled.h4`
-  margin: 0 0 ${({ theme }) => theme.spacing.xs} 0;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.1rem;
-`;
-
-const WebsiteDescription = styled.p`
-  margin: 0;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.9rem;
-`;
-
-const StatusMessageContainer = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  padding: ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background-color: ${({ theme }) => theme.surfaceVariant};
-  border: 1px solid ${({ theme }) => theme.border};
-  display: flex;
-  align-items: center;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.textPrimary};
-`;
-
-interface Tool {
-  id: string;
-  name: string;
-  description: string;
-  category: 'IDE' | 'Runtime' | 'Database' | 'Tool' | 'Framework';
-  status: 'not-installed' | 'installing' | 'installed' | 'error';
-  icon: React.ComponentType;
-}
-
-interface Website {
-  name: string;
-  description: string;
-  url: string;
-  icon: React.ComponentType;
-}
+// 分类配置
+const categories = [
+  {
+    id: '开发环境',
+    name: '开发环境',
+    description: '必需的开发运行时环境和工具',
+    icon: FaCode
+  },
+  {
+    id: 'IDE工具',
+    name: 'IDE工具',
+    description: '集成开发环境和代码编辑器',
+    icon: FaLaptopCode
+  },
+  {
+    id: '命令行工具',
+    name: '命令行工具',
+    description: '提高开发效率的命令行工具',
+    icon: FaTerminal
+  },
+  {
+    id: '个人软件',
+    name: '个人软件',
+    description: '日常开发和工作中常用的软件',
+    icon: FaUser
+  }
+];
 
 const DevEnvironmentPage: React.FC = () => {
-  const [tools, setTools] = useState<Tool[]>([
-    // IDEs
-    { id: 'vscode', name: 'Visual Studio Code', description: '免费、开源的代码编辑器，支持多种编程语言', category: 'IDE', status: 'not-installed', icon: VscCode },
-    { id: 'intellij', name: 'IntelliJ IDEA', description: '强大的Java IDE，也支持其他语言', category: 'IDE', status: 'not-installed', icon: SiIntellijidea },
-    { id: 'pycharm', name: 'PyCharm', description: '专业的Python IDE', category: 'IDE', status: 'not-installed', icon: SiPycharm },
-    { id: 'webstorm', name: 'WebStorm', description: '专业的JavaScript和Web开发IDE', category: 'IDE', status: 'not-installed', icon: SiWebstorm },
-    
-    // Runtimes
-    { id: 'nodejs', name: 'Node.js', description: 'JavaScript 运行时环境', category: 'Runtime', status: 'not-installed', icon: SiNodedotjs },
-    { id: 'python', name: 'Python', description: '通用编程语言', category: 'Runtime', status: 'not-installed', icon: SiPython },
-    { id: 'java', name: 'Java JDK', description: 'Java开发工具包', category: 'Runtime', status: 'not-installed', icon: FaJava },
-    { id: 'dotnet', name: '.NET SDK', description: '微软的开发平台', category: 'Runtime', status: 'not-installed', icon: SiDotnet },
-    
-    // Databases
-    { id: 'mysql', name: 'MySQL', description: '流行的开源关系型数据库', category: 'Database', status: 'not-installed', icon: SiMysql },
-    { id: 'postgresql', name: 'PostgreSQL', description: '强大的开源对象关系型数据库', category: 'Database', status: 'not-installed', icon: SiPostgresql },
-    { id: 'mongodb', name: 'MongoDB', description: '流行的NoSQL文档数据库', category: 'Database', status: 'not-installed', icon: SiMongodb },
-    
-    // Tools
-    { id: 'docker', name: 'Docker', description: '容器化平台，用于构建、部署和运行应用', category: 'Tool', status: 'not-installed', icon: SiDocker },
-    { id: 'git', name: 'Git', description: '分布式版本控制系统', category: 'Tool', status: 'not-installed', icon: SiGit },
-    { id: 'npm', name: 'npm', description: 'Node.js的包管理器', category: 'Tool', status: 'not-installed', icon: SiNpm },
-    
-    // Frameworks
-    { id: 'react', name: 'React', description: '用于构建用户界面的JavaScript库', category: 'Framework', status: 'not-installed', icon: SiReact },
-    { id: 'vue', name: 'Vue.js', description: '渐进式JavaScript框架', category: 'Framework', status: 'not-installed', icon: SiVuedotjs },
-    { id: 'angular', name: 'Angular', description: '平台和框架，用于构建单页应用', category: 'Framework', status: 'not-installed', icon: SiAngular },
-  ]);
+  const [installingTools, setInstallingTools] = useState<Set<string>>(new Set());
 
-  const websites: Website[] = [
-    { name: 'GitHub', description: '代码托管与协作平台', url: 'https://github.com', icon: SiGithub },
-    { name: 'Stack Overflow', description: '开发者问答社区', url: 'https://stackoverflow.com', icon: SiStackoverflow },
-    { name: '掘金', description: '中文技术社区', url: 'https://juejin.cn', icon: SiJuejin },
-    { name: 'Medium', description: '高质量技术文章分享', url: 'https://medium.com', icon: SiMedium },
-  ];
-
-  const [statusMessage, setStatusMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  const installTool = async (toolId: string) => {
-    setStatusMessage(`Installing ${toolId}...`);
-    setIsSuccess(false);
+  const handleDownload = (toolId: string) => {
+    setInstallingTools(prev => new Set(prev).add(toolId));
     
-    setTools(prevTools =>
-      prevTools.map(tool =>
-        tool.id === toolId ? { ...tool, status: 'installing' } : tool
-      )
-    );
-    
-    try {
-      let result: { success: boolean; error?: string };
-      
-      switch (toolId) {
-        case 'vscode':
-          result = await window.electronAPI.devEnvironment.installVSCode();
-          break;
-        case 'nodejs':
-          result = await window.electronAPI.devEnvironment.installNodeJS();
-          break;
-        case 'python':
-          result = await window.electronAPI.devEnvironment.installPython();
-          break;
-        default:
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          result = { success: true };
-      }
-      
-      if (result.success) {
-        setTools(prevTools =>
-          prevTools.map(tool =>
-            tool.id === toolId ? { ...tool, status: 'installed' } : tool
-          )
-        );
-        setStatusMessage(`${toolId} installed successfully`);
-        setIsSuccess(true);
-      } else {
-        setTools(prevTools =>
-          prevTools.map(tool =>
-            tool.id === toolId ? { ...tool, status: 'error' } : tool
-          )
-        );
-        setStatusMessage(`Failed to install ${toolId}: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setTools(prevTools =>
-        prevTools.map(tool =>
-          tool.id === toolId ? { ...tool, status: 'error' } : tool
-        )
-      );
-      setStatusMessage(`Failed to install ${toolId}: ${error}`);
-      setIsSuccess(false);
-      console.error(`Error installing ${toolId}:`, error);
-    }
+    // 模拟下载过程
+    setTimeout(() => {
+      setInstallingTools(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(toolId);
+        return newSet;
+      });
+    }, 2000);
   };
-
-  const ideTools = tools.filter(tool => tool.category === 'IDE');
-  const runtimeTools = tools.filter(tool => tool.category === 'Runtime');
-  const databaseTools = tools.filter(tool => tool.category === 'Database');
-  const otherTools = tools.filter(tool => tool.category === 'Tool' || tool.category === 'Framework');
 
   return (
     <PageContainer>
-      <SectionsContainer>
-        <Section>
-          <SectionHeader>
-            <SectionIcon>
-              <GlobeIcon size={20} />
-            </SectionIcon>
-            <SectionTitle>常用开发者网站</SectionTitle>
-          </SectionHeader>
-          <ToolsGrid>
-            {websites.map(site => (
-              <a href={site.url} target="_blank" rel="noopener noreferrer" key={site.name} style={{ textDecoration: 'none' }}>
-                <WebsiteCard $padding="medium">
-                  <WebsiteIcon><site.icon /></WebsiteIcon>
-                  <WebsiteInfo>
-                    <WebsiteName>{site.name}</WebsiteName>
-                    <WebsiteDescription>{site.description}</WebsiteDescription>
-                  </WebsiteInfo>
-                  <LinkIcon size={18} />
-                </WebsiteCard>
-              </a>
-            ))}
-          </ToolsGrid>
-        </Section>
+      <ContentArea>
+        <PageLayout>
+          {/* 页面标题 */}
+          <div>
+            <h1 style={{ 
+              margin: 0, 
+              color: 'var(--text-primary)', 
+              fontSize: '2rem', 
+              fontWeight: 700,
+              marginBottom: '8px'
+            }}>
+              开发环境工具
+            </h1>
+            <p style={{ 
+              margin: 0, 
+              color: 'var(--text-secondary)', 
+              fontSize: '1rem',
+              lineHeight: 1.5
+            }}>
+              这里收录了开发所需的各类工具，包括开发环境、IDE、命令行工具和个人常用软件
+            </p>
+          </div>
 
-        <Section>
-          <SectionHeader>
-            <SectionIcon>
-              <CodeIcon size={20} />
-            </SectionIcon>
-            <SectionTitle>集成开发环境 (IDE)</SectionTitle>
-          </SectionHeader>
-          <ToolsGrid>
-            {ideTools.map(tool => (
-              <ToolCard key={tool.id} $padding="medium">
-                <ToolHeader>
-                  <ToolIcon><tool.icon /></ToolIcon>
-                  <ToolInfo>
-                    <ToolName>{tool.name}</ToolName>
-                    <ToolCategory>{tool.category}</ToolCategory>
-                  </ToolInfo>
-                </ToolHeader>
-                <ToolDescription>{tool.description}</ToolDescription>
-                <ToolFooter>
-                  <Button
-                    onClick={() => installTool(tool.id)}
-                    disabled={tool.status === 'installing' || tool.status === 'installed'}
-                    variant={tool.status === 'error' ? 'danger' : 'primary'}
-                    size="small"
-                  >
-                    {tool.status === 'installing' ? '安装中...' :
-                     tool.status === 'installed' ? '已安装' :
-                     tool.status === 'error' ? '错误' : '安装'}
-                  </Button>
-                </ToolFooter>
-              </ToolCard>
-            ))}
-          </ToolsGrid>
-        </Section>
-        
-        <Section>
-          <SectionHeader>
-            <SectionIcon>
-              <TerminalIcon size={20} />
-            </SectionIcon>
-            <SectionTitle>运行时环境</SectionTitle>
-          </SectionHeader>
-          <ToolsGrid>
-            {runtimeTools.map(tool => (
-              <ToolCard key={tool.id} $padding="medium">
-                <ToolHeader>
-                  <ToolIcon><tool.icon /></ToolIcon>
-                  <ToolInfo>
-                    <ToolName>{tool.name}</ToolName>
-                    <ToolCategory>{tool.category}</ToolCategory>
-                  </ToolInfo>
-                </ToolHeader>
-                <ToolDescription>{tool.description}</ToolDescription>
-                <ToolFooter>
-                  <Button
-                    onClick={() => installTool(tool.id)}
-                    disabled={tool.status === 'installing' || tool.status === 'installed'}
-                    variant={tool.status === 'error' ? 'danger' : 'primary'}
-                    size="small"
-                  >
-                    {tool.status === 'installing' ? '安装中...' :
-                     tool.status === 'installed' ? '已安装' :
-                     tool.status === 'error' ? '错误' : '安装'}
-                  </Button>
-                </ToolFooter>
-              </ToolCard>
-            ))}
-          </ToolsGrid>
-        </Section>
-        
-        <Section>
-          <SectionHeader>
-            <SectionIcon>
-              <DatabaseIcon size={20} />
-            </SectionIcon>
-            <SectionTitle>数据库</SectionTitle>
-          </SectionHeader>
-          <ToolsGrid>
-            {databaseTools.map(tool => (
-              <ToolCard key={tool.id} $padding="medium">
-                <ToolHeader>
-                  <ToolIcon><tool.icon /></ToolIcon>
-                  <ToolInfo>
-                    <ToolName>{tool.name}</ToolName>
-                    <ToolCategory>{tool.category}</ToolCategory>
-                  </ToolInfo>
-                </ToolHeader>
-                <ToolDescription>{tool.description}</ToolDescription>
-                <ToolFooter>
-                  <Button
-                    onClick={() => installTool(tool.id)}
-                    disabled={tool.status === 'installing' || tool.status === 'installed'}
-                    variant={tool.status === 'error' ? 'danger' : 'primary'}
-                    size="small"
-                  >
-                    {tool.status === 'installing' ? '安装中...' :
-                     tool.status === 'installed' ? '已安装' :
-                     tool.status === 'error' ? '错误' : '安装'}
-                  </Button>
-                </ToolFooter>
-              </ToolCard>
-            ))}
-          </ToolsGrid>
-        </Section>
-        
-        <Section>
-          <SectionHeader>
-            <SectionIcon>
-              <ZapIcon size={20} />
-            </SectionIcon>
-            <SectionTitle>工具和框架</SectionTitle>
-          </SectionHeader>
-          <ToolsGrid>
-            {otherTools.map(tool => (
-              <ToolCard key={tool.id} $padding="medium">
-                <ToolHeader>
-                  <ToolIcon><tool.icon /></ToolIcon>
-                  <ToolInfo>
-                    <ToolName>{tool.name}</ToolName>
-                    <ToolCategory>{tool.category}</ToolCategory>
-                  </ToolInfo>
-                </ToolHeader>
-                <ToolDescription>{tool.description}</ToolDescription>
-                <ToolFooter>
-                  <Button
-                    onClick={() => installTool(tool.id)}
-                    disabled={tool.status === 'installing' || tool.status === 'installed'}
-                    variant={tool.status === 'error' ? 'danger' : 'primary'}
-                    size="small"
-                  >
-                    {tool.status === 'installing' ? '安装中...' :
-                     tool.status === 'installed' ? '已安装' :
-                     tool.status === 'error' ? '错误' : '安装'}
-                  </Button>
-                </ToolFooter>
-              </ToolCard>
-            ))}
-          </ToolsGrid>
-        </Section>
-      </SectionsContainer>
-      
-      {statusMessage && (
-        <StatusMessageContainer>
-          <StatusIndicator $status={isSuccess ? 'success' : 'error'} />
-          {statusMessage}
-        </StatusMessageContainer>
-      )}
+          {/* 按分类展示工具 */}
+          {categories.map((category) => {
+            const categoryTools = devToolsSimple.filter(tool => tool.category === category.id);
+            
+            return (
+              <CategorySection key={category.id}>
+                <CategoryHeader>
+                  <CategoryIcon>
+                    <category.icon size={20} />
+                  </CategoryIcon>
+                  <div>
+                    <CategoryTitle>{category.name}</CategoryTitle>
+                    <CategoryDescription>{category.description}</CategoryDescription>
+                  </div>
+                </CategoryHeader>
+                
+                <ToolsGrid>
+                  {categoryTools.map((tool) => (
+                    <SimpleToolCard
+                      key={tool.id}
+                      icon={<tool.icon size={24} />}
+                      name={tool.name}
+                      officialUrl={tool.website}
+                      downloadUrl={tool.downloadUrl}
+                      onDownload={() => handleDownload(tool.id)}
+                      className={installingTools.has(tool.id) ? 'installing' : ''}
+                    />
+                  ))}
+                </ToolsGrid>
+              </CategorySection>
+            );
+          })}
+        </PageLayout>
+      </ContentArea>
     </PageContainer>
   );
 };
