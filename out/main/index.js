@@ -2290,7 +2290,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = function() {
+  state.dump = (function() {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -2328,7 +2328,7 @@ function writeScalar(state, string, level, iskey, inblock) {
       default:
         throw new exception("impossible error: invalid scalar style");
     }
-  }();
+  })();
 }
 function blockHeader(string, indentPerLevel) {
   var indentIndicator = needIndentIndicator(string) ? String(indentPerLevel) : "";
@@ -2342,12 +2342,12 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = function() {
+  var result = (function() {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
     return foldLine(string.slice(0, nextLF), width);
-  }();
+  })();
   var prevMoreIndented = string[0] === "\n" || string[0] === " ";
   var moreIndented;
   var match;
@@ -6550,7 +6550,7 @@ function requireGetIntrinsic() {
   var throwTypeError = function() {
     throw new $TypeError();
   };
-  var ThrowTypeError = $gOPD ? function() {
+  var ThrowTypeError = $gOPD ? (function() {
     try {
       arguments.callee;
       return throwTypeError;
@@ -6561,7 +6561,7 @@ function requireGetIntrinsic() {
         return throwTypeError;
       }
     }
-  }() : throwTypeError;
+  })() : throwTypeError;
   var hasSymbols2 = requireHasSymbols()();
   var getProto2 = requireGetProto();
   var $ObjectGPO = requireObject_getPrototypeOf();
@@ -9582,13 +9582,13 @@ const formDataToStream = (form, headersHandler, options) => {
     computedHeaders["Content-Length"] = contentLength;
   }
   headersHandler && headersHandler(computedHeaders);
-  return stream.Readable.from(async function* () {
+  return stream.Readable.from((async function* () {
     for (const part of parts) {
       yield boundaryBytes;
       yield* part.encode();
     }
     yield footerBytes;
-  }());
+  })());
 };
 class ZlibHeaderTransformStream extends stream.Transform {
   __transform(chunk, encoding, callback) {

@@ -5,11 +5,11 @@ import { ThemeContext } from './contexts/ThemeContext';
 import { UserProvider } from './contexts/UserContext';
 import HomePage from './pages/HomePage';
 import ProxyPage from './pages/ProxyPage';
-import ChatPage from './pages/ChatPage';
 import ModernChatPage from './pages/ModernChatPage';
 import DevEnvironmentPage from './pages/DevEnvironmentPage';
 import SettingsPage from './pages/SettingsPage';
 import InfoPage from './pages/InfoPage';
+import NotificationSystem from './components/common/NotificationSystem';
 
 function App() {
   const themeContext = useContext(ThemeContext);
@@ -33,6 +33,7 @@ function App() {
             <Route path="/info" element={<InfoPage />} />
           </Routes>
         </MainLayout>
+        <NotificationSystem />
       </UserProvider>
     </Router>
   );

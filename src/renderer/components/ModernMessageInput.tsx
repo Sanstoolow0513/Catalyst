@@ -1,7 +1,6 @@
 import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { Send, Paperclip, Mic, Loader2 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
 
 // 动画定义
 const pulse = keyframes`

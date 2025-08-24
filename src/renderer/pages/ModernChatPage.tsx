@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
+
+// 定义 pulse 动画
+const pulse = keyframes`
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+`;
+import { motion } from 'framer-motion';
 import { 
   Send, 
   Settings, 
@@ -13,168 +26,180 @@ import {
   Loader2,
   Download,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { ILLMMessage } from '../types/electron';
-import { useTheme } from '../contexts/ThemeContext';
 
 
-const float = keyframes`
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-`;
 
-const pulse = keyframes`
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-`;
-
-
-// 主容器 - 作为内容页面，不需要处理标题栏
+// 现代化聊天容器 - 无界化设计
 const ModernChatContainer = styled.div`
   height: 100%;
-  background: ${props => props.theme.background};
+  background: ${props => props.theme.name === 'dark' 
+    ? 'linear-gradient(135deg, #030712 0%, #111827 50%, #1f2937 100%)' 
+    : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)'};
   position: relative;
   font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  overflow: hidden;
   
-  /* 确保占满父容器空间 */
-  width: 100%;
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${props => props.theme.name === 'dark' 
+      ? 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)' 
+      : 'radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)'};
+    animation: float 8s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
 `;
 
-// 主布局容器 - 纯内容布局
+// 主布局容器 - 全屏沉浸式布局
 const MainLayout = styled.div`
   display: flex;
   height: 100%;
   position: relative;
   z-index: 1;
-  
-  /* 确保没有外边距和内边距 */
   margin: 0;
-  padding: 0;
-  
-  /* 占满整个可用空间 */
+  padding: 24px;
+  gap: 24px;
   width: 100%;
+  box-sizing: border-box;
 `;
 
-// 侧边配置面板 - PC固定宽度
-const ConfigSidebar = styled.div<{ $collapsed: boolean }>`
-  width: ${props => props.$collapsed ? '60px' : '420px'};
-  background: ${props => props.theme.surface};
-  border-right: 1px solid ${props => props.theme.border};
+// 现代化配置面板 - 浮动卡片设计
+const ConfigPanel = styled(motion.div)<{ $collapsed: boolean }>`
+  width: ${props => props.$collapsed ? '80px' : '400px'};
+  height: fit-content;
+  max-height: calc(100vh - 48px);
+  background: ${props => props.theme.name === 'dark' 
+    ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.8))' 
+    : 'linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(226, 232, 240, 0.8))'};
+  backdrop-filter: blur(20px);
+  border: 1px solid ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.2)' 
+    : 'rgba(37, 99, 235, 0.2)'};
+  border-radius: 20px;
+  box-shadow: ${props => props.theme.name === 'dark' 
+    ? '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.1)' 
+    : '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(37, 99, 235, 0.1)'};
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
-  transition: width 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      ${props => props.theme.name === 'dark' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(37, 99, 235, 0.5)'}, 
+      transparent
+    );
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
 `;
 
-// 侧边栏头部
-const SidebarHeader = styled.div<{ $collapsed: boolean }>`
-  padding: ${props => props.$collapsed ? '16px 8px' : '16px 20px'};
-  border-bottom: 1px solid ${props => props.theme.border};
+// 配置面板头部
+const ConfigHeader = styled.div<{ $collapsed: boolean }>`
+  padding: ${props => props.$collapsed ? '16px 12px' : '20px 24px'};
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: ${props => props.theme.surfaceVariant};
-  color: ${props => props.theme.textPrimary};
-  transition: padding 0.3s ease;
+  border-bottom: 1px solid ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.1)' 
+    : 'rgba(37, 99, 235, 0.1)'};
+  background: ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.05)' 
+    : 'rgba(37, 99, 235, 0.05)'};
+  border-radius: 20px 20px 0 0;
+  transition: padding 0.4s ease;
 `;
 
-// 侧边栏标题
-const SidebarTitle = styled.h2<{ $collapsed: boolean }>`
-  font-size: 1.2rem;
+// 配置面板标题
+const ConfigTitle = styled.h2<{ $collapsed: boolean }>`
+  font-size: 1.1rem;
   font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  color: ${props => props.theme.textPrimary};
   
   ${props => props.$collapsed && `
     display: none;
   `}
 `;
 
-// 侧边栏内容
-const SidebarContent = styled.div<{ $collapsed: boolean }>`
+// 折叠按钮
+const CollapseButton = styled.button`
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: ${props => props.theme.textSecondary};
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    background: ${props => props.theme.surfaceVariant};
+    color: ${props => props.theme.textPrimary};
+  }
+`;
+
+// 配置面板内容
+const ConfigContent = styled.div<{ $collapsed: boolean }>`
   flex: 1;
   overflow-y: auto;
-  padding: ${props => props.$collapsed ? '10px 5px' : '20px'};
+  padding: ${props => props.$collapsed ? '16px 8px' : '24px'};
   opacity: ${props => props.$collapsed ? 0 : 1};
-  transition: opacity 0.3s ease, padding 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: ${props => props.$collapsed ? 'none' : 'auto'};
   
-  /* 隐藏滚动条但保持滚动功能 */
   &::-webkit-scrollbar {
-    width: 0px;
+    width: 6px;
     background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: transparent;
+    background: ${props => props.theme.name === 'dark' 
+      ? 'rgba(59, 130, 246, 0.3)' 
+      : 'rgba(37, 99, 235, 0.3)'};
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${props => props.theme.name === 'dark' 
+      ? 'rgba(59, 130, 246, 0.5)' 
+      : 'rgba(37, 99, 235, 0.5)'};
   }
   
   -ms-overflow-style: none;
-  scrollbar-width: none;
+  scrollbar-width: thin;
 `;
 
-// 配置卡片
-const ConfigCard = styled.div`
-  background: ${props => props.theme.surfaceVariant};
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 1px solid ${props => props.theme.border};
-`;
-
-// 折叠按钮
-const CollapseButton = styled.button`
-  background: none;
-  border: none;
-  color: ${props => props.theme.textSecondary};
-  cursor: pointer;
-  padding: 8px;
-  border-radius: ${props => props.theme.borderRadius.small};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all ${props => props.theme.transition.fast} ease;
-  
-  &:hover {
-    background: ${props => props.theme.surfaceVariant};
-    transform: scale(1.1);
-    color: ${props => props.theme.textPrimary};
-  }
-  
-  &:active {
-    transform: scale(0.95);
-  }
-`;
-
-// 折叠状态指示器
-const CollapsedStatusIndicator = styled.div<{ $status: 'success' | 'error' }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  border-radius: 50%;
-  font-size: 12px;
-  margin: 0 auto;
-  
-  ${props => {
-    if (props.$status === 'success') {
-      return css`
-        background: ${props => props.theme.success.main}20;
-        color: ${props => props.theme.success.main};
-      `;
-    } else {
-      return css`
-        background: ${props => props.theme.error.main}20;
-        color: ${props => props.theme.error.main};
-      `;
-    }
-  }}
-`;
-
+// 配置卡片 - 现代化设计
 
 // 现代化输入框
 const ModernInput = styled.input`
@@ -284,59 +309,93 @@ const Label = styled.label`
   letter-spacing: 0.5px;
 `;
 
-// 主聊天区域
+// 主聊天区域 - 现代化设计
 const ChatArea = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: ${props => props.theme.foreground};
-  
-  /* 确保占满剩余空间 */
+  background: ${props => props.theme.name === 'dark' 
+    ? 'linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.6))' 
+    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.6))'};
+  backdrop-filter: blur(20px);
+  border: 1px solid ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.2)' 
+    : 'rgba(37, 99, 235, 0.2)'};
+  border-radius: 20px;
+  box-shadow: ${props => props.theme.name === 'dark' 
+    ? '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.1)' 
+    : '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(37, 99, 235, 0.1)'};
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  position: relative;
   
-  /* 移除边距 */
-  margin: 0;
-  padding: 0;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      ${props => props.theme.name === 'dark' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(37, 99, 235, 0.5)'}, 
+      transparent
+    );
+    animation: shimmer 3s ease-in-out infinite;
+  }
 `;
 
-// 聊天头部
+// 聊天头部 - 现代化设计
 const ChatHeader = styled.div`
-  padding: 16px 24px;
-  background: ${props => props.theme.surfaceVariant};
-  border-bottom: 1px solid ${props => props.theme.border};
+  padding: 20px 24px;
+  background: ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.05)' 
+    : 'rgba(37, 99, 235, 0.05)'};
+  border-bottom: 1px solid ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.1)' 
+    : 'rgba(37, 99, 235, 0.1)'};
   display: flex;
   align-items: center;
   justify-content: space-between;
 `;
 
-// 聊天标题
+// 聊天标题 - 现代化设计
 const ChatTitle = styled.h1`
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   margin: 0;
   color: ${props => props.theme.textPrimary};
   display: flex;
   align-items: center;
   gap: 12px;
+  
+  span {
+    background: ${props => props.theme.name === 'dark' 
+      ? 'linear-gradient(135deg, #3B82F6, #8B5CF6)' 
+      : 'linear-gradient(135deg, #2563EB, #7C3AED)'};
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 `;
 
-// 聊天操作按钮
+// 聊天操作按钮 - 现代化设计
 const ChatActions = styled.div`
   display: flex;
   gap: 12px;
 `;
 
-// 现代化按钮
-const ModernButton = styled.button<{ $variant?: 'primary' | 'secondary' | 'ghost'; $size?: 'sm' | 'md' | 'lg' }>`
+// 现代化按钮 - 无界设计
+const ModernButton = styled(motion.button)<{ $variant?: 'primary' | 'secondary' | 'ghost'; $size?: 'sm' | 'md' | 'lg' }>`
   padding: ${props => {
     switch(props.$size) {
-      case 'sm': return '6px 12px';
-      case 'lg': return '10px 20px';
-      default: return '8px 16px';
+      case 'sm': return '8px 16px';
+      case 'lg': return '12px 24px';
+      default: return '10px 20px';
     }
   }};
-  border-radius: ${props => props.theme.borderRadius.small};
+  border-radius: 12px;
   font-size: ${props => {
     switch(props.$size) {
       case 'sm': return '12px';
@@ -345,43 +404,53 @@ const ModernButton = styled.button<{ $variant?: 'primary' | 'secondary' | 'ghost
     }
   }};
   font-weight: 500;
-  transition: all ${props => props.theme.transition.fast} ease;
+  transition: all 0.3s ease;
   cursor: pointer;
   border: none;
   display: flex;
   align-items: center;
   gap: 6px;
   font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  backdrop-filter: blur(10px);
   
   ${props => {
     switch(props.$variant) {
       case 'primary':
         return css`
-          background: ${props.theme.primary.main};
+          background: ${props => props.theme.name === 'dark' 
+            ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.8))' 
+            : 'linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(124, 58, 237, 0.8))'};
           color: ${props.theme.primary.contrastText};
-          
-          &:hover:not(:disabled) {
-            background: ${props.theme.primary.light};
-          }
+          border: 1px solid ${props => props.theme.name === 'dark' 
+            ? 'rgba(139, 92, 246, 0.3)' 
+            : 'rgba(124, 58, 237, 0.3)'};
+          box-shadow: ${props => props.theme.name === 'dark' 
+            ? '0 4px 16px rgba(59, 130, 246, 0.3)' 
+            : '0 4px 16px rgba(37, 99, 235, 0.3)'};
         `;
       case 'secondary':
         return css`
-          background: ${props.theme.secondary.main};
-          color: ${props.theme.secondary.contrastText};
-          
-          &:hover:not(:disabled) {
-            background: ${props.theme.secondary.light};
-          }
+          background: ${props => props.theme.name === 'dark' 
+            ? 'linear-gradient(135deg, rgba(100, 116, 139, 0.9), rgba(148, 163, 184, 0.8))' 
+            : 'linear-gradient(135deg, rgba(203, 213, 225, 0.9), rgba(226, 232, 240, 0.8))'};
+          color: ${props => props.theme.secondary.contrastText};
+          border: 1px solid ${props => props.theme.name === 'dark' 
+            ? 'rgba(148, 163, 184, 0.3)' 
+            : 'rgba(203, 213, 225, 0.3)'};
+          box-shadow: ${props => props.theme.name === 'dark' 
+            ? '0 4px 16px rgba(100, 116, 139, 0.3)' 
+            : '0 4px 16px rgba(100, 116, 139, 0.2)'};
         `;
       default:
         return css`
-          background: transparent;
+          background: ${props => props.theme.name === 'dark' 
+            ? 'rgba(30, 41, 59, 0.6)' 
+            : 'rgba(255, 255, 255, 0.6)'};
           color: ${props.theme.textSecondary};
-          
-          &:hover:not(:disabled) {
-            background: ${props.theme.surfaceVariant};
-            color: ${props.theme.textPrimary};
-          }
+          border: 1px solid ${props => props.theme.name === 'dark' 
+            ? 'rgba(59, 130, 246, 0.2)' 
+            : 'rgba(37, 99, 235, 0.2)'};
+          backdrop-filter: blur(10px);
         `;
     }
   }}
@@ -390,90 +459,111 @@ const ModernButton = styled.button<{ $variant?: 'primary' | 'secondary' | 'ghost
     opacity: 0.5;
     cursor: not-allowed;
   }
+  
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
 `;
 
-// 消息区域
+// 消息区域 - 现代化设计
 const MessageArea = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   min-height: 0;
   
-  /* 隐藏滚动条但保持滚动功能 */
   &::-webkit-scrollbar {
-    width: 0px;
+    width: 6px;
     background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: transparent;
+    background: ${props => props.theme.name === 'dark' 
+      ? 'rgba(59, 130, 246, 0.3)' 
+      : 'rgba(37, 99, 235, 0.3)'};
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${props => props.theme.name === 'dark' 
+      ? 'rgba(59, 130, 246, 0.5)' 
+      : 'rgba(37, 99, 235, 0.5)'};
   }
   
   -ms-overflow-style: none;
-  scrollbar-width: none;
+  scrollbar-width: thin;
 `;
 
-// 消息容器
-const MessageContainer = styled.div<{ $role: 'user' | 'assistant' | 'system' }>`
+// 消息容器 - 现代化设计
+const MessageContainer = styled(motion.div)<{ $role: 'user' | 'assistant' | 'system' }>`
   display: flex;
   ${props => props.$role === 'user' ? 'justify-content: flex-end' : 'justify-content: flex-start'};
-  animation: ${float} 3s ease-in-out infinite;
-  animation-delay: ${Math.random() * 2}s;
-  
-  /* 优化滚动交互 */
   scroll-behavior: smooth;
-  
-  /* 确保消息不会太宽 */
   max-width: 100%;
 `;
 
-// 消息气泡
-const MessageBubble = styled.div<{ $role: 'user' | 'assistant' | 'system' }>`
-  max-width: 85%;
-  padding: 12px 16px;
-  border-radius: 8px;
+// 消息气泡 - 现代化无界设计
+const MessageBubble = styled(motion.div)<{ $role: 'user' | 'assistant' | 'system' }>`
+  max-width: 70%;
+  padding: 16px 20px;
+  border-radius: 20px;
   position: relative;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  
-  /* 响应式设计 */
-  @media (max-width: 768px) {
-    max-width: 90%;
-    padding: 10px 14px;
-  }
-  
-  @media (max-width: 480px) {
-    max-width: 95%;
-    padding: 8px 12px;
-  }
+  backdrop-filter: blur(10px);
   
   ${props => {
     if (props.$role === 'user') {
       return css`
-        background: ${props.theme.primary.main};
+        background: ${props => props.theme.name === 'dark' 
+          ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.8))' 
+          : 'linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(124, 58, 237, 0.8))'};
         color: ${props.theme.primary.contrastText};
-        border-bottom-right-radius: 4px;
-        border: 1px solid ${props.theme.primary.dark};
+        border: 1px solid ${props => props.theme.name === 'dark' 
+          ? 'rgba(139, 92, 246, 0.3)' 
+          : 'rgba(124, 58, 237, 0.3)'};
+        box-shadow: ${props => props.theme.name === 'dark' 
+          ? '0 4px 16px rgba(59, 130, 246, 0.3)' 
+          : '0 4px 16px rgba(37, 99, 235, 0.3)'};
+        border-bottom-right-radius: 8px;
       `;
     } else if (props.$role === 'assistant') {
       return css`
-        background: ${props.theme.surfaceVariant};
+        background: ${props => props.theme.name === 'dark' 
+          ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.8))' 
+          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8))'};
         color: ${props.theme.textPrimary};
-        border-bottom-left-radius: 4px;
-        border: 1px solid ${props.theme.border};
+        border: 1px solid ${props => props.theme.name === 'dark' 
+          ? 'rgba(59, 130, 246, 0.2)' 
+          : 'rgba(37, 99, 235, 0.2)'};
+        box-shadow: ${props => props.theme.name === 'dark' 
+          ? '0 4px 16px rgba(0, 0, 0, 0.2)' 
+          : '0 4px 16px rgba(0, 0, 0, 0.1)'};
+        border-bottom-left-radius: 8px;
       `;
     } else {
       return css`
-        background: ${props.theme.surface};
+        background: ${props => props.theme.name === 'dark' 
+          ? 'rgba(75, 85, 99, 0.3)' 
+          : 'rgba(156, 163, 175, 0.2)'};
         color: ${props.theme.textSecondary};
-        border: 1px solid ${props.theme.borderLight};
+        border: 1px solid ${props => props.theme.name === 'dark' 
+          ? 'rgba(75, 85, 99, 0.4)' 
+          : 'rgba(156, 163, 175, 0.3)'};
         font-style: italic;
+        border-radius: 16px;
       `;
     }
   }}
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${props => props.theme.name === 'dark' 
+      ? '0 6px 20px rgba(59, 130, 246, 0.4)' 
+      : '0 6px 20px rgba(37, 99, 235, 0.4)'};
+  }
 `;
 
 // 消息头部
@@ -548,42 +638,47 @@ const MessageContent = styled.div`
   }
 `;
 
-// 输入区域
+// 输入区域 - 现代化卡片设计
 const InputArea = styled.div`
-  padding: 16px 24px;
-  background: ${props => props.theme.surfaceVariant};
-  border-top: 1px solid ${props => props.theme.border};
-  
-  /* 确保输入区域固定在底部 */
+  padding: 20px 24px;
+  background: ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.05)' 
+    : 'rgba(37, 99, 235, 0.05)'};
+  border-top: 1px solid ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.1)' 
+    : 'rgba(37, 99, 235, 0.1)'};
   flex-shrink: 0;
-  
-  /* 响应式设计 */
-  @media (max-width: 768px) {
-    padding: 12px 16px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 8px 12px;
-  }
 `;
 
-// 输入容器
-const InputContainer = styled.div`
+// 输入容器 - 现代化卡片设计
+const InputContainer = styled(motion.div)`
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  background: ${props => props.theme.surface};
-  border-radius: 8px;
-  padding: 12px;
-  border: 1px solid ${props => props.theme.border};
+  background: ${props => props.theme.name === 'dark' 
+    ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(51, 65, 85, 0.6))' 
+    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.6))'};
+  backdrop-filter: blur(20px);
+  border: 1px solid ${props => props.theme.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.2)' 
+    : 'rgba(37, 99, 235, 0.2)'};
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: ${props => props.theme.name === 'dark' 
+    ? '0 4px 16px rgba(0, 0, 0, 0.2)' 
+    : '0 4px 16px rgba(0, 0, 0, 0.1)'};
   
   &:focus-within {
-    border-color: ${props => props.theme.primary.main};
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    border-color: ${props => props.theme.name === 'dark' 
+      ? 'rgba(59, 130, 246, 0.4)' 
+      : 'rgba(37, 99, 235, 0.4)'};
+    box-shadow: ${props => props.theme.name === 'dark' 
+      ? '0 6px 20px rgba(59, 130, 246, 0.3)' 
+      : '0 6px 20px rgba(37, 99, 235, 0.3)'};
   }
 `;
 
-// 现代化输入框（聊天用）
+// 现代化输入框（聊天用）- 无界设计
 const ChatInput = styled.textarea`
   flex: 1;
   border: none;
@@ -593,65 +688,64 @@ const ChatInput = styled.textarea`
   line-height: 1.5;
   resize: none;
   outline: none;
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border-radius: 12px;
   max-height: 120px;
   font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  transition: all 0.3s ease;
   
-  /* 优化滚动体验 */
   scroll-behavior: smooth;
   
   &::placeholder {
     color: ${props => props.theme.textTertiary};
   }
   
-  /* 隐藏滚动条但保持滚动功能 */
   &::-webkit-scrollbar {
-    width: 0px;
+    width: 6px;
     background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: transparent;
+    background: ${props => props.theme.name === 'dark' 
+      ? 'rgba(59, 130, 246, 0.3)' 
+      : 'rgba(37, 99, 235, 0.3)'};
+    border-radius: 3px;
   }
   
   -ms-overflow-style: none;
-  scrollbar-width: none;
-  
-  /* 响应式设计 */
-  @media (max-width: 768px) {
-    font-size: 13px;
-    padding: 6px 10px;
-    max-height: 100px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 12px;
-    padding: 4px 8px;
-    max-height: 80px;
-  }
+  scrollbar-width: thin;
 `;
 
-// 发送按钮
-const SendButton = styled.button<{ $disabled?: boolean }>`
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
+// 发送按钮 - 现代化设计
+const SendButton = styled(motion.button)<{ $disabled?: boolean }>`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   border: none;
-  background: ${props => props.$disabled ? props.theme.border : props.theme.primary.main};
+  background: ${props => props.$disabled 
+    ? (props.theme.name === 'dark' ? 'rgba(75, 85, 99, 0.3)' : 'rgba(156, 163, 175, 0.3)') 
+    : (props.theme.name === 'dark' 
+      ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.8))' 
+      : 'linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(124, 58, 237, 0.8))')};
   color: ${props => props.$disabled ? props.theme.textTertiary : props.theme.primary.contrastText};
   cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: ${props => props.$disabled ? 'none' : (props.theme.name === 'dark' 
+    ? '0 4px 16px rgba(59, 130, 246, 0.3)' 
+    : '0 4px 16px rgba(37, 99, 235, 0.3)')};
   
   &:hover:not(:disabled) {
-    background: ${props => props.theme.primary.light};
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: ${props => props.theme.name === 'dark' 
+      ? '0 6px 20px rgba(59, 130, 246, 0.4)' 
+      : '0 6px 20px rgba(37, 99, 235, 0.4)'};
   }
   
   &:active:not(:disabled) {
-    transform: scale(0.95);
+    transform: translateY(0) scale(0.95);
   }
 `;
 
@@ -674,66 +768,57 @@ const LoadingDots = styled.div`
   }
 `;
 
-// 状态指示器
-const StatusIndicator = styled.div<{ $status: 'success' | 'error' | 'loading' }>`
+// 状态指示器 - 现代化设计
+const StatusIndicator = styled(motion.div)<{ $status: 'success' | 'error' | 'loading' }>`
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 12px 20px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
+  backdrop-filter: blur(10px);
   
   ${props => {
     switch(props.$status) {
       case 'success':
         return css`
-          background: ${props.theme.success.main}20;
+          background: ${props.theme.name === 'dark' 
+            ? 'rgba(16, 185, 129, 0.2)' 
+            : 'rgba(16, 185, 129, 0.1)'};
           color: ${props.theme.success.main};
+          border: 1px solid ${props.theme.name === 'dark' 
+            ? 'rgba(16, 185, 129, 0.3)' 
+            : 'rgba(16, 185, 129, 0.2)'};
         `;
       case 'error':
         return css`
-          background: ${props.theme.error.main}20;
+          background: ${props.theme.name === 'dark' 
+            ? 'rgba(239, 68, 68, 0.2)' 
+            : 'rgba(239, 68, 68, 0.1)'};
           color: ${props.theme.error.main};
+          border: 1px solid ${props.theme.name === 'dark' 
+            ? 'rgba(239, 68, 68, 0.3)' 
+            : 'rgba(239, 68, 68, 0.2)'};
         `;
       default:
         return css`
-          background: ${props.theme.primary.main}20;
+          background: ${props.theme.name === 'dark' 
+            ? 'rgba(59, 130, 246, 0.2)' 
+            : 'rgba(37, 99, 235, 0.1)'};
           color: ${props.theme.primary.main};
+          border: 1px solid ${props.theme.name === 'dark' 
+            ? 'rgba(59, 130, 246, 0.3)' 
+            : 'rgba(37, 99, 235, 0.2)'};
         `;
     }
   }}
+  
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
 `;
 
 // 配置区域
-const ConfigSection = styled.div`
-  margin-bottom: 16px;
-`;
-
-const ConfigSectionHeader = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  background: ${props => props.theme.surfaceVariant};
-  border-radius: ${props => props.theme.borderRadius.small};
-  border: 1px solid ${props => props.theme.border};
-  margin-bottom: 12px;
-`;
-
-const ConfigSectionTitle = styled.h4`
-  margin: 0;
-  font-size: 12px;
-  font-weight: 500;
-  color: ${props => props.theme.textPrimary};
-  font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
-`;
-
-const ConfigSectionContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
 const ModernChatPage: React.FC = () => {
   const [messages, setMessages] = useState<ILLMMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -912,19 +997,24 @@ const ModernChatPage: React.FC = () => {
   return (
     <ModernChatContainer>
       <MainLayout>
-        {/* 配置侧边栏 */}
-        <ConfigSidebar $collapsed={isConfigCollapsed}>
-          <SidebarHeader $collapsed={isConfigCollapsed}>
-            <SidebarTitle $collapsed={isConfigCollapsed}>
+        {/* 配置面板 */}
+        <ConfigPanel 
+          $collapsed={isConfigCollapsed}
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <ConfigHeader $collapsed={isConfigCollapsed}>
+            <ConfigTitle $collapsed={isConfigCollapsed}>
               <Settings size={20} />
               模型配置
-            </SidebarTitle>
+            </ConfigTitle>
             <CollapseButton onClick={toggleConfigPanel}>
               {isConfigCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </CollapseButton>
-          </SidebarHeader>
+          </ConfigHeader>
           
-          <SidebarContent $collapsed={isConfigCollapsed}>
+          <ConfigContent $collapsed={isConfigCollapsed}>
             {/* 基本配置 */}
             <div style={{ marginBottom: '16px' }}>
               <div style={{ marginBottom: '12px' }}>
@@ -1027,14 +1117,19 @@ const ModernChatPage: React.FC = () => {
                 {isConfigValid ? '配置完成' : '配置未完成'}
               </StatusIndicator>
             </div>
-          </SidebarContent>
-        </ConfigSidebar>
+          </ConfigContent>
+        </ConfigPanel>
 
         {/* 聊天区域 */}
-        <ChatArea>
+        <ChatArea
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           <ChatHeader>
             <ChatTitle>
               <MessageSquare size={24} />
+              <span>AI对话</span>
               <Sparkles size={20} style={{ animation: 'pulse 2s ease-in-out infinite' }} />
             </ChatTitle>
             <ChatActions>
@@ -1051,8 +1146,18 @@ const ModernChatPage: React.FC = () => {
 
           <MessageArea>
             {messages.map((message, index) => (
-              <MessageContainer key={index} $role={message.role}>
-                <MessageBubble $role={message.role}>
+              <MessageContainer 
+                key={index} 
+                $role={message.role}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+              >
+                <MessageBubble 
+                  $role={message.role}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <MessageHeader>
                     {message.role === 'user' ? <User size={14} /> : <Bot size={14} />}
                     {message.role === 'user' ? '您' : 'AI助手'}
@@ -1063,7 +1168,12 @@ const ModernChatPage: React.FC = () => {
             ))}
             
             {isLoading && (
-              <MessageContainer $role="assistant">
+              <MessageContainer 
+                $role="assistant"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
                 <MessageBubble $role="assistant">
                   <MessageHeader>
                     <Bot size={14} />
@@ -1080,7 +1190,10 @@ const ModernChatPage: React.FC = () => {
           </MessageArea>
 
           <InputArea>
-            <InputContainer>
+            <InputContainer
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
               <ChatInput
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
@@ -1092,13 +1205,24 @@ const ModernChatPage: React.FC = () => {
               <SendButton 
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isLoading || !isConfigValid}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
                 {isLoading ? <Loader2 size={20} style={{ animation: 'pulse 1s ease-in-out infinite' }} /> : <Send size={20} />}
               </SendButton>
             </InputContainer>
             
             {error && (
-              <div style={{ marginTop: '12px', color: '#ef4444', fontSize: '14px', fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif' }}>
+              <div style={{ 
+                marginTop: '12px', 
+                color: '#ef4444', 
+                fontSize: '14px', 
+                fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                background: 'rgba(239, 68, 68, 0.1)',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid rgba(239, 68, 68, 0.2)'
+              }}>
                 {error}
               </div>
             )}

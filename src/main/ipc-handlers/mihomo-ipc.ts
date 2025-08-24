@@ -38,7 +38,7 @@ export function registerMihomoIpcHandlers() {
     }
   });
 
-  ipcMain.handle(IPC_EVENTS.MIHOMO_SAVE_CONFIG, async (_event, config: any) => {
+  ipcMain.handle(IPC_EVENTS.MIHOMO_SAVE_CONFIG, async (_event, config: unknown) => {
     try {
       await mihomoService.saveConfig(config);
       return { success: true };

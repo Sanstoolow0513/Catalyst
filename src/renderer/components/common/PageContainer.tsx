@@ -1,23 +1,20 @@
 import styled from 'styled-components';
 
 export const PageContainer = styled.div`
-  flex-grow: 1;
-  padding: ${(props) => props.theme.spacing.xl};
-  background-color: ${(props) => props.theme.background};
-  color: ${(props) => props.theme.textPrimary};
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   height: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
   width: 100%;
-
-  @media (max-width: 768px) {
-    padding: ${(props) => props.theme.spacing.lg};
+  background-color: ${(props) => props.theme?.background || '#F9FAFB'};
+  color: ${(props) => props.theme?.textPrimary || '#111827'};
+  padding: ${(props) => props.theme?.spacing?.xl || '32px'};
+  
+  &::-webkit-scrollbar {
+    display: none;
   }
-
-  @media (max-width: 480px) {
-    padding: ${(props) => props.theme.spacing.md};
-  }
+  
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 `;

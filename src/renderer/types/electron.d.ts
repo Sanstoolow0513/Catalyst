@@ -4,13 +4,13 @@ export interface IMihomoAPI {
   start: () => Promise<{ success: boolean; error?: string }>;
   stop: () => Promise<{ success: boolean; error?: string }>;
   status: () => Promise<{ isRunning: boolean }>;
-  loadConfig: () => Promise<{ success: boolean; data?: any; error?: string }>;
-  saveConfig: (config: any) => Promise<{ success: boolean; error?: string }>;
+  loadConfig: () => Promise<{ success: boolean; data?: IMihomoConfig; error?: string }>;
+  saveConfig: (config: IMihomoConfig) => Promise<{ success: boolean; error?: string }>;
   getConfigPath: () => Promise<{ success: boolean; data?: string; error?: string }>;
   openConfigDir: () => Promise<{ success: boolean; error?: string }>;
-  getProxies: () => Promise<{ success: boolean; data?: any; error?: string }>;
+  getProxies: () => Promise<{ success: boolean; data?: { proxies: Record<string, unknown>; 'proxy-groups': unknown[] }; error?: string }>;
   selectProxy: (groupName: string, proxyName: string) => Promise<{ success: boolean; error?: string }>;
-  fetchConfigFromURL: (url: string) => Promise<{ success: boolean; data?: any; error?: string }>;
+  fetchConfigFromURL: (url: string) => Promise<{ success: boolean; data?: IMihomoConfig; error?: string }>;
   testProxyDelay: (proxyName: string) => Promise<{ success: boolean; data?: number; error?: string }>;
 }
 
@@ -25,9 +25,9 @@ export interface IMihomoConfig {
   'log-level'?: string;
   ipv6?: boolean;
   'external-controller'?: string;
-  proxies?: any[];
-  'proxy-groups'?: any[];
-  rules?: any[];
+  proxies?: Record<string, unknown>[];
+  'proxy-groups'?: unknown[];
+  rules?: unknown[];
   tun?: {
     enable?: boolean;
     stack?: string;
@@ -41,7 +41,7 @@ export interface IMihomoConfig {
     enable?: boolean;
     'parse-pure-ip'?: boolean;
   };
-  [key: string]: any; // 允许其他自定义字段
+  [key: string]: unknown; // 允许其他自定义字段
 }
 
 // 开发环境相关类型定义
@@ -91,7 +91,7 @@ export interface ILLMAPI {
 
 // 配置管理API
 export interface IConfigAPI {
-  getAll: () => Promise<{ success: boolean; data?: any; error?: string }>;
+  getAll: () => Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }>;
   setVpnUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
   getVpnUrl: () => Promise<{ success: boolean; data?: string; error?: string }>;
   setProxyAutoStart: (autoStart: boolean) => Promise<{ success: boolean; error?: string }>;
@@ -111,11 +111,11 @@ export interface IConfigAPI {
   getNotifications: () => Promise<{ success: boolean; data?: boolean; error?: string }>;
   setTheme: (theme: 'light' | 'dark' | 'auto') => Promise<{ success: boolean; error?: string }>;
   setLanguage: (language: string) => Promise<{ success: boolean; error?: string }>;
-  getUsageStats: () => Promise<{ success: boolean; data?: any; error?: string }>;
+  getUsageStats: () => Promise<{ success: boolean; data?: { usage: number; timestamp: string }; error?: string }>;
   createBackup: () => Promise<{ success: boolean; data?: string; error?: string }>;
   restoreFromBackup: (backupPath: string) => Promise<{ success: boolean; data?: string; error?: string }>;
   getBackupFiles: () => Promise<{ success: boolean; data?: string[]; error?: string }>;
-  validateConfig: (config: any) => Promise<{ success: boolean; data?: { valid: boolean; errors: string[] }; error?: string }>;
+  validateConfig: (config: IMihomoConfig) => Promise<{ success: boolean; data?: { valid: boolean; errors: string[] }; error?: string }>;
   migrateConfig: () => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -137,8 +137,8 @@ declare global {
     };
     electron: {
       ipcRenderer: {
-        send: (channel: string, ...args: any[]) => void;
-        on: (channel: string, func: (...args: any[]) => void) => void;
+        send: (channel: string, ...args: unknown[]) => void;
+        on: (channel: string, func: (...args: unknown[]) => void) => void;
         removeAllListeners: (channel: string) => void;
       };
     };

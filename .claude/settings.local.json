@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(npm run build)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(findstr:*)",
+      "Bash(cat:*)",
+      "Bash(powershell:*)",
+      "Bash(rg:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck:*)",
+      "Bash(dir:*)",
+      "Bash(npm start:*)",
+      "Bash(npm run dev:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

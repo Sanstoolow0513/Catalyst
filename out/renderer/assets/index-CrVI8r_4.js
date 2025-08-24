@@ -1,6 +1,6 @@
-import { j as jsxRuntimeExports, c as createTheme, T as ThemeProvider } from "./ui-JEu-TH0r.js";
-import { a as requireReact, b as requireReactDom, g as getDefaultExportFromCjs, r as reactExports, o as ot, d as dt, c as React, m as mt, l as lt, f as ft } from "./vendor-BX9Ry-Sa.js";
-import { j as jsYaml } from "./utils-BmVrXmbd.js";
+import { j as jsxRuntimeExports, c as createTheme, T as ThemeProvider } from "./ui-DZ1gWn7b.js";
+import { a as requireReact, b as requireReactDom, g as getDefaultExportFromCjs, r as reactExports, o as ot, d as dt, c as React, m as mt, l as lt, f as ft } from "./vendor-DhqXj2Hl.js";
+import { d as dump, l as load } from "./utils-CO-nVJB8.js";
 var client = { exports: {} };
 var reactDomClient_production = {};
 var scheduler = { exports: {} };
@@ -11365,7 +11365,7 @@ function requireClient() {
 var clientExports = requireClient();
 const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(clientExports);
 /**
- * react-router v7.8.0
+ * react-router v7.8.2
  *
  * Copyright (c) Remix Software Inc.
  *
@@ -11593,8 +11593,8 @@ function matchRoutesImpl(routes, locationArg, basename, allowPartial) {
   }
   return matches;
 }
-function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "") {
-  let flattenRoute = (route, index, relativePath) => {
+function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "", _hasParentOptionalSegments = false) {
+  let flattenRoute = (route, index, hasParentOptionalSegments = _hasParentOptionalSegments, relativePath) => {
     let meta = {
       relativePath: relativePath === void 0 ? route.path || "" : relativePath,
       caseSensitive: route.caseSensitive === true,
@@ -11602,6 +11602,9 @@ function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "")
       route
     };
     if (meta.relativePath.startsWith("/")) {
+      if (!meta.relativePath.startsWith(parentPath) && hasParentOptionalSegments) {
+        return;
+      }
       invariant$1(
         meta.relativePath.startsWith(parentPath),
         `Absolute route path "${meta.relativePath}" nested under path "${parentPath}" is not valid. An absolute child route path must start with the combined path of all its parent routes.`
@@ -11617,7 +11620,13 @@ function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "")
         route.index !== true,
         `Index routes must not have child routes. Please remove all child routes from route path "${path}".`
       );
-      flattenRoutes(route.children, branches, routesMeta, path);
+      flattenRoutes(
+        route.children,
+        branches,
+        routesMeta,
+        path,
+        hasParentOptionalSegments
+      );
     }
     if (route.path == null && !route.index) {
       return;
@@ -11633,7 +11642,7 @@ function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "")
       flattenRoute(route, index);
     } else {
       for (let exploded of explodeOptionalSegments(route.path)) {
-        flattenRoute(route, index, exploded);
+        flattenRoute(route, index, true, exploded);
       }
     }
   });
@@ -11797,7 +11806,7 @@ function compilePath(path, caseSensitive = false, end = true) {
       params.push({ paramName, isOptional: isOptional != null });
       return isOptional ? "/?([^\\/]+)?" : "/([^\\/]+)";
     }
-  );
+  ).replace(/\/([\w-]+)\?(\/|$)/g, "(/$1)?$2");
   if (path.endsWith("*")) {
     params.push({ paramName: "*" });
     regexpSource += path === "*" || path === "/*" ? "(.*)$" : "(?:\\/(.+)|\\/*)$";
@@ -12074,7 +12083,7 @@ function useResolvedPath(to, { relative } = {}) {
 function useRoutes(routes, locationArg) {
   return useRoutesImpl(routes, locationArg);
 }
-function useRoutesImpl(routes, locationArg, dataRouterState, future) {
+function useRoutesImpl(routes, locationArg, dataRouterState, unstable_onError, future) {
   invariant$1(
     useInRouterContext(),
     // TODO: This error is probably because they somehow have 2 versions of the
@@ -12146,6 +12155,7 @@ Please change the parent <Route path="${parentPath}"> to <Route path="${parentPa
     ),
     parentMatches,
     dataRouterState,
+    unstable_onError,
     future
   );
   if (locationArg && renderedMatches) {
@@ -12215,11 +12225,14 @@ var RenderErrorBoundary = class extends reactExports.Component {
     };
   }
   componentDidCatch(error, errorInfo) {
-    console.error(
-      "React Router caught the following error during render",
-      error,
-      errorInfo
-    );
+    if (this.props.unstable_onError) {
+      this.props.unstable_onError(error, errorInfo);
+    } else {
+      console.error(
+        "React Router caught the following error during render",
+        error
+      );
+    }
   }
   render() {
     return this.state.error !== void 0 ? /* @__PURE__ */ reactExports.createElement(RouteContext.Provider, { value: this.props.routeContext }, /* @__PURE__ */ reactExports.createElement(
@@ -12238,7 +12251,7 @@ function RenderedRoute({ routeContext, match, children }) {
   }
   return /* @__PURE__ */ reactExports.createElement(RouteContext.Provider, { value: routeContext }, children);
 }
-function _renderMatches(matches, parentMatches = [], dataRouterState = null, future = null) {
+function _renderMatches(matches, parentMatches = [], dataRouterState = null, unstable_onError = null, future = null) {
   if (matches == null) {
     if (!dataRouterState) {
       return null;
@@ -12350,7 +12363,8 @@ function _renderMatches(matches, parentMatches = [], dataRouterState = null, fut
           component: errorElement,
           error,
           children: getChildren(),
-          routeContext: { outlet: null, matches: matches2, isDataRoute: true }
+          routeContext: { outlet: null, matches: matches2, isDataRoute: true },
+          unstable_onError
         }
       ) : getChildren();
     },
@@ -12443,9 +12457,10 @@ reactExports.memo(DataRoutes);
 function DataRoutes({
   routes,
   future,
-  state
+  state,
+  unstable_onError
 }) {
-  return useRoutesImpl(routes, void 0, state, future);
+  return useRoutesImpl(routes, void 0, state, unstable_onError, future);
 }
 function Route(props) {
   invariant$1(
@@ -13051,7 +13066,7 @@ var isBrowser$1 = typeof window !== "undefined" && typeof window.document !== "u
 try {
   if (isBrowser$1) {
     window.__reactRouterVersion = // @ts-expect-error
-    "7.8.0";
+    "7.8.2";
   }
 } catch (e) {
 }
@@ -13088,7 +13103,7 @@ function BrowserRouter({
   );
 }
 var ABSOLUTE_URL_REGEX2 = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i;
-var Link$1 = reactExports.forwardRef(
+var Link = reactExports.forwardRef(
   function LinkWithRef({
     onClick,
     discover = "render",
@@ -13164,7 +13179,7 @@ var Link$1 = reactExports.forwardRef(
     return shouldPrefetch && !isAbsolute ? /* @__PURE__ */ reactExports.createElement(reactExports.Fragment, null, link, /* @__PURE__ */ reactExports.createElement(PrefetchPageLinks, { page: href })) : link;
   }
 );
-Link$1.displayName = "Link";
+Link.displayName = "Link";
 var NavLink = reactExports.forwardRef(
   function NavLinkWithRef({
     "aria-current": ariaCurrentProp = "page",
@@ -13217,7 +13232,7 @@ var NavLink = reactExports.forwardRef(
     }
     let style = typeof styleProp === "function" ? styleProp(renderProps) : styleProp;
     return /* @__PURE__ */ reactExports.createElement(
-      Link$1,
+      Link,
       {
         ...rest,
         "aria-current": ariaCurrent,
@@ -16203,6 +16218,113 @@ const MotionConfigContext = reactExports.createContext({
   isStatic: false,
   reducedMotion: "never"
 });
+class PopChildMeasure extends reactExports.Component {
+  getSnapshotBeforeUpdate(prevProps) {
+    const element = this.props.childRef.current;
+    if (element && prevProps.isPresent && !this.props.isPresent) {
+      const parent = element.offsetParent;
+      const parentWidth = isHTMLElement(parent) ? parent.offsetWidth || 0 : 0;
+      const size = this.props.sizeRef.current;
+      size.height = element.offsetHeight || 0;
+      size.width = element.offsetWidth || 0;
+      size.top = element.offsetTop;
+      size.left = element.offsetLeft;
+      size.right = parentWidth - size.width - size.left;
+    }
+    return null;
+  }
+  /**
+   * Required with getSnapshotBeforeUpdate to stop React complaining.
+   */
+  componentDidUpdate() {
+  }
+  render() {
+    return this.props.children;
+  }
+}
+function PopChild({ children, isPresent, anchorX, root }) {
+  const id2 = reactExports.useId();
+  const ref = reactExports.useRef(null);
+  const size = reactExports.useRef({
+    width: 0,
+    height: 0,
+    top: 0,
+    left: 0,
+    right: 0
+  });
+  const { nonce } = reactExports.useContext(MotionConfigContext);
+  reactExports.useInsertionEffect(() => {
+    const { width, height, top, left, right } = size.current;
+    if (isPresent || !ref.current || !width || !height)
+      return;
+    const x = anchorX === "left" ? `left: ${left}` : `right: ${right}`;
+    ref.current.dataset.motionPopId = id2;
+    const style = document.createElement("style");
+    if (nonce)
+      style.nonce = nonce;
+    const parent = root ?? document.head;
+    parent.appendChild(style);
+    if (style.sheet) {
+      style.sheet.insertRule(`
+          [data-motion-pop-id="${id2}"] {
+            position: absolute !important;
+            width: ${width}px !important;
+            height: ${height}px !important;
+            ${x}px !important;
+            top: ${top}px !important;
+          }
+        `);
+    }
+    return () => {
+      if (parent.contains(style)) {
+        parent.removeChild(style);
+      }
+    };
+  }, [isPresent]);
+  return jsxRuntimeExports.jsx(PopChildMeasure, { isPresent, childRef: ref, sizeRef: size, children: reactExports.cloneElement(children, { ref }) });
+}
+const PresenceChild = ({ children, initial, isPresent, onExitComplete, custom, presenceAffectsLayout, mode, anchorX, root }) => {
+  const presenceChildren = useConstant(newChildrenMap);
+  const id2 = reactExports.useId();
+  let isReusedContext = true;
+  let context = reactExports.useMemo(() => {
+    isReusedContext = false;
+    return {
+      id: id2,
+      initial,
+      isPresent,
+      custom,
+      onExitComplete: (childId) => {
+        presenceChildren.set(childId, true);
+        for (const isComplete of presenceChildren.values()) {
+          if (!isComplete)
+            return;
+        }
+        onExitComplete && onExitComplete();
+      },
+      register: (childId) => {
+        presenceChildren.set(childId, false);
+        return () => presenceChildren.delete(childId);
+      }
+    };
+  }, [isPresent, presenceChildren, onExitComplete]);
+  if (presenceAffectsLayout && isReusedContext) {
+    context = { ...context };
+  }
+  reactExports.useMemo(() => {
+    presenceChildren.forEach((_, key) => presenceChildren.set(key, false));
+  }, [isPresent]);
+  reactExports.useEffect(() => {
+    !isPresent && !presenceChildren.size && onExitComplete && onExitComplete();
+  }, [isPresent]);
+  if (mode === "popLayout") {
+    children = jsxRuntimeExports.jsx(PopChild, { isPresent, anchorX, root, children });
+  }
+  return jsxRuntimeExports.jsx(PresenceContext.Provider, { value: context, children });
+};
+function newChildrenMap() {
+  return /* @__PURE__ */ new Map();
+}
 function usePresence(subscribe = true) {
   const context = reactExports.useContext(PresenceContext);
   if (context === null)
@@ -16217,6 +16339,81 @@ function usePresence(subscribe = true) {
   const safeToRemove = reactExports.useCallback(() => subscribe && onExitComplete && onExitComplete(id2), [id2, onExitComplete, subscribe]);
   return !isPresent && onExitComplete ? [false, safeToRemove] : [true];
 }
+const getChildKey = (child) => child.key || "";
+function onlyElements(children) {
+  const filtered = [];
+  reactExports.Children.forEach(children, (child) => {
+    if (reactExports.isValidElement(child))
+      filtered.push(child);
+  });
+  return filtered;
+}
+const AnimatePresence = ({ children, custom, initial = true, onExitComplete, presenceAffectsLayout = true, mode = "sync", propagate = false, anchorX = "left", root }) => {
+  const [isParentPresent, safeToRemove] = usePresence(propagate);
+  const presentChildren = reactExports.useMemo(() => onlyElements(children), [children]);
+  const presentKeys = propagate && !isParentPresent ? [] : presentChildren.map(getChildKey);
+  const isInitialRender = reactExports.useRef(true);
+  const pendingPresentChildren = reactExports.useRef(presentChildren);
+  const exitComplete = useConstant(() => /* @__PURE__ */ new Map());
+  const [diffedChildren, setDiffedChildren] = reactExports.useState(presentChildren);
+  const [renderedChildren, setRenderedChildren] = reactExports.useState(presentChildren);
+  useIsomorphicLayoutEffect(() => {
+    isInitialRender.current = false;
+    pendingPresentChildren.current = presentChildren;
+    for (let i = 0; i < renderedChildren.length; i++) {
+      const key = getChildKey(renderedChildren[i]);
+      if (!presentKeys.includes(key)) {
+        if (exitComplete.get(key) !== true) {
+          exitComplete.set(key, false);
+        }
+      } else {
+        exitComplete.delete(key);
+      }
+    }
+  }, [renderedChildren, presentKeys.length, presentKeys.join("-")]);
+  const exitingChildren = [];
+  if (presentChildren !== diffedChildren) {
+    let nextChildren = [...presentChildren];
+    for (let i = 0; i < renderedChildren.length; i++) {
+      const child = renderedChildren[i];
+      const key = getChildKey(child);
+      if (!presentKeys.includes(key)) {
+        nextChildren.splice(i, 0, child);
+        exitingChildren.push(child);
+      }
+    }
+    if (mode === "wait" && exitingChildren.length) {
+      nextChildren = exitingChildren;
+    }
+    setRenderedChildren(onlyElements(nextChildren));
+    setDiffedChildren(presentChildren);
+    return null;
+  }
+  const { forceRender } = reactExports.useContext(LayoutGroupContext);
+  return jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: renderedChildren.map((child) => {
+    const key = getChildKey(child);
+    const isPresent = propagate && !isParentPresent ? false : presentChildren === renderedChildren || presentKeys.includes(key);
+    const onExit = () => {
+      if (exitComplete.has(key)) {
+        exitComplete.set(key, true);
+      } else {
+        return;
+      }
+      let isEveryExitComplete = true;
+      exitComplete.forEach((isExitComplete) => {
+        if (!isExitComplete)
+          isEveryExitComplete = false;
+      });
+      if (isEveryExitComplete) {
+        forceRender?.();
+        setRenderedChildren(pendingPresentChildren.current);
+        propagate && safeToRemove?.();
+        onExitComplete && onExitComplete();
+      }
+    };
+    return jsxRuntimeExports.jsx(PresenceChild, { isPresent, initial: !isInitialRender.current || initial ? void 0 : false, custom, presenceAffectsLayout, mode, root, onExitComplete: isPresent ? void 0 : onExit, anchorX, children: child }, key);
+  }) });
+};
 const LazyContext = reactExports.createContext({ strict: false });
 const featureProps = {
   animation: [
@@ -18728,7 +18925,7 @@ class VisualElementDragControls {
     }
     frame.read(measureDragConstraints);
     const stopResizeListener = addDomEvent(window, "resize", () => this.scalePositionWithinConstraints());
-    const stopLayoutUpdateListener = projection.addEventListener("didUpdate", ({ delta, hasLayoutChanged }) => {
+    const stopLayoutUpdateListener = projection.addEventListener("didUpdate", (({ delta, hasLayoutChanged }) => {
       if (this.isDragging && hasLayoutChanged) {
         eachAxis((axis) => {
           const motionValue2 = this.getAxisMotionValue(axis);
@@ -18739,7 +18936,7 @@ class VisualElementDragControls {
         });
         this.visualElement.render();
       }
-    });
+    }));
     return () => {
       stopResizeListener();
       stopPointerListener();
@@ -20585,6 +20782,41 @@ const lightTheme = {
   // 强调色
   accent: "#7C3AED",
   accentHover: "#6D28D9",
+  // 渐变色
+  gradient: {
+    primary: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    success: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
+    warning: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+    info: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+    modern: "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #EC4899 100%)",
+    sunset: "linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%)",
+    ocean: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    forest: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
+    fire: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)",
+    luxury: "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)"
+  },
+  // 卡片层次色
+  cardLayer: {
+    primary: "#F0F9FF",
+    secondary: "#F8FAFC",
+    accent: "#FEF3C7"
+  },
+  // 卡片阴影
+  cardShadow: {
+    default: "0 2px 8px rgba(0, 0, 0, 0.08)",
+    hover: "0 4px 12px rgba(0, 0, 0, 0.12)",
+    important: "0 4px 16px rgba(37, 99, 235, 0.1)",
+    importantHover: "0 6px 20px rgba(37, 99, 235, 0.15)"
+  },
+  // 文本阴影
+  textShadow: {
+    light: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    medium: "0 1px 2px rgba(0, 0, 0, 0.1)"
+  },
+  // 图标颜色
+  iconColor: {
+    default: "#999999"
+  },
   // 状态颜色
   success: { main: "#10B981", light: "#34D399", dark: "#059669", contrastText: "#FFFFFF" },
   error: { main: "#EF4444", light: "#F87171", dark: "#DC2626", contrastText: "#FFFFFF" },
@@ -20662,8 +20894,10 @@ const lightTheme = {
     // 12px - 用于卡片、输入框等
     large: "16px",
     // 16px - 用于页面容器、模态框等
-    xlarge: "20px"
+    xlarge: "20px",
     // 20px - 用于特殊场景
+    extraLarge: "24px"
+    // 24px - 用于特殊大圆角场景
   },
   name: "light"
 };
@@ -20709,6 +20943,35 @@ const darkTheme = {
   // 强调色
   accent: "#A78BFA",
   accentHover: "#8B5CF6",
+  // 渐变色
+  gradient: {
+    primary: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    success: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
+    warning: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+    info: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
+  },
+  // 卡片层次色
+  cardLayer: {
+    primary: "#1E3A8A",
+    secondary: "#1F2937",
+    accent: "#78350F"
+  },
+  // 卡片阴影
+  cardShadow: {
+    default: "0 2px 8px rgba(0, 0, 0, 0.15)",
+    hover: "0 4px 12px rgba(0, 0, 0, 0.25)",
+    important: "0 4px 16px rgba(59, 130, 246, 0.15)",
+    importantHover: "0 6px 20px rgba(59, 130, 246, 0.25)"
+  },
+  // 文本阴影
+  textShadow: {
+    light: "0 2px 4px rgba(0, 0, 0, 0.2)",
+    medium: "0 1px 2px rgba(0, 0, 0, 0.2)"
+  },
+  // 图标颜色
+  iconColor: {
+    default: "#999999"
+  },
   // 状态颜色
   success: { main: "#34D399", light: "#6EE7B7", dark: "#10B981", contrastText: "#FFFFFF" },
   error: { main: "#F87171", light: "#FCA5A5", dark: "#EF4444", contrastText: "#FFFFFF" },
@@ -20786,8 +21049,10 @@ const darkTheme = {
     // 12px - 用于卡片、输入框等
     large: "16px",
     // 16px - 用于页面容器、模态框等
-    xlarge: "20px"
+    xlarge: "20px",
     // 20px - 用于特殊场景
+    extraLarge: "24px"
+    // 24px - 用于特殊大圆角场景
   },
   name: "dark"
 };
@@ -20981,30 +21246,70 @@ const CustomThemeProvider = ({ children }) => {
   const [theme, setTheme] = reactExports.useState(lightTheme);
   const [isDarkMode, setIsDarkMode] = reactExports.useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = reactExports.useState(false);
+  const [themeMode, setThemeModeState] = reactExports.useState("auto");
+  const [systemPrefersDark, setSystemPrefersDark] = reactExports.useState(false);
+  const checkSystemTheme = () => {
+    if (typeof window !== "undefined") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    return false;
+  };
+  const shouldUseDarkMode = (mode, systemDark) => {
+    switch (mode) {
+      case "dark":
+        return true;
+      case "light":
+        return false;
+      case "auto":
+        return systemDark;
+      default:
+        return false;
+    }
+  };
+  const updateTheme = (mode, systemDark) => {
+    const dark = shouldUseDarkMode(mode, systemDark);
+    setIsDarkMode(dark);
+    setTheme({ ...dark ? darkTheme : lightTheme, name: dark ? "dark" : "light" });
+  };
   const toggleTheme = () => {
-    const newTheme = isDarkMode ? lightTheme : darkTheme;
-    setTheme({ ...newTheme, name: isDarkMode ? "light" : "dark" });
-    setIsDarkMode(!isDarkMode);
+    const newMode = themeMode === "light" ? "dark" : themeMode === "dark" ? "auto" : "light";
+    setThemeModeState(newMode);
+    updateTheme(newMode, systemPrefersDark);
+  };
+  const setThemeMode = (mode) => {
+    setThemeModeState(mode);
+    updateTheme(mode, systemPrefersDark);
   };
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
   reactExports.useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
+    const savedThemeMode = localStorage.getItem("themeMode") || "auto";
     const savedSidebarState = localStorage.getItem("sidebarCollapsed");
-    if (savedTheme === "dark") {
-      setTheme({ ...darkTheme, name: "dark" });
-      setIsDarkMode(true);
-    } else {
-      setTheme({ ...lightTheme, name: "light" });
-    }
+    const initialSystemPrefersDark = checkSystemTheme();
+    setSystemPrefersDark(initialSystemPrefersDark);
+    setThemeModeState(savedThemeMode);
+    updateTheme(savedThemeMode, initialSystemPrefersDark);
     if (savedSidebarState === "true") {
       setIsSidebarCollapsed(true);
     }
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSystemThemeChange = (e) => {
+      const newSystemPrefersDark = e.matches;
+      setSystemPrefersDark(newSystemPrefersDark);
+      if (savedThemeMode === "auto") {
+        updateTheme("auto", newSystemPrefersDark);
+      }
+    };
+    mediaQuery.addEventListener("change", handleSystemThemeChange);
+    return () => {
+      mediaQuery.removeEventListener("change", handleSystemThemeChange);
+    };
   }, []);
   reactExports.useEffect(() => {
-    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+    localStorage.setItem("themeMode", themeMode);
+    updateTheme(themeMode, systemPrefersDark);
+  }, [themeMode, systemPrefersDark]);
   reactExports.useEffect(() => {
     localStorage.setItem("sidebarCollapsed", isSidebarCollapsed.toString());
   }, [isSidebarCollapsed]);
@@ -21012,7 +21317,16 @@ const CustomThemeProvider = ({ children }) => {
     document.documentElement.setAttribute("data-theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
   const muiTheme = isDarkMode ? muiDarkTheme : muiLightTheme;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeContext.Provider, { value: { theme, isDarkMode, isSidebarCollapsed, toggleTheme, toggleSidebar, muiTheme }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeProvider, { theme: muiTheme, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ot, { theme: { ...theme, name: isDarkMode ? "dark" : "light" }, children }) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeContext.Provider, { value: {
+    theme,
+    isDarkMode,
+    isSidebarCollapsed,
+    themeMode,
+    toggleTheme,
+    setThemeMode,
+    toggleSidebar,
+    muiTheme
+  }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeProvider, { theme: muiTheme, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ot, { theme: { ...theme, name: isDarkMode ? "dark" : "light" }, children }) }) });
 };
 /**
  * @license lucide-react v0.539.0 - ISC
@@ -21119,7 +21433,53 @@ const createLucideIcon = (iconName, iconNode) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$E = [
+const __iconNode$Q = [
+  [
+    "path",
+    {
+      d: "M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2",
+      key: "169zse"
+    }
+  ]
+];
+const Activity = createLucideIcon("activity", __iconNode$Q);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$P = [
+  ["path", { d: "m21 16-4 4-4-4", key: "f6ql7i" }],
+  ["path", { d: "M17 20V4", key: "1ejh1v" }],
+  ["path", { d: "m3 8 4-4 4 4", key: "11wl7u" }],
+  ["path", { d: "M7 4v16", key: "1glfcx" }]
+];
+const ArrowUpDown = createLucideIcon("arrow-up-down", __iconNode$P);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$O = [
+  ["path", { d: "M10.268 21a2 2 0 0 0 3.464 0", key: "vwvbt9" }],
+  [
+    "path",
+    {
+      d: "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
+      key: "11g9vi"
+    }
+  ]
+];
+const Bell = createLucideIcon("bell", __iconNode$O);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$N = [
   ["path", { d: "M12 8V4H8", key: "hb8ula" }],
   ["rect", { width: "16", height: "12", x: "4", y: "8", rx: "2", key: "enze0r" }],
   ["path", { d: "M2 14h2", key: "vft8re" }],
@@ -21127,23 +21487,120 @@ const __iconNode$E = [
   ["path", { d: "M15 13v2", key: "1xurst" }],
   ["path", { d: "M9 13v2", key: "rq6x2g" }]
 ];
-const Bot = createLucideIcon("bot", __iconNode$E);
+const Bot = createLucideIcon("bot", __iconNode$N);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$D = [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]];
-const ChevronLeft = createLucideIcon("chevron-left", __iconNode$D);
+const __iconNode$M = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+const Check = createLucideIcon("check", __iconNode$M);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$C = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
-const ChevronRight = createLucideIcon("chevron-right", __iconNode$C);
+const __iconNode$L = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+const ChevronDown = createLucideIcon("chevron-down", __iconNode$L);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$K = [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]];
+const ChevronLeft = createLucideIcon("chevron-left", __iconNode$K);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$J = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
+const ChevronRight = createLucideIcon("chevron-right", __iconNode$J);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$I = [
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+  ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
+  ["line", { x1: "12", x2: "12.01", y1: "16", y2: "16", key: "4dfq90" }]
+];
+const CircleAlert = createLucideIcon("circle-alert", __iconNode$I);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$H = [
+  ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
+  ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
+];
+const CircleCheckBig = createLucideIcon("circle-check-big", __iconNode$H);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$G = [
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+  ["path", { d: "m15 9-6 6", key: "1uzhvr" }],
+  ["path", { d: "m9 9 6 6", key: "z0biqf" }]
+];
+const CircleX = createLucideIcon("circle-x", __iconNode$G);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$F = [
+  ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }],
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }]
+];
+const Clock = createLucideIcon("clock", __iconNode$F);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$E = [
+  ["path", { d: "m16 18 6-6-6-6", key: "eg8j8" }],
+  ["path", { d: "m8 6-6 6 6 6", key: "ppft3o" }]
+];
+const Code = createLucideIcon("code", __iconNode$E);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$D = [
+  ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
+  ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
+  ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
+];
+const Database = createLucideIcon("database", __iconNode$D);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$C = [
+  ["path", { d: "M12 15V3", key: "m9g1x1" }],
+  ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }],
+  ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
+];
+const Download = createLucideIcon("download", __iconNode$C);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21151,76 +21608,6 @@ const ChevronRight = createLucideIcon("chevron-right", __iconNode$C);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$B = [
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
-  ["line", { x1: "12", x2: "12.01", y1: "16", y2: "16", key: "4dfq90" }]
-];
-const CircleAlert = createLucideIcon("circle-alert", __iconNode$B);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$A = [
-  ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
-  ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
-];
-const CircleCheckBig = createLucideIcon("circle-check-big", __iconNode$A);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$z = [
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["path", { d: "m15 9-6 6", key: "1uzhvr" }],
-  ["path", { d: "m9 9 6 6", key: "z0biqf" }]
-];
-const CircleX = createLucideIcon("circle-x", __iconNode$z);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$y = [
-  ["path", { d: "m16 18 6-6-6-6", key: "eg8j8" }],
-  ["path", { d: "m8 6-6 6 6 6", key: "ppft3o" }]
-];
-const Code = createLucideIcon("code", __iconNode$y);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$x = [
-  ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
-  ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
-  ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
-];
-const Database = createLucideIcon("database", __iconNode$x);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$w = [
-  ["path", { d: "M12 15V3", key: "m9g1x1" }],
-  ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }],
-  ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
-];
-const Download = createLucideIcon("download", __iconNode$w);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$v = [
   [
     "path",
     {
@@ -21229,25 +21616,41 @@ const __iconNode$v = [
     }
   ]
 ];
-const FolderOpen = createLucideIcon("folder-open", __iconNode$v);
+const FolderOpen = createLucideIcon("folder-open", __iconNode$B);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$u = [
+const __iconNode$A = [
+  [
+    "path",
+    {
+      d: "M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z",
+      key: "sc7q7i"
+    }
+  ]
+];
+const Funnel = createLucideIcon("funnel", __iconNode$A);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$z = [
   ["path", { d: "m12 14 4-4", key: "9kzdfg" }],
   ["path", { d: "M3.34 19a10 10 0 1 1 17.32 0", key: "19p75a" }]
 ];
-const Gauge = createLucideIcon("gauge", __iconNode$u);
+const Gauge = createLucideIcon("gauge", __iconNode$z);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$t = [
+const __iconNode$y = [
   [
     "path",
     {
@@ -21257,26 +21660,26 @@ const __iconNode$t = [
   ],
   ["path", { d: "M9 18c-4.51 2-5-2-7-2", key: "9comsn" }]
 ];
-const Github = createLucideIcon("github", __iconNode$t);
+const Github = createLucideIcon("github", __iconNode$y);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$s = [
+const __iconNode$x = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
   ["path", { d: "M2 12h20", key: "9i4pu4" }]
 ];
-const Globe = createLucideIcon("globe", __iconNode$s);
+const Globe = createLucideIcon("globe", __iconNode$x);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$r = [
+const __iconNode$w = [
   ["path", { d: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8", key: "5wwlr5" }],
   [
     "path",
@@ -21286,26 +21689,26 @@ const __iconNode$r = [
     }
   ]
 ];
-const House = createLucideIcon("house", __iconNode$r);
+const House = createLucideIcon("house", __iconNode$w);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$q = [
+const __iconNode$v = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["path", { d: "M12 16v-4", key: "1dtifu" }],
   ["path", { d: "M12 8h.01", key: "e9boi3" }]
 ];
-const Info = createLucideIcon("info", __iconNode$q);
+const Info = createLucideIcon("info", __iconNode$v);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$p = [
+const __iconNode$u = [
   [
     "path",
     {
@@ -21328,7 +21731,72 @@ const __iconNode$p = [
     }
   ]
 ];
-const Layers = createLucideIcon("layers", __iconNode$p);
+const Layers = createLucideIcon("layers", __iconNode$u);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$t = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+const LoaderCircle = createLucideIcon("loader-circle", __iconNode$t);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$s = [
+  ["path", { d: "M12 2v4", key: "3427ic" }],
+  ["path", { d: "m16.2 7.8 2.9-2.9", key: "r700ao" }],
+  ["path", { d: "M18 12h4", key: "wj9ykh" }],
+  ["path", { d: "m16.2 16.2 2.9 2.9", key: "1bxg5t" }],
+  ["path", { d: "M12 18v4", key: "jadmvz" }],
+  ["path", { d: "m4.9 19.1 2.9-2.9", key: "bwix9q" }],
+  ["path", { d: "M2 12h4", key: "j09sii" }],
+  ["path", { d: "m4.9 4.9 2.9 2.9", key: "giyufr" }]
+];
+const Loader = createLucideIcon("loader", __iconNode$s);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$r = [
+  ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
+  ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
+];
+const Mail = createLucideIcon("mail", __iconNode$r);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$q = [
+  ["path", { d: "M8 3H5a2 2 0 0 0-2 2v3", key: "1dcmit" }],
+  ["path", { d: "M21 8V5a2 2 0 0 0-2-2h-3", key: "1e4gt3" }],
+  ["path", { d: "M3 16v3a2 2 0 0 0 2 2h3", key: "wsl5sc" }],
+  ["path", { d: "M16 21h3a2 2 0 0 0 2-2v-3", key: "18trek" }]
+];
+const Maximize = createLucideIcon("maximize", __iconNode$q);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$p = [
+  [
+    "path",
+    {
+      d: "M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z",
+      key: "18887p"
+    }
+  ]
+];
+const MessageSquare = createLucideIcon("message-square", __iconNode$p);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21336,18 +21804,24 @@ const Layers = createLucideIcon("layers", __iconNode$p);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$o = [
-  ["path", { d: "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71", key: "1cjeqo" }],
-  ["path", { d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71", key: "19qd67" }]
+  ["path", { d: "M8 3v3a2 2 0 0 1-2 2H3", key: "hohbtr" }],
+  ["path", { d: "M21 8h-3a2 2 0 0 1-2-2V3", key: "5jw1f3" }],
+  ["path", { d: "M3 16h3a2 2 0 0 1 2 2v3", key: "198tvr" }],
+  ["path", { d: "M16 21v-3a2 2 0 0 1 2-2h3", key: "ph8mxp" }]
 ];
-const Link = createLucideIcon("link", __iconNode$o);
+const Minimize = createLucideIcon("minimize", __iconNode$o);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$n = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-const LoaderCircle = createLucideIcon("loader-circle", __iconNode$n);
+const __iconNode$n = [
+  ["rect", { width: "20", height: "14", x: "2", y: "3", rx: "2", key: "48i651" }],
+  ["line", { x1: "8", x2: "16", y1: "21", y2: "21", key: "1svkeh" }],
+  ["line", { x1: "12", x2: "12", y1: "17", y2: "21", key: "vw1qmm" }]
+];
+const Monitor = createLucideIcon("monitor", __iconNode$n);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21355,10 +21829,15 @@ const LoaderCircle = createLucideIcon("loader-circle", __iconNode$n);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$m = [
-  ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
-  ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
+  [
+    "path",
+    {
+      d: "M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401",
+      key: "kfwtm"
+    }
+  ]
 ];
-const Mail = createLucideIcon("mail", __iconNode$m);
+const Moon = createLucideIcon("moon", __iconNode$m);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21366,12 +21845,19 @@ const Mail = createLucideIcon("mail", __iconNode$m);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$l = [
-  ["path", { d: "M8 3H5a2 2 0 0 0-2 2v3", key: "1dcmit" }],
-  ["path", { d: "M21 8V5a2 2 0 0 0-2-2h-3", key: "1e4gt3" }],
-  ["path", { d: "M3 16v3a2 2 0 0 0 2 2h3", key: "wsl5sc" }],
-  ["path", { d: "M16 21h3a2 2 0 0 0 2-2v-3", key: "18trek" }]
+  [
+    "path",
+    {
+      d: "M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z",
+      key: "e79jfc"
+    }
+  ],
+  ["circle", { cx: "13.5", cy: "6.5", r: ".5", fill: "currentColor", key: "1okk4w" }],
+  ["circle", { cx: "17.5", cy: "10.5", r: ".5", fill: "currentColor", key: "f64h9f" }],
+  ["circle", { cx: "6.5", cy: "12.5", r: ".5", fill: "currentColor", key: "qy21gx" }],
+  ["circle", { cx: "8.5", cy: "7.5", r: ".5", fill: "currentColor", key: "fotxhn" }]
 ];
-const Maximize = createLucideIcon("maximize", __iconNode$l);
+const Palette = createLucideIcon("palette", __iconNode$l);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21382,12 +21868,12 @@ const __iconNode$k = [
   [
     "path",
     {
-      d: "M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z",
-      key: "18887p"
+      d: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z",
+      key: "10ikf1"
     }
   ]
 ];
-const MessageSquare = createLucideIcon("message-square", __iconNode$k);
+const Play = createLucideIcon("play", __iconNode$k);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21395,12 +21881,10 @@ const MessageSquare = createLucideIcon("message-square", __iconNode$k);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$j = [
-  ["path", { d: "M8 3v3a2 2 0 0 1-2 2H3", key: "hohbtr" }],
-  ["path", { d: "M21 8h-3a2 2 0 0 1-2-2V3", key: "5jw1f3" }],
-  ["path", { d: "M3 16h3a2 2 0 0 1 2 2v3", key: "198tvr" }],
-  ["path", { d: "M16 21v-3a2 2 0 0 1 2-2h3", key: "ph8mxp" }]
+  ["path", { d: "M5 12h14", key: "1ays0h" }],
+  ["path", { d: "M12 5v14", key: "s699le" }]
 ];
-const Minimize = createLucideIcon("minimize", __iconNode$j);
+const Plus = createLucideIcon("plus", __iconNode$j);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21408,15 +21892,13 @@ const Minimize = createLucideIcon("minimize", __iconNode$j);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$i = [
-  [
-    "path",
-    {
-      d: "M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401",
-      key: "kfwtm"
-    }
-  ]
+  ["path", { d: "M16.247 7.761a6 6 0 0 1 0 8.478", key: "1fwjs5" }],
+  ["path", { d: "M19.075 4.933a10 10 0 0 1 0 14.134", key: "ehdyv1" }],
+  ["path", { d: "M4.925 19.067a10 10 0 0 1 0-14.134", key: "1q22gi" }],
+  ["path", { d: "M7.753 16.239a6 6 0 0 1 0-8.478", key: "r2q7qm" }],
+  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }]
 ];
-const Moon = createLucideIcon("moon", __iconNode$i);
+const Radio = createLucideIcon("radio", __iconNode$i);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21424,15 +21906,12 @@ const Moon = createLucideIcon("moon", __iconNode$i);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$h = [
-  [
-    "path",
-    {
-      d: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z",
-      key: "10ikf1"
-    }
-  ]
+  ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
+  ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
+  ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
+  ["path", { d: "M8 16H3v5", key: "1cv678" }]
 ];
-const Play = createLucideIcon("play", __iconNode$h);
+const RefreshCw = createLucideIcon("refresh-cw", __iconNode$h);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21440,19 +21919,6 @@ const Play = createLucideIcon("play", __iconNode$h);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$g = [
-  ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
-  ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
-  ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
-  ["path", { d: "M8 16H3v5", key: "1cv678" }]
-];
-const RefreshCw = createLucideIcon("refresh-cw", __iconNode$g);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$f = [
   [
     "path",
     {
@@ -21463,7 +21929,18 @@ const __iconNode$f = [
   ["path", { d: "M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7", key: "1ydtos" }],
   ["path", { d: "M7 3v4a1 1 0 0 0 1 1h7", key: "t51u73" }]
 ];
-const Save = createLucideIcon("save", __iconNode$f);
+const Save = createLucideIcon("save", __iconNode$g);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$f = [
+  ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
+  ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
+];
+const Search = createLucideIcon("search", __iconNode$f);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21471,10 +21948,16 @@ const Save = createLucideIcon("save", __iconNode$f);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$e = [
-  ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
-  ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
+  [
+    "path",
+    {
+      d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z",
+      key: "1ffxy3"
+    }
+  ],
+  ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
 ];
-const Search = createLucideIcon("search", __iconNode$e);
+const Send = createLucideIcon("send", __iconNode$e);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21485,13 +21968,13 @@ const __iconNode$d = [
   [
     "path",
     {
-      d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z",
-      key: "1ffxy3"
+      d: "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915",
+      key: "1i5ecw"
     }
   ],
-  ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
+  ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
 ];
-const Send = createLucideIcon("send", __iconNode$d);
+const Settings = createLucideIcon("settings", __iconNode$d);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21502,13 +21985,12 @@ const __iconNode$c = [
   [
     "path",
     {
-      d: "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915",
-      key: "1i5ecw"
+      d: "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
+      key: "oel41y"
     }
-  ],
-  ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
+  ]
 ];
-const Settings = createLucideIcon("settings", __iconNode$c);
+const Shield = createLucideIcon("shield", __iconNode$c);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21516,22 +21998,6 @@ const Settings = createLucideIcon("settings", __iconNode$c);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$b = [
-  [
-    "path",
-    {
-      d: "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
-      key: "oel41y"
-    }
-  ]
-];
-const Shield = createLucideIcon("shield", __iconNode$b);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$a = [
   [
     "path",
     {
@@ -21543,7 +22009,24 @@ const __iconNode$a = [
   ["path", { d: "M22 4h-4", key: "gwowj6" }],
   ["circle", { cx: "4", cy: "20", r: "2", key: "6kqj1y" }]
 ];
-const Sparkles = createLucideIcon("sparkles", __iconNode$a);
+const Sparkles = createLucideIcon("sparkles", __iconNode$b);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$a = [
+  ["path", { d: "M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7", key: "1m0v6g" }],
+  [
+    "path",
+    {
+      d: "M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z",
+      key: "ohrbg2"
+    }
+  ]
+];
+const SquarePen = createLucideIcon("square-pen", __iconNode$a);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21551,16 +22034,6 @@ const Sparkles = createLucideIcon("sparkles", __iconNode$a);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$9 = [
-  ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", key: "afitv7" }]
-];
-const Square = createLucideIcon("square", __iconNode$9);
-/**
- * @license lucide-react v0.539.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$8 = [
   ["circle", { cx: "12", cy: "12", r: "4", key: "4exip2" }],
   ["path", { d: "M12 2v2", key: "tus03m" }],
   ["path", { d: "M12 20v2", key: "1lh1kg" }],
@@ -21571,7 +22044,21 @@ const __iconNode$8 = [
   ["path", { d: "m6.34 17.66-1.41 1.41", key: "1m8zz5" }],
   ["path", { d: "m19.07 4.93-1.41 1.41", key: "1shlcs" }]
 ];
-const Sun = createLucideIcon("sun", __iconNode$8);
+const Sun = createLucideIcon("sun", __iconNode$9);
+/**
+ * @license lucide-react v0.539.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$8 = [
+  ["path", { d: "M10 11v6", key: "nco0om" }],
+  ["path", { d: "M14 11v6", key: "outv1u" }],
+  ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
+  ["path", { d: "M3 6h18", key: "d0wm0j" }],
+  ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
+];
+const Trash2 = createLucideIcon("trash-2", __iconNode$8);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21579,10 +22066,10 @@ const Sun = createLucideIcon("sun", __iconNode$8);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$7 = [
-  ["path", { d: "M12 19h8", key: "baeox8" }],
-  ["path", { d: "m4 17 6-6-6-6", key: "1yngyt" }]
+  ["path", { d: "M16 7h6v6", key: "box55l" }],
+  ["path", { d: "m22 7-8.5 8.5-5-5L2 17", key: "1t1m79" }]
 ];
-const Terminal = createLucideIcon("terminal", __iconNode$7);
+const TrendingUp = createLucideIcon("trending-up", __iconNode$7);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21590,11 +22077,17 @@ const Terminal = createLucideIcon("terminal", __iconNode$7);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$6 = [
-  ["line", { x1: "10", x2: "14", y1: "2", y2: "2", key: "14vaq8" }],
-  ["line", { x1: "12", x2: "15", y1: "14", y2: "11", key: "17fdiu" }],
-  ["circle", { cx: "12", cy: "14", r: "8", key: "1e1u0o" }]
+  [
+    "path",
+    {
+      d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3",
+      key: "wmoenq"
+    }
+  ],
+  ["path", { d: "M12 9v4", key: "juzpu7" }],
+  ["path", { d: "M12 17h.01", key: "p32p05" }]
 ];
-const Timer = createLucideIcon("timer", __iconNode$6);
+const TriangleAlert = createLucideIcon("triangle-alert", __iconNode$6);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21602,13 +22095,11 @@ const Timer = createLucideIcon("timer", __iconNode$6);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$5 = [
-  ["path", { d: "M10 11v6", key: "nco0om" }],
-  ["path", { d: "M14 11v6", key: "outv1u" }],
-  ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
-  ["path", { d: "M3 6h18", key: "d0wm0j" }],
-  ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
+  ["path", { d: "M12 3v12", key: "1x0j5s" }],
+  ["path", { d: "m17 8-5-5-5 5", key: "7q97r8" }],
+  ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }]
 ];
-const Trash2 = createLucideIcon("trash-2", __iconNode$5);
+const Upload = createLucideIcon("upload", __iconNode$5);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21616,11 +22107,10 @@ const Trash2 = createLucideIcon("trash-2", __iconNode$5);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$4 = [
-  ["path", { d: "M12 3v12", key: "1x0j5s" }],
-  ["path", { d: "m17 8-5-5-5 5", key: "7q97r8" }],
-  ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }]
+  ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
+  ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
 ];
-const Upload = createLucideIcon("upload", __iconNode$4);
+const User = createLucideIcon("user", __iconNode$4);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21628,10 +22118,12 @@ const Upload = createLucideIcon("upload", __iconNode$4);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$3 = [
-  ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
-  ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
+  ["path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", key: "1yyitq" }],
+  ["path", { d: "M16 3.128a4 4 0 0 1 0 7.744", key: "16gr8j" }],
+  ["path", { d: "M22 21v-2a4 4 0 0 0-3-3.87", key: "kshegd" }],
+  ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }]
 ];
-const User = createLucideIcon("user", __iconNode$3);
+const Users = createLucideIcon("users", __iconNode$3);
 /**
  * @license lucide-react v0.539.0 - ISC
  *
@@ -21672,18 +22164,27 @@ const __iconNode = [
   ]
 ];
 const Zap = createLucideIcon("zap", __iconNode);
-const SidebarContainer = dt(motion.aside)`
-  width: ${(props) => props.$collapsed ? "80px" : "260px"};
+const SidebarContainer$1 = dt(motion.aside)`
+  width: ${(props) => props.$collapsed ? "80px" : "220px"};
+  max-width: ${(props) => props.$collapsed ? "80px" : "18vw"};
+  min-width: ${(props) => props.$collapsed ? "80px" : "200px"};
   position: relative;
   background-color: ${(props) => props.theme.sidebar.background};
-  border-right: 1px solid ${(props) => props.theme.border};
+  border: none;
+  border-radius: 16px;
+  margin: 8px;
   display: flex;
   flex-direction: column;
   padding: 16px 0;
   overflow-y: auto;
   transition: width 0.3s ease;
   flex-shrink: 0;
-  z-index: 100; /* Ensure sidebar and its children are on top */
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
   
   /* 自定义滚动条 */
   &::-webkit-scrollbar {
@@ -21702,32 +22203,44 @@ const SidebarContainer = dt(motion.aside)`
       background: ${(props) => props.theme.textTertiary};
     }
   }
+  
+  @media (min-width: 1920px) {
+    width: ${(props) => props.$collapsed ? "80px" : "240px"};
+  }
+  
+  @media (max-width: 1200px) {
+    width: ${(props) => props.$collapsed ? "80px" : "200px"};
+  }
 `;
-const SidebarHeader$1 = dt.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px 20px;
-  border-bottom: 1px solid ${(props) => props.theme.sidebar.border};
-  margin-bottom: 16px;
-  ${(props) => props.$collapsed && `
-    padding: 0 10px 20px;
-    justify-content: center;
-  `}
-`;
-const LogoSection = dt(motion.div)`
+const LogoButton = dt(motion.button)`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  margin-bottom: 16px;
+  transition: all ${(props) => props.theme.transition.fast} ease;
+  color: ${(props) => props.theme.sidebar.text};
+  
+  &:hover {
+    background-color: ${(props) => props.theme.sidebar.itemHover};
+    color: ${(props) => props.theme.sidebar.textActive};
+  }
+  
   ${(props) => props.$collapsed && `
     justify-content: center;
+    padding: 12px 16px;
     gap: 0;
   `}
 `;
 const Logo = dt.div`
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, ${(props) => props.theme.primary.main}, ${(props) => props.theme.accent.main});
+  background: ${(props) => props.theme.name === "light" ? "linear-gradient(135deg, #2563EB, #7C3AED)" : "linear-gradient(135deg, #60A5FA, #A78BFA)"};
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -21736,23 +22249,28 @@ const Logo = dt.div`
   font-weight: bold;
   font-size: 18px;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 `;
-const AppName$1 = dt.h1`
-  font-size: 20px;
-  font-weight: 600;
-  color: ${(props) => props.theme.sidebar.text};
-  margin: 0;
+const LogoText = dt.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
   ${(props) => props.$collapsed && `
     display: none;
   `}
+`;
+const AppName = dt.h1`
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
 `;
 const AppVersion = dt.p`
   font-size: 12px;
   color: ${(props) => props.theme.textTertiary};
   margin: 0;
-  ${(props) => props.$collapsed && `
-    display: none;
-  `}
+  line-height: 1;
 `;
 const CollapseButton$1 = dt.button`
   background: none;
@@ -21771,7 +22289,7 @@ const CollapseButton$1 = dt.button`
     background-color: ${(props) => props.theme.sidebar.itemHover};
   }
 `;
-const NavSection = dt.nav`
+const NavSection$1 = dt.nav`
   flex: 1;
   padding: 0 12px;
   ${(props) => props.$collapsed && `
@@ -21779,30 +22297,19 @@ const NavSection = dt.nav`
   `}
 `;
 const NavGroup = dt.div`
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   ${(props) => props.$collapsed && `
-    margin-bottom: 16px;
-  `}
-`;
-const NavGroupTitle = dt.h3`
-  font-size: 12px;
-  font-weight: 600;
-  color: ${(props) => props.theme.textTertiary};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 0 8px 12px;
-  ${(props) => props.$collapsed && `
-    display: none;
+    margin-bottom: 8px;
   `}
 `;
 const NavItemContainer = dt(motion.div)`
   display: block;
-  margin-bottom: 8px; /* 增加功能项之间的间距 */
+  margin-bottom: 8px;
 `;
-const NavItem = dt(Link$1)`
+const NavItem$1 = dt(Link)`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding: 12px 16px;
   border-radius: 8px;
   text-decoration: none;
@@ -21810,18 +22317,22 @@ const NavItem = dt(Link$1)`
   background-color: ${(props) => props.$isActive ? props.theme.sidebar.itemActive : "transparent"};
   transition: all ${(props) => props.theme.transition.fast} ease;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 15px;
   overflow: hidden;
+  border: 1px solid transparent;
+  position: relative;
   
   &:hover {
     background-color: ${(props) => props.$isActive ? props.theme.sidebar.itemActive : props.theme.sidebar.itemHover};
     color: ${(props) => props.$isActive ? props.theme.sidebar.textActive : props.theme.sidebar.textActive};
-    transform: translateX(2px);
+    border-color: ${(props) => props.theme.border};
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   & .nav-icon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     color: ${(props) => props.$isActive ? props.theme.primary.main : props.theme.textTertiary};
     transition: color ${(props) => props.theme.transition.fast} ease;
     flex-shrink: 0;
@@ -21856,28 +22367,12 @@ const Tooltip = dt.div`
 `;
 const navigationItems = [
   {
-    group: "主要功能",
     items: [
       { path: "/", label: "首页", icon: House },
       { path: "/proxy-management", label: "代理管理", icon: Shield },
-      { path: "/chat", label: "AI 对话", icon: Bot }
-    ]
-  },
-  {
-    group: "高级设置",
-    items: [
-      { path: "/dev-environment", label: "开发环境", icon: Code }
-    ]
-  },
-  {
-    group: "设置",
-    items: [
-      { path: "/settings", label: "设置", icon: Settings }
-    ]
-  },
-  {
-    group: "关于",
-    items: [
+      { path: "/chat", label: "AI 对话", icon: Bot },
+      { path: "/dev-environment", label: "开发环境", icon: Code },
+      { path: "/settings", label: "设置", icon: Settings },
       { path: "/info", label: "关于", icon: Info }
     ]
   }
@@ -21901,34 +22396,32 @@ const Sidebar = () => {
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      SidebarContainer,
+      SidebarContainer$1,
       {
         $collapsed: isSidebarCollapsed,
         initial: { opacity: 0, x: -20 },
         animate: { opacity: 1, x: 0 },
         transition: { delay: 0.2, duration: 0.4 },
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(SidebarHeader$1, { $collapsed: isSidebarCollapsed, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(NavSection$1, { $collapsed: isSidebarCollapsed, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              LogoSection,
+              LogoButton,
               {
                 $collapsed: isSidebarCollapsed,
-                whileHover: { scale: 1.05, zIndex: 1 },
-                whileTap: { scale: 0.95, zIndex: 1 },
+                onClick: toggleSidebar,
+                whileHover: { scale: 1.02, zIndex: 1 },
+                whileTap: { scale: 0.98, zIndex: 1 },
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Logo, { children: "C" }),
-                  !isSidebarCollapsed && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(AppName$1, { $collapsed: isSidebarCollapsed, children: "Catalyst" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(AppVersion, { $collapsed: isSidebarCollapsed, children: "v1.0.0" })
-                  ] })
+                  !isSidebarCollapsed && /* @__PURE__ */ jsxRuntimeExports.jsxs(LogoText, { $collapsed: isSidebarCollapsed, children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(AppName, { children: "Catalyst" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(AppVersion, { children: "v1.0.0" })
+                  ] }),
+                  !isSidebarCollapsed && /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronLeft, { size: 16, style: { marginLeft: "auto" } })
                 ]
               }
             ),
-            !isSidebarCollapsed && /* @__PURE__ */ jsxRuntimeExports.jsx(CollapseButton$1, { onClick: toggleSidebar, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronLeft, { size: 16 }) })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(NavSection, { $collapsed: isSidebarCollapsed, children: navigationItems.map((group, groupIndex) => /* @__PURE__ */ jsxRuntimeExports.jsxs(NavGroup, { $collapsed: isSidebarCollapsed, children: [
-            !isSidebarCollapsed && /* @__PURE__ */ jsxRuntimeExports.jsx(NavGroupTitle, { $collapsed: isSidebarCollapsed, children: group.group }),
-            group.items.map((item, itemIndex) => {
+            navigationItems.map((group, groupIndex) => /* @__PURE__ */ jsxRuntimeExports.jsx(NavGroup, { $collapsed: isSidebarCollapsed, children: group.items.map((item, itemIndex) => {
               const isActive = location.pathname === item.path;
               return /* @__PURE__ */ jsxRuntimeExports.jsx(
                 NavItemContainer,
@@ -21939,7 +22432,7 @@ const Sidebar = () => {
                   whileHover: { scale: 1.02, zIndex: 1 },
                   whileTap: { scale: 0.98, zIndex: 1 },
                   children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                    NavItem,
+                    NavItem$1,
                     {
                       to: item.path,
                       $isActive: isActive,
@@ -21947,7 +22440,7 @@ const Sidebar = () => {
                       onMouseEnter: (e) => handleMouseEnter(e, item.label),
                       onMouseLeave: handleMouseLeave,
                       children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(item.icon, { className: "nav-icon", size: 20 }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(item.icon, { className: "nav-icon", size: 22 }),
                         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: item.label })
                       ]
                     }
@@ -21955,8 +22448,8 @@ const Sidebar = () => {
                 },
                 item.path
               );
-            })
-          ] }, groupIndex)) }),
+            }) }, groupIndex))
+          ] }),
           isSidebarCollapsed && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { padding: "0 10px", marginTop: "auto" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CollapseButton$1, { onClick: toggleSidebar, style: { position: "static", width: "100%", borderRadius: "8px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 16 }) }) })
         ]
       }
@@ -22055,7 +22548,7 @@ const SearchContainer = dt(motion.div)`
   position: relative;
   -webkit-app-region: no-drag;
 `;
-const SearchInput = dt.input`
+const SearchInput$2 = dt.input`
   padding: 8px 12px 8px 36px;
   border-radius: 8px;
   border: 1px solid ${(props) => props.theme.input.border};
@@ -22075,7 +22568,7 @@ const SearchInput = dt.input`
     color: ${(props) => props.theme.input.placeholder};
   }
 `;
-const SearchIconWrapper = dt.div`
+const SearchIconWrapper$1 = dt.div`
   position: absolute;
   left: 12px;
   top: 50%;
@@ -22089,7 +22582,7 @@ const RightSection = dt.div`
   gap: 12px;
   -webkit-app-region: no-drag;
 `;
-const ActionButton = dt(motion.button)`
+const ActionButton$1 = dt(motion.button)`
   background: none;
   border: none;
   color: ${(props) => props.theme.titleBar.icon};
@@ -22106,7 +22599,7 @@ const ActionButton = dt(motion.button)`
     color: ${(props) => props.theme.titleBar.iconHover};
   }
 `;
-const ThemeToggleButton = dt(ActionButton)`
+const ThemeToggleButton = dt(ActionButton$1)`
   background-color: ${(props) => props.theme.surfaceVariant};
   color: ${(props) => props.theme.titleBar.icon};
   
@@ -22259,9 +22752,9 @@ const TitleBar = () => {
               transition: { delay: 0.1, duration: 0.3 },
               style: { zIndex: 1 },
               children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(SearchIconWrapper, { theme, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { size: 16 }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(SearchIconWrapper$1, { theme, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { size: 16 }) }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  SearchInput,
+                  SearchInput$2,
                   {
                     placeholder: "搜索功能、设置...",
                     theme
@@ -22284,7 +22777,7 @@ const TitleBar = () => {
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
-            ActionButton,
+            ActionButton$1,
             {
               whileHover: { scale: 1.1 },
               whileTap: { scale: 0.9 },
@@ -22359,35 +22852,19 @@ const LayoutContainer = dt(motion.div)`
   transition: all ${(props) => props.theme.transition.normal} ease-in-out;
   overflow: hidden;
 `;
-const MainContent = dt.div`
+const MainContent$1 = dt.div`
   display: flex;
   flex: 1;
   overflow: hidden;
   margin-top: ${(props) => props.theme.titleBar.height};
 `;
 const Content = dt(motion.main)`
-  flex-grow: 1;
-  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background-color: ${(props) => props.theme.background};
-  
-  /* 自定义滚动条 */
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: ${(props) => props.theme.surfaceVariant};
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.border};
-    border-radius: 4px;
-    
-    &:hover {
-      background: ${(props) => props.theme.textTertiary};
-    }
-  }
+  height: 100%;
 `;
 const MainLayout$1 = ({ children }) => {
   const isServicePage = window.location.pathname.includes("/proxy-management") || window.location.pathname.includes("/chat") || window.location.pathname.includes("/dev-environment");
@@ -22399,7 +22876,7 @@ const MainLayout$1 = ({ children }) => {
       transition: isServicePage ? false : { duration: 0.3 },
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(TitleBar, {}),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(MainContent, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(MainContent$1, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Sidebar, {}),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             Content,
@@ -22415,6 +22892,2603 @@ const MainLayout$1 = ({ children }) => {
     }
   );
 };
+const PageContainer = dt.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  background-color: ${(props) => props.theme?.background || "#F9FAFB"};
+  color: ${(props) => props.theme?.textPrimary || "#111827"};
+  padding: ${(props) => props.theme?.spacing?.xl || "32px"};
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+`;
+const Header$2 = dt.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
+  padding: 0 ${({ theme }) => theme.spacing.xl};
+`;
+const Title$2 = dt.h1`
+  font-size: 2rem;
+  font-weight: 700;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0;
+`;
+const ThemeToggle = dt.button`
+  width: 40px;
+  height: 40px;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  background: ${(props) => props.theme.surfaceVariant};
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: ${(props) => props.theme.textPrimary};
+  transition: all ${(props) => props.theme.transition.fast} ease;
+  
+  &:hover {
+    background: ${(props) => props.theme.border};
+  }
+`;
+const WelcomeCard$1 = dt(motion.div)`
+  background: ${(props) => props.$isDarkMode ? "linear-gradient(135deg, #1e293b, #334155)" : "linear-gradient(135deg, #f8fafc, #e2e8f0)"};
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid ${(props) => props.theme.border};
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${(props) => props.$isDarkMode ? "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)" : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)"};
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+const WelcomeContent$1 = dt.div`
+  position: relative;
+  z-index: 1;
+`;
+const WelcomeTitle$1 = dt.h1`
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  color: ${(props) => props.theme.textPrimary};
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+`;
+const WelcomeSubtitle$1 = dt.p`
+  font-size: 1.1rem;
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+`;
+const QuickActionsGrid = dt.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+`;
+const QuickActionItem = dt(motion.div)`
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+`;
+const QuickActionItemIcon = dt.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  background: ${(props) => props.$color}20;
+  color: ${(props) => props.$color};
+`;
+const QuickActionItemTitle = dt.h3`
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0 0 0.5rem 0;
+`;
+const QuickActionItemDescription = dt.p`
+  color: ${(props) => props.theme.textSecondary};
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.4;
+`;
+const ActivitySection = dt.div`
+  margin-bottom: 2rem;
+`;
+const ActivityHeader = dt.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+const ActivityTitle = dt.h2`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0;
+`;
+const ActivityList = dt.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+const ActivityItem = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${(props) => props.theme.surfaceVariant};
+  }
+`;
+const ActivityIcon = dt.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${(props) => props.$color}20;
+  color: ${(props) => props.$color};
+`;
+const ActivityContent = dt.div`
+  flex: 1;
+`;
+const ActivityText = dt.p`
+  font-size: 0.9rem;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0 0 0.25rem 0;
+`;
+const ActivityTime = dt.p`
+  font-size: 0.8rem;
+  color: ${(props) => props.theme.textTertiary};
+  margin: 0;
+`;
+const Footer = dt.div`
+  margin-top: auto;
+  text-align: center;
+  padding: ${({ theme }) => theme.spacing.lg} 0;
+  color: ${(props) => props.theme.textTertiary};
+  font-size: 0.9rem;
+`;
+const HomePage = () => {
+  const { isDarkMode, toggleTheme } = useTheme();
+  const { nickname } = useUser();
+  const navigate = useNavigate();
+  const [proxyStatus, setProxyStatus] = reactExports.useState(null);
+  const [loading, setLoading] = reactExports.useState(false);
+  const [currentTime, setCurrentTime] = reactExports.useState("");
+  const [activities, setActivities] = reactExports.useState([
+    { id: 1, text: "欢迎使用 Catalyst！", time: "刚刚", icon: Sparkles, color: "#8B5CF6" },
+    { id: 2, text: "系统代理已准备就绪", time: "2分钟前", icon: Shield, color: "#3B82F6" },
+    { id: 3, text: "AI 对话功能已激活", time: "5分钟前", icon: MessageSquare, color: "#10B981" }
+  ]);
+  reactExports.useEffect(() => {
+    const updateTime = () => {
+      const now2 = /* @__PURE__ */ new Date();
+      const hour = now2.getHours();
+      let greeting = "";
+      if (hour < 6) greeting = "夜深了";
+      else if (hour < 9) greeting = "早上好";
+      else if (hour < 12) greeting = "上午好";
+      else if (hour < 14) greeting = "中午好";
+      else if (hour < 18) greeting = "下午好";
+      else if (hour < 22) greeting = "晚上好";
+      else greeting = "夜深了";
+      setCurrentTime(`${greeting}，${nickname || "朋友"}！`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 6e4);
+    return () => clearInterval(interval);
+  }, [nickname]);
+  reactExports.useEffect(() => {
+    checkProxyStatus();
+  }, []);
+  const checkProxyStatus = async () => {
+    try {
+      if (window.electronAPI?.mihomo) {
+        const status = await window.electronAPI.mihomo.status();
+        setProxyStatus(status);
+      }
+    } catch (error) {
+      console.error("Failed to check proxy status:", error);
+    }
+  };
+  const toggleProxy = async () => {
+    if (!window.electronAPI?.mihomo) return;
+    setLoading(true);
+    try {
+      if (proxyStatus?.isRunning) {
+        const result = await window.electronAPI.mihomo.stop();
+        if (result.success) {
+          setProxyStatus({ isRunning: false });
+          addActivity("代理服务已停止", Shield, "#3B82F6");
+        }
+      } else {
+        const result = await window.electronAPI.mihomo.start();
+        if (result.success) {
+          setProxyStatus({ isRunning: true });
+          addActivity("代理服务已启动", Shield, "#3B82F6");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to toggle proxy:", error);
+      addActivity("代理服务操作失败", Shield, "#EF4444");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const addActivity = (text, icon, color2) => {
+    const newActivity = {
+      id: Date.now(),
+      text,
+      time: "刚刚",
+      icon,
+      color: color2
+    };
+    setActivities((prev) => [newActivity, ...prev.slice(0, 4)]);
+  };
+  const quickActions = [
+    {
+      icon: MessageSquare,
+      title: "开始对话",
+      description: "与AI助手开始智能对话",
+      color: "#8B5CF6",
+      action: () => {
+        addActivity("开始AI对话", MessageSquare, "#8B5CF6");
+        navigate("/chat");
+      }
+    },
+    {
+      icon: Wifi,
+      title: proxyStatus?.isRunning ? "停止代理" : "启动代理",
+      description: proxyStatus?.isRunning ? "代理正在运行" : "代理已停止",
+      color: proxyStatus?.isRunning ? "#EF4444" : "#10B981",
+      action: toggleProxy
+    },
+    {
+      icon: Shield,
+      title: "代理管理",
+      description: "配置和管理代理设置",
+      color: "#3B82F6",
+      action: () => {
+        addActivity("进入代理管理", Shield, "#3B82F6");
+        navigate("/proxy-management");
+      }
+    },
+    {
+      icon: Code,
+      title: "开发环境",
+      description: "部署开发工具和环境",
+      color: "#10B981",
+      action: () => {
+        addActivity("进入开发环境", Code, "#10B981");
+        navigate("/dev-environment");
+      }
+    }
+  ];
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Header$2, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Title$2, { children: "欢迎回来" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeToggle, { onClick: toggleTheme, children: isDarkMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Sun, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Moon, { size: 20 }) })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      WelcomeCard$1,
+      {
+        $isDarkMode: isDarkMode,
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeContent$1, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeTitle$1, { children: [
+            currentTime,
+            /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 32 })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(WelcomeSubtitle$1, { children: "今天准备好探索新的可能性了吗？让我们一起用 Catalyst 提升您的工作效率。" })
+        ] })
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionsGrid, { children: quickActions.map((action, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      motion.div,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.1 * index + 0.3, duration: 0.5 },
+        onClick: action.action,
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          QuickActionItem,
+          {
+            whileHover: { scale: 1.02 },
+            whileTap: { scale: 0.98 },
+            style: { opacity: loading && action.title.includes("代理") ? 0.7 : 1 },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionItemIcon, { $color: action.color, children: loading && action.title.includes("代理") ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { animation: "spin 1s linear infinite" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 24 }) }) : /* @__PURE__ */ jsxRuntimeExports.jsx(action.icon, { size: 24 }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionItemTitle, { children: action.title }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionItemDescription, { children: action.description })
+            ]
+          }
+        )
+      },
+      action.title
+    )) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(ActivitySection, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ActivityHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ActivityTitle, { children: "最近活动" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ActivityList, { children: activities.map((activity, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+        motion.div,
+        {
+          initial: { opacity: 0, x: -20 },
+          animate: { opacity: 1, x: 0 },
+          transition: { delay: 0.1 * index + 0.5, duration: 0.4 },
+          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ActivityItem, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(ActivityIcon, { $color: activity.color, children: /* @__PURE__ */ jsxRuntimeExports.jsx(activity.icon, { size: 20 }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(ActivityContent, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(ActivityText, { children: activity.text }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(ActivityTime, { children: activity.time })
+            ] })
+          ] })
+        },
+        activity.id
+      )) })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Footer, { children: [
+      "© ",
+      (/* @__PURE__ */ new Date()).getFullYear(),
+      " Catalyst - 为您的工作效率而生"
+    ] })
+  ] });
+};
+let notificationManager$1 = null;
+try {
+  const { notificationManager: nm } = require("../components/common/NotificationSystem");
+  notificationManager$1 = nm;
+} catch (e) {
+  console.warn("NotificationSystem not available");
+}
+class ProxyService {
+  static instance;
+  statusCheckInterval = null;
+  metricsCache = null;
+  lastStatusCheck = 0;
+  constructor() {
+  }
+  static getInstance() {
+    if (!ProxyService.instance) {
+      ProxyService.instance = new ProxyService();
+    }
+    return ProxyService.instance;
+  }
+  /**
+   * 获取代理服务状态
+   */
+  async getStatus() {
+    try {
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const result = await window.electronAPI.mihomo.status();
+      this.lastStatusCheck = Date.now();
+      return {
+        success: true,
+        data: {
+          isRunning: result.isRunning,
+          pid: result.pid,
+          version: result.version
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "获取状态失败"
+      };
+    }
+  }
+  /**
+   * 启动代理服务
+   */
+  async start() {
+    try {
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const result = await window.electronAPI.mihomo.start();
+      if (result.success) {
+        this.startStatusMonitoring();
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || "启动失败" };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "启动失败"
+      };
+    }
+  }
+  /**
+   * 停止代理服务
+   */
+  async stop() {
+    try {
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const result = await window.electronAPI.mihomo.stop();
+      if (result.success) {
+        this.stopStatusMonitoring();
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || "停止失败" };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "停止失败"
+      };
+    }
+  }
+  /**
+   * 获取连接信息
+   */
+  async getConnectionInfo() {
+    try {
+      const configResult = await this.getConfig();
+      if (!configResult.success || !configResult.data) {
+        return { success: false, error: "无法获取配置信息" };
+      }
+      const statusResult = await this.getStatus();
+      const config = configResult.data;
+      return {
+        success: true,
+        data: {
+          httpPort: config.port,
+          socksPort: config["socks-port"],
+          mixedPort: config["mixed-port"],
+          isRunning: statusResult.data?.isRunning || false,
+          uptime: statusResult.data?.isRunning ? Date.now() - this.lastStatusCheck : void 0
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "获取连接信息失败"
+      };
+    }
+  }
+  /**
+   * 获取配置
+   */
+  async getConfig() {
+    try {
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const result = await window.electronAPI.mihomo.loadConfig();
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "获取配置失败"
+      };
+    }
+  }
+  /**
+   * 保存配置
+   */
+  async saveConfig(config) {
+    try {
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const validation = this.validateConfig(config);
+      if (!validation.isValid) {
+        return { success: false, error: validation.error };
+      }
+      const result = await window.electronAPI.mihomo.saveConfig(config);
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "保存配置失败"
+      };
+    }
+  }
+  /**
+   * 从URL获取配置
+   */
+  async fetchConfigFromURL(url) {
+    try {
+      if (!url.trim()) {
+        return { success: false, error: "请提供有效的配置URL" };
+      }
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const result = await window.electronAPI.mihomo.fetchConfigFromURL(url);
+      if (result.success && result.data) {
+        await this.saveConfigURL(url);
+      }
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "获取配置失败"
+      };
+    }
+  }
+  /**
+   * 获取代理组列表
+   */
+  async getProxyGroups() {
+    try {
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const result = await window.electronAPI.mihomo.getProxies();
+      if (result.success && result.data) {
+        const groups = [];
+        Object.entries(result.data.proxies).forEach(([name, proxy]) => {
+          if (proxy.all && Array.isArray(proxy.all) || proxy.proxies && Array.isArray(proxy.proxies)) {
+            groups.push({
+              name,
+              type: proxy.type,
+              now: proxy.now,
+              proxies: proxy.all || proxy.proxies,
+              providers: proxy.providers || [],
+              latencyHistory: proxy.history || []
+            });
+          }
+        });
+        return { success: true, data: groups };
+      }
+      return { success: false, error: "获取代理组失败" };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "获取代理组失败"
+      };
+    }
+  }
+  /**
+   * 选择代理
+   */
+  async selectProxy(groupName, proxyName) {
+    try {
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const result = await window.electronAPI.mihomo.selectProxy(groupName, proxyName);
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "选择代理失败"
+      };
+    }
+  }
+  /**
+   * 测试单个代理延迟
+   */
+  async testProxyDelay(proxyName) {
+    try {
+      if (!window.electronAPI?.mihomo) {
+        return { success: false, error: "Mihomo API 不可用" };
+      }
+      const result = await window.electronAPI.mihomo.testProxyDelay(proxyName);
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "测试延迟失败"
+      };
+    }
+  }
+  /**
+   * 批量测试代理延迟
+   */
+  async testAllProxyDelays() {
+    try {
+      const groupsResult = await this.getProxyGroups();
+      if (!groupsResult.success || !groupsResult.data) {
+        return { success: false, error: "无法获取代理组信息" };
+      }
+      const delayResults = {};
+      const allProxies = /* @__PURE__ */ new Set();
+      groupsResult.data.forEach((group) => {
+        group.proxies.forEach((proxy) => allProxies.add(proxy));
+      });
+      const delayPromises = Array.from(allProxies).map(async (proxyName) => {
+        try {
+          const delayResult = await this.testProxyDelay(proxyName);
+          return {
+            name: proxyName,
+            delay: delayResult.success ? delayResult.data || -1 : -1
+          };
+        } catch {
+          return { name: proxyName, delay: -1 };
+        }
+      });
+      const results = await Promise.all(delayPromises);
+      results.forEach(({ name, delay: delay2 }) => {
+        delayResults[name] = delay2;
+      });
+      return { success: true, data: delayResults };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "批量测试延迟失败"
+      };
+    }
+  }
+  /**
+   * 获取代理指标
+   */
+  async getProxyMetrics() {
+    try {
+      const groupsResult = await this.getProxyGroups();
+      if (!groupsResult.success || !groupsResult.data) {
+        return { success: false, error: "无法获取代理组信息" };
+      }
+      const delaysResult = await this.testAllProxyDelays();
+      const delays = delaysResult.success ? delaysResult.data || {} : {};
+      let totalProxies = 0;
+      let activeProxies = 0;
+      let totalDelay = 0;
+      let healthyProxies = 0;
+      groupsResult.data.forEach((group) => {
+        group.proxies.forEach((proxyName) => {
+          totalProxies++;
+          if (group.now === proxyName) {
+            activeProxies++;
+          }
+          const delay2 = delays[proxyName];
+          if (delay2 && delay2 > 0) {
+            healthyProxies++;
+            totalDelay += delay2;
+          }
+        });
+      });
+      const metrics = {
+        totalProxies,
+        activeProxies,
+        avgDelay: healthyProxies > 0 ? Math.round(totalDelay / healthyProxies) : 0,
+        healthyProxies
+      };
+      this.metricsCache = metrics;
+      return { success: true, data: metrics };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "获取代理指标失败"
+      };
+    }
+  }
+  /**
+   * 验证配置
+   */
+  validateConfig(config) {
+    if (!config || typeof config !== "object") {
+      return { isValid: false, error: "配置不能为空" };
+    }
+    const requiredFields = ["port", "mode"];
+    for (const field of requiredFields) {
+      if (config[field] === void 0) {
+        return { isValid: false, error: `缺少必需字段: ${field}` };
+      }
+    }
+    if (typeof config.port !== "number" || config.port < 1 || config.port > 65535) {
+      return { isValid: false, error: "端口号必须在 1-65535 之间" };
+    }
+    const validModes = ["rule", "global", "direct"];
+    if (!validModes.includes(config.mode)) {
+      return { isValid: false, error: "无效的代理模式" };
+    }
+    return { isValid: true };
+  }
+  /**
+   * 保存配置URL
+   */
+  async saveConfigURL(url) {
+    try {
+      if (window.electronAPI?.config) {
+        await window.electronAPI.config.setVpnUrl(url);
+      }
+    } catch (error) {
+      console.warn("保存配置URL失败:", error);
+    }
+  }
+  /**
+   * 开始状态监控
+   */
+  startStatusMonitoring() {
+    if (this.statusCheckInterval) {
+      return;
+    }
+    this.statusCheckInterval = setInterval(async () => {
+      try {
+        await this.getStatus();
+      } catch (error) {
+        console.warn("状态检查失败:", error);
+      }
+    }, 5e3);
+  }
+  /**
+   * 停止状态监控
+   */
+  stopStatusMonitoring() {
+    if (this.statusCheckInterval) {
+      clearInterval(this.statusCheckInterval);
+      this.statusCheckInterval = null;
+    }
+  }
+  /**
+   * 清理资源
+   */
+  destroy() {
+    this.stopStatusMonitoring();
+    this.metricsCache = null;
+  }
+}
+const proxyService = ProxyService.getInstance();
+const initialEnhancedState = {
+  isRunning: false,
+  isLoading: true,
+  isConfigLoading: false,
+  isConfigSaving: false,
+  statusMessage: "",
+  isSuccess: false,
+  configPath: "",
+  configURL: "",
+  config: "",
+  autoStart: false,
+  apiAvailable: false,
+  hasConfig: false,
+  isValidConfig: false,
+  currentStep: 1,
+  tunMode: false,
+  unifiedDelay: false,
+  tcpConcurrent: false,
+  enableSniffer: false,
+  port: 7890,
+  socksPort: 7891,
+  mixedPort: 7892,
+  mode: "rule",
+  logLevel: "info",
+  // 增强的状态
+  connectionInfo: null,
+  proxyGroups: [],
+  latencyData: {},
+  metrics: null,
+  isTestingLatency: false,
+  isFetchingGroups: false,
+  lastError: null,
+  errorCount: 0,
+  autoRefresh: true,
+  refreshInterval: 1e4
+  // 10秒
+};
+function enhancedProxyReducer(state, action) {
+  switch (action.type) {
+    case "SET_LOADING":
+      return { ...state, isLoading: action.payload };
+    case "SET_CONFIG_LOADING":
+      return { ...state, isConfigLoading: action.payload };
+    case "SET_CONFIG_SAVING":
+      return { ...state, isConfigSaving: action.payload };
+    case "SET_STATUS_MESSAGE":
+      return {
+        ...state,
+        statusMessage: action.payload.message,
+        isSuccess: action.payload.success,
+        lastError: action.payload.success ? null : action.payload.message
+      };
+    case "SET_RUNNING":
+      return { ...state, isRunning: action.payload };
+    case "SET_CONFIG_PATH":
+      return { ...state, configPath: action.payload };
+    case "SET_CONFIG_URL":
+      return { ...state, configURL: action.payload };
+    case "SET_CONFIG":
+      return { ...state, config: action.payload };
+    case "SET_AUTO_START":
+      return { ...state, autoStart: action.payload };
+    case "SET_API_AVAILABLE":
+      return { ...state, apiAvailable: action.payload };
+    case "SET_HAS_CONFIG":
+      return { ...state, hasConfig: action.payload };
+    case "SET_VALID_CONFIG":
+      return { ...state, isValidConfig: action.payload };
+    case "SET_CURRENT_STEP":
+      return { ...state, currentStep: action.payload };
+    case "SET_TUN_MODE":
+      return { ...state, tunMode: action.payload };
+    case "SET_UNIFIED_DELAY":
+      return { ...state, unifiedDelay: action.payload };
+    case "SET_TCP_CONCURRENT":
+      return { ...state, tcpConcurrent: action.payload };
+    case "SET_ENABLE_SNIFFER":
+      return { ...state, enableSniffer: action.payload };
+    case "SET_PORT":
+      return { ...state, port: action.payload };
+    case "SET_SOCKS_PORT":
+      return { ...state, socksPort: action.payload };
+    case "SET_MIXED_PORT":
+      return { ...state, mixedPort: action.payload };
+    case "SET_MODE":
+      return { ...state, mode: action.payload };
+    case "SET_LOG_LEVEL":
+      return { ...state, logLevel: action.payload };
+    // 增强的 Actions
+    case "SET_CONNECTION_INFO":
+      return { ...state, connectionInfo: action.payload };
+    case "SET_PROXY_GROUPS":
+      return { ...state, proxyGroups: action.payload, isFetchingGroups: false };
+    case "SET_LATENCY_DATA":
+      return { ...state, latencyData: action.payload, isTestingLatency: false };
+    case "SET_METRICS":
+      return { ...state, metrics: action.payload };
+    case "SET_TESTING_LATENCY":
+      return { ...state, isTestingLatency: action.payload };
+    case "SET_FETCHING_GROUPS":
+      return { ...state, isFetchingGroups: action.payload };
+    case "SET_LAST_ERROR":
+      return { ...state, lastError: action.payload };
+    case "INCREMENT_ERROR_COUNT":
+      return { ...state, errorCount: state.errorCount + 1 };
+    case "RESET_ERROR_COUNT":
+      return { ...state, errorCount: 0 };
+    case "SET_AUTO_REFRESH":
+      return { ...state, autoRefresh: action.payload };
+    case "SET_REFRESH_INTERVAL":
+      return { ...state, refreshInterval: action.payload };
+    case "UPDATE_PROXY_SELECTION":
+      return {
+        ...state,
+        proxyGroups: state.proxyGroups.map(
+          (group) => group.name === action.payload.groupName ? { ...group, now: action.payload.proxyName } : group
+        )
+      };
+    case "RESET_STATE":
+      return initialEnhancedState;
+    default:
+      return state;
+  }
+}
+function useEnhancedProxyState() {
+  const [state, dispatch] = reactExports.useReducer(enhancedProxyReducer, initialEnhancedState);
+  const refreshIntervalRef = reactExports.useRef(null);
+  const mountedRef = reactExports.useRef(true);
+  const safeDispatch = reactExports.useCallback((action) => {
+    if (mountedRef.current) {
+      dispatch(action);
+    }
+  }, []);
+  const handleError = reactExports.useCallback((error) => {
+    console.error("ProxyState Error:", error);
+    safeDispatch({ type: "SET_LAST_ERROR", payload: error });
+    safeDispatch({ type: "INCREMENT_ERROR_COUNT" });
+    safeDispatch({ type: "SET_STATUS_MESSAGE", payload: { message: error, success: false } });
+  }, [safeDispatch]);
+  const handleSuccess = reactExports.useCallback((message) => {
+    safeDispatch({ type: "RESET_ERROR_COUNT" });
+    safeDispatch({ type: "SET_LAST_ERROR", payload: null });
+    safeDispatch({ type: "SET_STATUS_MESSAGE", payload: { message, success: true } });
+  }, [safeDispatch]);
+  const refreshStatus = reactExports.useCallback(async () => {
+    if (!state.apiAvailable) return;
+    try {
+      const result = await proxyService.getStatus();
+      if (result.success && result.data) {
+        safeDispatch({ type: "SET_RUNNING", payload: result.data.isRunning });
+      } else {
+        handleError(result.error || "获取状态失败");
+      }
+    } catch (error) {
+      handleError(error instanceof Error ? error.message : "获取状态失败");
+    }
+  }, [state.apiAvailable, safeDispatch, handleError]);
+  const refreshConnectionInfo = reactExports.useCallback(async () => {
+    if (!state.apiAvailable) return;
+    try {
+      const result = await proxyService.getConnectionInfo();
+      if (result.success) {
+        safeDispatch({ type: "SET_CONNECTION_INFO", payload: result.data });
+      }
+    } catch (error) {
+      console.warn("获取连接信息失败:", error);
+    }
+  }, [state.apiAvailable, safeDispatch]);
+  const refreshProxyGroups = reactExports.useCallback(async () => {
+    if (!state.apiAvailable || !state.isRunning) return;
+    safeDispatch({ type: "SET_FETCHING_GROUPS", payload: true });
+    try {
+      const result = await proxyService.getProxyGroups();
+      if (result.success && result.data) {
+        safeDispatch({ type: "SET_PROXY_GROUPS", payload: result.data });
+      } else {
+        safeDispatch({ type: "SET_FETCHING_GROUPS", payload: false });
+        handleError(result.error || "获取代理组失败");
+      }
+    } catch (error) {
+      safeDispatch({ type: "SET_FETCHING_GROUPS", payload: false });
+      handleError(error instanceof Error ? error.message : "获取代理组失败");
+    }
+  }, [state.apiAvailable, state.isRunning, safeDispatch, handleError]);
+  const testAllDelays = reactExports.useCallback(async () => {
+    if (!state.apiAvailable || !state.isRunning || state.proxyGroups.length === 0) {
+      return;
+    }
+    safeDispatch({ type: "SET_TESTING_LATENCY", payload: true });
+    try {
+      const result = await proxyService.testAllProxyDelays();
+      if (result.success && result.data) {
+        safeDispatch({ type: "SET_LATENCY_DATA", payload: result.data });
+        handleSuccess("延迟测试完成");
+      } else {
+        safeDispatch({ type: "SET_TESTING_LATENCY", payload: false });
+        handleError(result.error || "延迟测试失败");
+      }
+    } catch (error) {
+      safeDispatch({ type: "SET_TESTING_LATENCY", payload: false });
+      handleError(error instanceof Error ? error.message : "延迟测试失败");
+    }
+  }, [state.apiAvailable, state.isRunning, state.proxyGroups.length, safeDispatch, handleError, handleSuccess]);
+  const refreshMetrics = reactExports.useCallback(async () => {
+    if (!state.apiAvailable || !state.isRunning) return;
+    try {
+      const result = await proxyService.getProxyMetrics();
+      if (result.success) {
+        safeDispatch({ type: "SET_METRICS", payload: result.data });
+      }
+    } catch (error) {
+      console.warn("获取指标失败:", error);
+    }
+  }, [state.apiAvailable, state.isRunning, safeDispatch]);
+  const startProxy = reactExports.useCallback(async () => {
+    if (!state.hasConfig || !state.isValidConfig) {
+      handleError("请先获取并验证配置");
+      return;
+    }
+    safeDispatch({ type: "SET_LOADING", payload: true });
+    try {
+      const result = await proxyService.start();
+      if (result.success) {
+        handleSuccess("代理启动成功");
+        safeDispatch({ type: "SET_CURRENT_STEP", payload: 4 });
+        await refreshStatus();
+        await refreshProxyGroups();
+      } else {
+        handleError(result.error || "启动失败");
+      }
+    } catch (error) {
+      handleError(error instanceof Error ? error.message : "启动失败");
+    } finally {
+      safeDispatch({ type: "SET_LOADING", payload: false });
+    }
+  }, [state.hasConfig, state.isValidConfig, safeDispatch, handleError, handleSuccess, refreshStatus, refreshProxyGroups]);
+  const stopProxy = reactExports.useCallback(async () => {
+    safeDispatch({ type: "SET_LOADING", payload: true });
+    try {
+      const result = await proxyService.stop();
+      if (result.success) {
+        handleSuccess("代理停止成功");
+        safeDispatch({ type: "SET_CURRENT_STEP", payload: 3 });
+        safeDispatch({ type: "SET_PROXY_GROUPS", payload: [] });
+        safeDispatch({ type: "SET_LATENCY_DATA", payload: {} });
+        safeDispatch({ type: "SET_METRICS", payload: null });
+        await refreshStatus();
+      } else {
+        handleError(result.error || "停止失败");
+      }
+    } catch (error) {
+      handleError(error instanceof Error ? error.message : "停止失败");
+    } finally {
+      safeDispatch({ type: "SET_LOADING", payload: false });
+    }
+  }, [safeDispatch, handleError, handleSuccess, refreshStatus]);
+  const selectProxy = reactExports.useCallback(async (groupName, proxyName) => {
+    try {
+      const result = await proxyService.selectProxy(groupName, proxyName);
+      if (result.success) {
+        safeDispatch({ type: "UPDATE_PROXY_SELECTION", payload: { groupName, proxyName } });
+        handleSuccess(`已选择代理: ${proxyName}`);
+      } else {
+        handleError(result.error || "选择代理失败");
+      }
+    } catch (error) {
+      handleError(error instanceof Error ? error.message : "选择代理失败");
+    }
+  }, [safeDispatch, handleError, handleSuccess]);
+  const refreshAll = reactExports.useCallback(async () => {
+    await Promise.all([
+      refreshStatus(),
+      refreshConnectionInfo(),
+      refreshProxyGroups(),
+      refreshMetrics()
+    ]);
+  }, [refreshStatus, refreshConnectionInfo, refreshProxyGroups, refreshMetrics]);
+  reactExports.useEffect(() => {
+    if (state.autoRefresh && state.isRunning && state.apiAvailable) {
+      refreshIntervalRef.current = setInterval(() => {
+        refreshAll();
+      }, state.refreshInterval);
+      return () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+        }
+      };
+    }
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [state.autoRefresh, state.isRunning, state.apiAvailable, state.refreshInterval, refreshAll]);
+  reactExports.useEffect(() => {
+    const initialize = async () => {
+      const apiAvailable = !!(window.electronAPI?.mihomo && window.electronAPI?.config);
+      safeDispatch({ type: "SET_API_AVAILABLE", payload: apiAvailable });
+      if (apiAvailable) {
+        await refreshAll();
+        try {
+          const urlResult = await window.electronAPI.config.getVpnUrl();
+          if (urlResult.success && urlResult.data) {
+            safeDispatch({ type: "SET_CONFIG_URL", payload: urlResult.data });
+          }
+        } catch (error) {
+          console.warn("加载配置URL失败:", error);
+        }
+        try {
+          const autoStartResult = await window.electronAPI.config.getProxyAutoStart();
+          if (autoStartResult.success && autoStartResult.data !== void 0) {
+            safeDispatch({ type: "SET_AUTO_START", payload: autoStartResult.data });
+          }
+        } catch (error) {
+          console.warn("加载自动启动设置失败:", error);
+        }
+      }
+      safeDispatch({ type: "SET_LOADING", payload: false });
+    };
+    initialize();
+  }, [safeDispatch, refreshAll]);
+  reactExports.useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, []);
+  return {
+    // 状态
+    state,
+    // 计算属性
+    isOperating: state.isLoading || state.isConfigLoading || state.isConfigSaving || state.isTestingLatency,
+    canStart: state.apiAvailable && state.hasConfig && state.isValidConfig && !state.isLoading,
+    canStop: state.apiAvailable && state.isRunning && !state.isLoading,
+    // 基础操作
+    startProxy,
+    stopProxy,
+    selectProxy,
+    testAllDelays,
+    // 刷新操作
+    refreshStatus,
+    refreshConnectionInfo,
+    refreshProxyGroups,
+    refreshMetrics,
+    refreshAll,
+    // 状态设置器 (兼容旧接口)
+    setLoading: (loading) => safeDispatch({ type: "SET_LOADING", payload: loading }),
+    setConfigLoading: (loading) => safeDispatch({ type: "SET_CONFIG_LOADING", payload: loading }),
+    setConfigSaving: (saving) => safeDispatch({ type: "SET_CONFIG_SAVING", payload: saving }),
+    setStatusMessage: (message, success) => safeDispatch({ type: "SET_STATUS_MESSAGE", payload: { message, success } }),
+    setRunning: (running) => safeDispatch({ type: "SET_RUNNING", payload: running }),
+    setConfigPath: (path) => safeDispatch({ type: "SET_CONFIG_PATH", payload: path }),
+    setConfigURL: (url) => safeDispatch({ type: "SET_CONFIG_URL", payload: url }),
+    setConfig: (config) => safeDispatch({ type: "SET_CONFIG", payload: config }),
+    setAutoStart: (autoStart) => safeDispatch({ type: "SET_AUTO_START", payload: autoStart }),
+    setHasConfig: (hasConfig) => safeDispatch({ type: "SET_HAS_CONFIG", payload: hasConfig }),
+    setValidConfig: (valid) => safeDispatch({ type: "SET_VALID_CONFIG", payload: valid }),
+    setCurrentStep: (step) => safeDispatch({ type: "SET_CURRENT_STEP", payload: step }),
+    setTunMode: (enabled) => safeDispatch({ type: "SET_TUN_MODE", payload: enabled }),
+    setUnifiedDelay: (enabled) => safeDispatch({ type: "SET_UNIFIED_DELAY", payload: enabled }),
+    setTcpConcurrent: (enabled) => safeDispatch({ type: "SET_TCP_CONCURRENT", payload: enabled }),
+    setEnableSniffer: (enabled) => safeDispatch({ type: "SET_ENABLE_SNIFFER", payload: enabled }),
+    setPort: (port) => safeDispatch({ type: "SET_PORT", payload: port }),
+    setSocksPort: (port) => safeDispatch({ type: "SET_SOCKS_PORT", payload: port }),
+    setMixedPort: (port) => safeDispatch({ type: "SET_MIXED_PORT", payload: port }),
+    setMode: (mode) => safeDispatch({ type: "SET_MODE", payload: mode }),
+    setLogLevel: (level) => safeDispatch({ type: "SET_LOG_LEVEL", payload: level }),
+    // 增强操作
+    setAutoRefresh: (enabled) => safeDispatch({ type: "SET_AUTO_REFRESH", payload: enabled }),
+    setRefreshInterval: (interval) => safeDispatch({ type: "SET_REFRESH_INTERVAL", payload: interval }),
+    resetState: () => safeDispatch({ type: "RESET_STATE" })
+  };
+}
+const ErrorContainer = dt.div`
+  padding: 2rem;
+  text-align: center;
+  background: ${(props) => props.theme.surface};
+  border-radius: ${(props) => props.theme.borderRadius.large};
+  border: 1px solid ${(props) => props.theme.error.main};
+  margin: 2rem;
+`;
+const ErrorTitle = dt.h2`
+  color: ${(props) => props.theme.error.main};
+  margin-bottom: 1rem;
+`;
+const ErrorMessage = dt.p`
+  color: ${(props) => props.theme.textSecondary};
+  margin-bottom: 1rem;
+`;
+const ErrorDetails = dt.pre`
+  background: ${(props) => props.theme.surfaceVariant};
+  padding: 1rem;
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  text-align: left;
+  font-size: 0.875rem;
+  overflow-x: auto;
+  margin-top: 1rem;
+`;
+const RetryButton = dt.button`
+  background: ${(props) => props.theme.primary.main};
+  color: ${(props) => props.theme.primary.contrastText};
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 1rem;
+  
+  &:hover {
+    background: ${(props) => props.theme.primary.dark};
+  }
+`;
+class ErrorBoundary extends reactExports.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null
+    };
+  }
+  static getDerivedStateFromError(error) {
+    return {
+      hasError: true,
+      error,
+      errorInfo: null
+    };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("Error caught by boundary:", error, errorInfo);
+    this.setState({
+      error,
+      errorInfo
+    });
+  }
+  handleRetry = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
+    });
+  };
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(ErrorContainer, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorTitle, { children: "出现错误" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: "抱歉，应用程序遇到了一个错误。请刷新页面或重试。" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(RetryButton, { onClick: this.handleRetry, children: "重试" }),
+        this.state.error && this.state.errorInfo && /* @__PURE__ */ jsxRuntimeExports.jsxs(ErrorDetails, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "错误详情:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+          this.state.error.toString(),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "组件堆栈:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+          this.state.errorInfo.componentStack
+        ] })
+      ] });
+    }
+    return this.props.children;
+  }
+}
+const OverviewContainer = dt(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+`;
+const MetricCard = dt(motion.div)`
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 16px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+`;
+const MetricHeader = dt.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+`;
+const MetricIcon = dt.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${(props) => props.$color}20;
+  color: ${(props) => props.$color};
+`;
+const MetricBadge = dt.span`
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: ${(props) => {
+  switch (props.$variant) {
+    case "success":
+      return props.theme.success.main + "20";
+    case "warning":
+      return props.theme.warning.main + "20";
+    case "error":
+      return props.theme.error.main + "20";
+    case "info":
+      return props.theme.primary.main + "20";
+    default:
+      return props.theme.surfaceVariant;
+  }
+}};
+  color: ${(props) => {
+  switch (props.$variant) {
+    case "success":
+      return props.theme.success.main;
+    case "warning":
+      return props.theme.warning.main;
+    case "error":
+      return props.theme.error.main;
+    case "info":
+      return props.theme.primary.main;
+    default:
+      return props.theme.textSecondary;
+  }
+}};
+`;
+const MetricTitle = dt.h3`
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+const MetricValue = dt.div`
+  font-size: 2rem;
+  font-weight: 800;
+  color: ${(props) => props.theme.textPrimary};
+  margin-bottom: 0.5rem;
+  line-height: 1;
+`;
+const MetricSubtext = dt.div`
+  font-size: 0.8rem;
+  color: ${(props) => props.theme.textSecondary};
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+`;
+const ConnectionGrid = dt.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+`;
+const PortInfo = dt.div`
+  text-align: center;
+  padding: 0.75rem;
+  background: ${(props) => props.theme.surfaceVariant};
+  border-radius: 8px;
+`;
+const PortLabel = dt.div`
+  font-size: 0.7rem;
+  color: ${(props) => props.theme.textSecondary};
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  font-weight: 600;
+`;
+const PortValue = dt.div`
+  font-size: 1rem;
+  font-weight: 700;
+  color: ${(props) => props.theme.textPrimary};
+`;
+const ProgressBar$1 = dt.div`
+  width: 100%;
+  height: 4px;
+  background: ${(props) => props.theme.surfaceVariant};
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.75rem;
+`;
+const ProgressFill = dt(motion.div)`
+  height: 100%;
+  background: ${(props) => props.$color};
+  border-radius: 2px;
+`;
+const PulseIndicator = dt(motion.div)`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${(props) => props.$color};
+  box-shadow: 0 0 12px ${(props) => props.$color}50;
+`;
+const ProxyOverview = ({
+  isRunning,
+  connectionInfo,
+  metrics,
+  isLoading = false
+}) => {
+  const getHealthScore = () => {
+    if (!metrics) return 0;
+    if (metrics.totalProxies === 0) return 0;
+    return Math.round(metrics.healthyProxies / metrics.totalProxies * 100);
+  };
+  const getHealthVariant = (score) => {
+    if (score >= 80) return "success";
+    if (score >= 50) return "warning";
+    return "error";
+  };
+  const getDelayVariant = (delay2) => {
+    if (delay2 < 100) return "success";
+    if (delay2 < 300) return "warning";
+    return "error";
+  };
+  const formatUptime = (uptime) => {
+    if (!uptime) return "未知";
+    const hours = Math.floor(uptime / 36e5);
+    const minutes = Math.floor(uptime % 36e5 / 6e4);
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    OverviewContainer,
+    {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.5 },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          MetricCard,
+          {
+            initial: { opacity: 0, scale: 0.9 },
+            animate: { opacity: 1, scale: 1 },
+            transition: { delay: 0.1 },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(MetricHeader, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(MetricIcon, { $color: isRunning ? "#10B981" : "#EF4444", children: isRunning ? /* @__PURE__ */ jsxRuntimeExports.jsx(Activity, { size: 24 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 24 }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(MetricBadge, { $variant: isRunning ? "success" : "error", children: isRunning ? "运行中" : "已停止" })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MetricTitle, { children: "连接状态" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MetricValue, { children: isRunning ? "已连接" : "未连接" }),
+              isRunning && connectionInfo && /* @__PURE__ */ jsxRuntimeExports.jsxs(MetricSubtext, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { size: 14 }),
+                "运行时间: ",
+                formatUptime(connectionInfo.uptime)
+              ] }),
+              connectionInfo && /* @__PURE__ */ jsxRuntimeExports.jsxs(ConnectionGrid, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(PortInfo, { children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(PortLabel, { children: "HTTP" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(PortValue, { children: connectionInfo.httpPort })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(PortInfo, { children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(PortLabel, { children: "SOCKS" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(PortValue, { children: connectionInfo.socksPort })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(PortInfo, { children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(PortLabel, { children: "MIXED" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(PortValue, { children: connectionInfo.mixedPort })
+                ] })
+              ] })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          MetricCard,
+          {
+            initial: { opacity: 0, scale: 0.9 },
+            animate: { opacity: 1, scale: 1 },
+            transition: { delay: 0.2 },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(MetricHeader, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(MetricIcon, { $color: "#3B82F6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Globe, { size: 24 }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  PulseIndicator,
+                  {
+                    $color: "#3B82F6",
+                    animate: {
+                      scale: [1, 1.2, 1],
+                      opacity: [0.7, 1, 0.7]
+                    },
+                    transition: {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MetricTitle, { children: "代理节点" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MetricValue, { children: isLoading ? "..." : metrics?.totalProxies || 0 }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(MetricSubtext, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Users, { size: 14 }),
+                "活跃: ",
+                metrics?.activeProxies || 0,
+                " 个节点"
+              ] })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          MetricCard,
+          {
+            initial: { opacity: 0, scale: 0.9 },
+            animate: { opacity: 1, scale: 1 },
+            transition: { delay: 0.3 },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(MetricHeader, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(MetricIcon, { $color: "#F59E0B", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zap, { size: 24 }) }),
+                metrics?.avgDelay && /* @__PURE__ */ jsxRuntimeExports.jsx(MetricBadge, { $variant: getDelayVariant(metrics.avgDelay), children: metrics.avgDelay < 100 ? "优秀" : metrics.avgDelay < 300 ? "良好" : "较慢" })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MetricTitle, { children: "平均延迟" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MetricValue, { children: isLoading ? "..." : metrics?.avgDelay ? `${metrics.avgDelay}ms` : "N/A" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(MetricSubtext, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Gauge, { size: 14 }),
+                "基于 ",
+                metrics?.healthyProxies || 0,
+                " 个健康节点"
+              ] }),
+              metrics?.avgDelay && /* @__PURE__ */ jsxRuntimeExports.jsx(ProgressBar$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                ProgressFill,
+                {
+                  $color: metrics.avgDelay < 100 ? "#10B981" : metrics.avgDelay < 300 ? "#F59E0B" : "#EF4444",
+                  $value: Math.min(metrics.avgDelay / 500 * 100, 100),
+                  initial: { width: 0 },
+                  animate: { width: `${Math.min(metrics.avgDelay / 500 * 100, 100)}%` },
+                  transition: { duration: 1, delay: 0.5 }
+                }
+              ) })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          MetricCard,
+          {
+            initial: { opacity: 0, scale: 0.9 },
+            animate: { opacity: 1, scale: 1 },
+            transition: { delay: 0.4 },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(MetricHeader, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(MetricIcon, { $color: "#10B981", children: /* @__PURE__ */ jsxRuntimeExports.jsx(TrendingUp, { size: 24 }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(MetricBadge, { $variant: getHealthVariant(getHealthScore()), children: getHealthScore() >= 80 ? "健康" : getHealthScore() >= 50 ? "一般" : "不良" })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MetricTitle, { children: "网络健康度" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MetricValue, { children: isLoading ? "..." : `${getHealthScore()}%` }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(MetricSubtext, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Activity, { size: 14 }),
+                metrics?.healthyProxies || 0,
+                " / ",
+                metrics?.totalProxies || 0,
+                " 节点正常"
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(ProgressBar$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                ProgressFill,
+                {
+                  $color: getHealthScore() >= 80 ? "#10B981" : getHealthScore() >= 50 ? "#F59E0B" : "#EF4444",
+                  $value: getHealthScore(),
+                  initial: { width: 0 },
+                  animate: { width: `${getHealthScore()}%` },
+                  transition: { duration: 1, delay: 0.6 }
+                }
+              ) })
+            ]
+          }
+        )
+      ]
+    }
+  );
+};
+const StatusContainer = dt.div`
+  display: flex;
+  align-items: center;
+  gap: ${(props) => {
+  switch (props.$size) {
+    case "small":
+      return "4px";
+    case "large":
+      return "12px";
+    default:
+      return "8px";
+  }
+}};
+  padding: ${(props) => {
+  switch (props.$size) {
+    case "small":
+      return "4px 8px";
+    case "large":
+      return "8px 16px";
+    default:
+      return "6px 12px";
+  }
+}};
+  border-radius: ${(props) => props.theme.borderRadius.small};
+  font-size: ${(props) => {
+  switch (props.$size) {
+    case "small":
+      return "0.75rem";
+    case "large":
+      return "0.875rem";
+    default:
+      return "0.8125rem";
+  }
+}};
+  font-weight: 500;
+  transition: all ${(props) => props.theme.transition.fast} ease;
+  
+  &.idle {
+    background: ${(props) => props.theme.surface};
+    color: ${(props) => props.theme.textSecondary};
+    border: 1px solid ${(props) => props.theme.border};
+  }
+  
+  &.saving {
+    background: ${(props) => props.theme.info.light + "20"};
+    color: ${(props) => props.theme.info.main};
+    border: 1px solid ${(props) => props.theme.info.light};
+  }
+  
+  &.saved {
+    background: ${(props) => props.theme.success.light + "20"};
+    color: ${(props) => props.theme.success.main};
+    border: 1px solid ${(props) => props.theme.success.light};
+  }
+  
+  &.error {
+    background: ${(props) => props.theme.error.light + "20"};
+    color: ${(props) => props.theme.error.main};
+    border: 1px solid ${(props) => props.theme.error.light};
+  }
+  
+  &.changed {
+    background: ${(props) => props.theme.warning.light + "20"};
+    color: ${(props) => props.theme.warning.main};
+    border: 1px solid ${(props) => props.theme.warning.light};
+  }
+  
+  &.success {
+    background: ${(props) => props.theme.success.light + "20"};
+    color: ${(props) => props.theme.success.main};
+    border: 1px solid ${(props) => props.theme.success.light};
+  }
+  
+  &.info {
+    background: ${(props) => props.theme.info.light + "20"};
+    color: ${(props) => props.theme.info.main};
+    border: 1px solid ${(props) => props.theme.info.light};
+  }
+`;
+const StatusIcon$2 = dt.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &.saving {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+const StatusText$1 = dt.span`
+  font-weight: 500;
+`;
+const StatusIndicator$1 = ({
+  status,
+  message,
+  size = "medium"
+}) => {
+  const getStatusConfig = () => {
+    switch (status) {
+      case "saving":
+        return {
+          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { size: size === "small" ? 14 : size === "large" ? 20 : 16 }),
+          defaultMessage: "保存中...",
+          className: "saving"
+        };
+      case "saved":
+        return {
+          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: size === "small" ? 14 : size === "large" ? 20 : 16 }),
+          defaultMessage: "已保存",
+          className: "saved"
+        };
+      case "error":
+        return {
+          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: size === "small" ? 14 : size === "large" ? 20 : 16 }),
+          defaultMessage: "错误",
+          className: "error"
+        };
+      case "changed":
+        return {
+          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { size: size === "small" ? 14 : size === "large" ? 20 : 16 }),
+          defaultMessage: "未保存的更改",
+          className: "changed"
+        };
+      case "success":
+        return {
+          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: size === "small" ? 14 : size === "large" ? 20 : 16 }),
+          defaultMessage: "成功",
+          className: "success"
+        };
+      case "info":
+        return {
+          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: size === "small" ? 14 : size === "large" ? 20 : 16 }),
+          defaultMessage: "信息",
+          className: "info"
+        };
+      default:
+        return {
+          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: size === "small" ? 14 : size === "large" ? 20 : 16 }),
+          defaultMessage: "就绪",
+          className: "idle"
+        };
+    }
+  };
+  const config = getStatusConfig();
+  const displayMessage = message || config.defaultMessage;
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusContainer, { className: config.className, $size: size, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon$2, { $size: size, children: config.icon }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(StatusText$1, { children: displayMessage })
+  ] });
+};
+const StatusCard = dt(motion.div)`
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.large};
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+`;
+const StatusContent$1 = dt.div`
+  flex: 1;
+`;
+const StatusTitle$1 = dt.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0 0 0.5rem 0;
+`;
+const StatusDescription$1 = dt.p`
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0;
+  font-size: 0.9rem;
+`;
+const ControlButtonGroup = dt.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+const ControlButton = dt(motion.button)`
+  padding: 0.75rem 1.5rem;
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  
+  ${(props) => {
+  switch (props.$variant) {
+    case "primary":
+      return `
+          background: ${props.theme.primary.main};
+          color: ${props.theme.primary.contrastText};
+          &:hover:not(:disabled) {
+            background: ${props.theme.primary.dark};
+          }
+        `;
+    case "danger":
+      return `
+          background: ${props.theme.error.main};
+          color: ${props.theme.error.contrastText};
+          &:hover:not(:disabled) {
+            background: ${props.theme.error.dark};
+          }
+        `;
+    case "outline":
+      return `
+          background: transparent;
+          color: ${props.theme.primary.main};
+          border: 1px solid ${props.theme.primary.main};
+          &:hover:not(:disabled) {
+            background: ${props.theme.primary.main};
+            color: ${props.theme.primary.contrastText};
+          }
+        `;
+    default:
+      return "";
+  }
+}}
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+const ProxyStatus = reactExports.memo(({
+  isRunning,
+  isLoading,
+  onStart,
+  onStop,
+  onTestLatency,
+  hasConfig,
+  isValidConfig
+}) => {
+  useTheme();
+  const statusText = reactExports.useMemo(() => {
+    if (isLoading) return "🔄 正在检查状态...";
+    return isRunning ? "🟢 Mihomo 代理服务正在运行" : "🔴 Mihomo 代理服务已停止";
+  }, [isLoading, isRunning]);
+  const startButtonTooltip = reactExports.useMemo(() => {
+    if (isRunning) return "代理正在运行中";
+    if (isLoading) return "正在处理中，请稍候";
+    if (!hasConfig) return "请先获取配置";
+    if (!isValidConfig) return "配置无效，请检查配置";
+    return "启动 Mihomo 代理服务";
+  }, [isRunning, isLoading, hasConfig, isValidConfig]);
+  const isStartDisabled = reactExports.useMemo(() => isRunning || isLoading || !hasConfig || !isValidConfig, [isRunning, isLoading, hasConfig, isValidConfig]);
+  const isStopDisabled = reactExports.useMemo(() => !isRunning || isLoading, [isRunning, isLoading]);
+  const isTestDisabled = reactExports.useMemo(() => !isRunning || isLoading, [isRunning, isLoading]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    StatusCard,
+    {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.6 },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator$1, { status: isRunning ? "success" : "error", size: "small" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusContent$1, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusTitle$1, { children: "代理服务状态" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDescription$1, { children: statusText })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(ControlButtonGroup, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ControlButton,
+            {
+              $variant: "primary",
+              onClick: onStart,
+              disabled: isStartDisabled,
+              whileHover: { scale: 1.05 },
+              whileTap: { scale: 0.95 },
+              title: startButtonTooltip,
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 16 }),
+                isRunning ? "运行中" : "启动代理"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ControlButton,
+            {
+              $variant: "danger",
+              onClick: onStop,
+              disabled: isStopDisabled,
+              whileHover: { scale: 1.05 },
+              whileTap: { scale: 0.95 },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(CircleX, { size: 16 }),
+                "停止代理"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ControlButton,
+            {
+              $variant: "outline",
+              onClick: onTestLatency,
+              disabled: isTestDisabled,
+              whileHover: { scale: 1.05 },
+              whileTap: { scale: 0.95 },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Activity, { size: 16 }),
+                "测试延迟"
+              ]
+            }
+          )
+        ] })
+      ]
+    }
+  );
+});
+ProxyStatus.displayName = "ProxyStatus";
+const StepContainer = dt.div`
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: ${(props) => props.theme.surface};
+  border-radius: ${(props) => props.theme.borderRadius.large};
+  border: 1px solid ${(props) => props.theme.border};
+`;
+const StepHeader = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+`;
+const StepTitle = dt.h3`
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0;
+`;
+const StepDescription = dt.p`
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0;
+  font-size: 1rem;
+`;
+const StepIndicator = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+const Step = dt(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: ${(props) => props.theme.borderRadius.large};
+  background: ${(props) => props.$completed ? props.theme.success.main : props.$active ? props.theme.primary.main : props.theme.surfaceVariant};
+  color: ${(props) => props.$completed || props.$active ? "#FFFFFF" : props.theme.textSecondary};
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: ${(props) => props.$completed || props.$active ? "0 4px 12px rgba(0, 0, 0, 0.15)" : "none"};
+  min-width: 150px;
+  justify-content: center;
+`;
+const StepIcon = dt.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+const WorkflowSteps = reactExports.memo(({ currentStep }) => {
+  const steps = reactExports.useMemo(() => [
+    {
+      id: 1,
+      title: "设置提供者",
+      icon: Settings,
+      description: "配置 VPN 提供者 URL"
+    },
+    {
+      id: 2,
+      title: "获取配置",
+      icon: Download,
+      description: "从 URL 下载配置文件"
+    },
+    {
+      id: 3,
+      title: "验证配置",
+      icon: Shield,
+      description: "检查配置文件有效性"
+    },
+    {
+      id: 4,
+      title: "启动代理",
+      icon: Play,
+      description: "启动 Mihomo 代理服务"
+    }
+  ], []);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(StepContainer, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(StepHeader, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 24 }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(StepTitle, { children: "设置工作流" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(StepDescription, { children: "按照以下步骤配置并启动您的代理服务" })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(StepIndicator, { children: steps.map((step, index) => {
+      const isActive = currentStep === step.id;
+      const isCompleted = currentStep > step.id;
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        Step,
+        {
+          $active: isActive,
+          $completed: isCompleted,
+          initial: { opacity: 0, x: -20 },
+          animate: { opacity: 1, x: 0 },
+          transition: { delay: 0.1 * index },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(StepIcon, { children: isCompleted ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 16 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(step.icon, { size: 16 }) }),
+            isCompleted ? step.title : isActive ? step.title : `步骤 ${step.id}`
+          ]
+        },
+        step.id
+      );
+    }) })
+  ] });
+});
+WorkflowSteps.displayName = "WorkflowSteps";
+const ConfigCard = dt(motion.div)`
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.large};
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+`;
+const ConfigHeader$2 = dt.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+`;
+const ConfigTitle$1 = dt.h4`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+const URLInputContainer = dt.div`
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: end;
+`;
+const URLInput = dt.input`
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.theme.surfaceVariant};
+  color: ${(props) => props.theme.textPrimary};
+  font-size: 1rem;
+  
+  &:focus {
+    outline: none;
+    border-color: ${(props) => props.theme.primary.main};
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+const ConfigTextArea = dt.textarea`
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.theme.surfaceVariant};
+  color: ${(props) => props.theme.textPrimary};
+  font-family: 'Fira Code', 'Consolas', 'Menlo', monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 300px;
+  
+  &:focus {
+    outline: none;
+    border-color: ${(props) => props.theme.primary.main};
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+const ConfigActions$1 = dt.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+`;
+const ActionButton = dt(motion.button)`
+  padding: 0.75rem 1.5rem;
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  
+  ${(props) => {
+  switch (props.$variant) {
+    case "primary":
+      return `
+          background: ${props.theme.primary.main};
+          color: ${props.theme.primary.contrastText};
+          &:hover:not(:disabled) {
+            background: ${props.theme.primary.dark};
+          }
+        `;
+    case "outline":
+      return `
+          background: transparent;
+          color: ${props.theme.primary.main};
+          border: 1px solid ${props.theme.primary.main};
+          &:hover:not(:disabled) {
+            background: ${props.theme.primary.main};
+            color: ${props.theme.primary.contrastText};
+          }
+        `;
+    case "danger":
+      return `
+          background: ${props.theme.error.main};
+          color: ${props.theme.error.contrastText};
+          &:hover:not(:disabled) {
+            background: ${props.theme.error.dark};
+          }
+        `;
+    default:
+      return "";
+  }
+}}
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+const ConfigPathDisplay = dt.div`
+  padding: 1rem;
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.theme.surfaceVariant};
+  font-size: 0.9rem;
+  color: ${(props) => props.theme.textPrimary};
+  margin-top: 1rem;
+`;
+const ValidationStatus = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.theme.surfaceVariant};
+  margin-top: 1rem;
+  
+  ${(props) => props.isValid ? `
+    border: 1px solid ${props.theme.success.main};
+    color: ${props.theme.success.main};
+  ` : `
+    border: 1px solid ${props.theme.error.main};
+    color: ${props.theme.error.main};
+  `}
+`;
+const ConfigInfo = dt.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: ${(props) => props.theme.textSecondary};
+`;
+const ConfigFormatHint = dt.div`
+  font-size: 0.8rem;
+  color: ${(props) => props.theme.textSecondary};
+  margin-top: 0.5rem;
+  font-style: italic;
+`;
+const ConfigManager = reactExports.memo(({
+  configURL,
+  config,
+  configPath,
+  isValidConfig,
+  isConfigLoading,
+  isConfigSaving,
+  onConfigURLChange,
+  onConfigChange,
+  onFetchConfig,
+  onSaveConfig,
+  onLoadConfig,
+  onOpenConfigDir
+}) => {
+  useTheme();
+  const handleConfigURLChange = reactExports.useCallback((e) => {
+    onConfigURLChange(e.target.value);
+  }, [onConfigURLChange]);
+  const handleConfigChange = reactExports.useCallback((e) => {
+    onConfigChange(e.target.value);
+  }, [onConfigChange]);
+  const isFetchDisabled = reactExports.useMemo(() => isConfigLoading || isConfigSaving || !configURL.trim(), [isConfigLoading, isConfigSaving, configURL]);
+  const isSaveDisabled = reactExports.useMemo(() => isConfigLoading || isConfigSaving || !config.trim(), [isConfigLoading, isConfigSaving, config]);
+  const isLoadDisabled = reactExports.useMemo(() => isConfigLoading || isConfigSaving, [isConfigLoading, isConfigSaving]);
+  const validationMessage = reactExports.useMemo(() => {
+    if (isConfigLoading) {
+      return "📥 正在获取配置...";
+    }
+    if (isConfigSaving) {
+      return "💾 正在保存配置...";
+    }
+    if (!config.trim()) {
+      return "⚠️ 配置为空，请获取或输入配置";
+    }
+    return isValidConfig ? "✓ 配置有效，可以使用" : "✗ 配置格式无效，请检查 YAML 语法";
+  }, [isValidConfig, config, isConfigLoading, isConfigSaving]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    ConfigCard,
+    {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.6 },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigHeader$2, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigTitle$1, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Globe, { size: 20 }),
+          "配置管理"
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(URLInputContainer, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            URLInput,
+            {
+              type: "text",
+              value: configURL,
+              onChange: handleConfigURLChange,
+              placeholder: "输入 VPN 提供者配置 URL...",
+              disabled: isConfigLoading || isConfigSaving
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ActionButton,
+            {
+              $variant: "primary",
+              onClick: onFetchConfig,
+              disabled: isFetchDisabled,
+              whileHover: { scale: 1.05 },
+              whileTap: { scale: 0.95 },
+              children: [
+                isConfigLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { size: 16 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 16 }),
+                isConfigLoading ? "获取中..." : "获取配置"
+              ]
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          ConfigTextArea,
+          {
+            value: config,
+            onChange: handleConfigChange,
+            placeholder: "在此输入您的 Mihomo 配置（YAML 格式）...",
+            disabled: isConfigLoading || isConfigSaving
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigInfo, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "字符数: ",
+            config.length
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "行数: ",
+            config.split("\n").length
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigFormatHint, { children: "💡 提示：配置文件应为 YAML 格式，包含端口、代理规则等设置" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigActions$1, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ActionButton,
+            {
+              $variant: "outline",
+              onClick: onLoadConfig,
+              disabled: isLoadDisabled,
+              whileHover: { scale: 1.05 },
+              whileTap: { scale: 0.95 },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { size: 16 }),
+                "重新加载"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ActionButton,
+            {
+              $variant: "primary",
+              onClick: onSaveConfig,
+              disabled: isSaveDisabled,
+              whileHover: { scale: 1.05 },
+              whileTap: { scale: 0.95 },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { size: 16 }),
+                isConfigSaving ? "保存中..." : "保存配置"
+              ]
+            }
+          ),
+          configPath && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ActionButton,
+            {
+              $variant: "outline",
+              onClick: onOpenConfigDir,
+              whileHover: { scale: 1.05 },
+              whileTap: { scale: 0.95 },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(FolderOpen, { size: 16 }),
+                "打开目录"
+              ]
+            }
+          )
+        ] }),
+        configPath && /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigPathDisplay, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "配置路径:" }),
+          " ",
+          configPath
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ValidationStatus, { isValid: isValidConfig, children: validationMessage })
+      ]
+    }
+  );
+});
+ConfigManager.displayName = "ConfigManager";
+const AdvancedSettingsCard = dt(motion.div)`
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.large};
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+`;
+const SettingsHeader = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+`;
+const SettingsTitle = dt.h4`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0;
+`;
+const SettingsDescription = dt.p`
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0;
+  font-size: 0.9rem;
+`;
+const SettingRow = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+const SettingLabel = dt.label`
+  flex: 1;
+  color: ${(props) => props.theme.textPrimary};
+  font-weight: 500;
+`;
+const Checkbox = dt.input`
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: ${(props) => props.theme.primary.main};
+`;
+const InputGroup = dt.div`
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+const InputField = dt.div`
+  flex: 1;
+  min-width: 120px;
+`;
+const FieldLabel = dt.label`
+  display: block;
+  color: ${(props) => props.theme.textSecondary};
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+`;
+const Input$1 = dt.input`
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.theme.surfaceVariant};
+  color: ${(props) => props.theme.textPrimary};
+  font-size: 0.9rem;
+  
+  &:focus {
+    outline: none;
+    border-color: ${(props) => props.theme.primary.main};
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+`;
+const Select$1 = dt.select`
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.theme.surfaceVariant};
+  color: ${(props) => props.theme.textPrimary};
+  font-size: 0.9rem;
+  
+  &:focus {
+    outline: none;
+    border-color: ${(props) => props.theme.primary.main};
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+`;
+const AutoStartContainer = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.theme.surfaceVariant};
+  margin-bottom: 1.5rem;
+`;
+const AdvancedSettings = reactExports.memo(({
+  autoStart,
+  tunMode,
+  unifiedDelay,
+  tcpConcurrent,
+  enableSniffer,
+  port,
+  socksPort,
+  mixedPort,
+  mode,
+  logLevel,
+  onAutoStartChange,
+  onTunModeChange,
+  onUnifiedDelayChange,
+  onTcpConcurrentChange,
+  onEnableSnifferChange,
+  onPortChange,
+  onSocksPortChange,
+  onMixedPortChange,
+  onModeChange,
+  onLogLevelChange
+}) => {
+  const handleAutoStartChange = reactExports.useCallback((e) => {
+    onAutoStartChange(e.target.checked);
+  }, [onAutoStartChange]);
+  const handleTunModeChange = reactExports.useCallback((e) => {
+    onTunModeChange(e.target.checked);
+  }, [onTunModeChange]);
+  const handleUnifiedDelayChange = reactExports.useCallback((e) => {
+    onUnifiedDelayChange(e.target.checked);
+  }, [onUnifiedDelayChange]);
+  const handleTcpConcurrentChange = reactExports.useCallback((e) => {
+    onTcpConcurrentChange(e.target.checked);
+  }, [onTcpConcurrentChange]);
+  const handleEnableSnifferChange = reactExports.useCallback((e) => {
+    onEnableSnifferChange(e.target.checked);
+  }, [onEnableSnifferChange]);
+  const handlePortChange = reactExports.useCallback((e) => {
+    onPortChange(Number(e.target.value));
+  }, [onPortChange]);
+  const handleSocksPortChange = reactExports.useCallback((e) => {
+    onSocksPortChange(Number(e.target.value));
+  }, [onSocksPortChange]);
+  const handleMixedPortChange = reactExports.useCallback((e) => {
+    onMixedPortChange(Number(e.target.value));
+  }, [onMixedPortChange]);
+  const handleModeChange = reactExports.useCallback((e) => {
+    onModeChange(e.target.value);
+  }, [onModeChange]);
+  const handleLogLevelChange = reactExports.useCallback((e) => {
+    onLogLevelChange(e.target.value);
+  }, [onLogLevelChange]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    AdvancedSettingsCard,
+    {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.6, delay: 0.2 },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingsHeader, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 24 }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsTitle, { children: "高级设置" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsDescription, { children: "调整代理配置以获得最佳性能" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(AutoStartContainer, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Checkbox,
+            {
+              type: "checkbox",
+              checked: autoStart,
+              onChange: handleAutoStartChange
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(SettingLabel, { children: "应用程序启动时自动启动代理" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Checkbox,
+            {
+              type: "checkbox",
+              checked: tunMode,
+              onChange: handleTunModeChange
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(SettingLabel, { children: "TUN 模式（系统代理）" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Checkbox,
+            {
+              type: "checkbox",
+              checked: unifiedDelay,
+              onChange: handleUnifiedDelayChange
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(SettingLabel, { children: "统一延迟" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Checkbox,
+            {
+              type: "checkbox",
+              checked: tcpConcurrent,
+              onChange: handleTcpConcurrentChange
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(SettingLabel, { children: "TCP 并发" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Checkbox,
+            {
+              type: "checkbox",
+              checked: enableSniffer,
+              onChange: handleEnableSnifferChange
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(SettingLabel, { children: "启用嗅探器" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(InputGroup, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(InputField, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(FieldLabel, { children: "端口" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input$1,
+              {
+                type: "number",
+                value: port,
+                onChange: handlePortChange,
+                min: "1",
+                max: "65535"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(InputField, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(FieldLabel, { children: "SOCKS 端口" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input$1,
+              {
+                type: "number",
+                value: socksPort,
+                onChange: handleSocksPortChange,
+                min: "1",
+                max: "65535"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(InputField, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(FieldLabel, { children: "混合端口" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input$1,
+              {
+                type: "number",
+                value: mixedPort,
+                onChange: handleMixedPortChange,
+                min: "1",
+                max: "65535"
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(InputGroup, { style: { marginTop: "1rem" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(InputField, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(FieldLabel, { children: "模式" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(Select$1, { value: mode, onChange: handleModeChange, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "rule", children: "规则" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "global", children: "全局" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "direct", children: "直连" })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(InputField, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(FieldLabel, { children: "日志级别" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(Select$1, { value: logLevel, onChange: handleLogLevelChange, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "silent", children: "静默" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "error", children: "错误" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "warning", children: "警告" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "info", children: "信息" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "debug", children: "调试" })
+            ] })
+          ] })
+        ] })
+      ]
+    }
+  );
+});
+AdvancedSettings.displayName = "AdvancedSettings";
 const StyledButton = dt(motion.button)`
   text-transform: none;
   font-weight: 500;
@@ -22627,7 +25701,7 @@ const Button = ({
 const StyledCard = dt(motion.div)`
   background-color: ${(props) => props.theme.card.background};
   border: 1px solid ${(props) => props.theme.card.border};
-  border-radius: ${(props) => {
+    border-radius: ${(props) => {
   switch (props.$borderRadius) {
     case "none":
       return "0";
@@ -22649,6 +25723,7 @@ const StyledCard = dt(motion.div)`
       return `
           box-shadow: ${props.theme.card.shadow};
           border: none;
+          background: ${props.theme.card.background};
         `;
     case "outlined":
       return `
@@ -22660,10 +25735,43 @@ const StyledCard = dt(motion.div)`
           background-color: ${props.theme.surfaceVariant};
           border: none;
         `;
+    case "gradient":
+      return `
+          background: ${props.$gradient || props.theme.gradient.primary};
+          border: none;
+          color: white;
+          box-shadow: ${props.theme.cardShadow.hover};
+        `;
+    case "glass": {
+      const glassOpacity = props.$glassIntensity === "light" ? "0.1" : props.$glassIntensity === "medium" ? "0.2" : "0.3";
+      return `
+          background: rgba(255, 255, 255, ${glassOpacity});
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        `;
+    }
+    case "floating":
+      return `
+          background: ${props.theme.card.background};
+          border: none;
+          box-shadow: ${props.theme.cardShadow.important};
+          transform: translateY(0);
+          transition: all 0.3s ease;
+        `;
+    case "neumorphic": {
+      const isDark = props.theme.name === "dark";
+      return `
+          background: ${props.theme.background};
+          border: none;
+          box-shadow: ${isDark ? "inset 0 2px 4px rgba(255, 255, 255, 0.1), 0 4px 8px rgba(0, 0, 0, 0.3)" : "inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(255, 255, 255, 0.8)"};
+        `;
+    }
     default:
       return `
           box-shadow: ${props.theme.card.shadow};
           border: none;
+          background: ${props.theme.card.background};
         `;
   }
 }}
@@ -22689,8 +25797,13 @@ const StyledCard = dt(motion.div)`
     cursor: pointer;
     
     &:hover {
-      transform: translateY(-1px);
-      box-shadow: ${props.theme.card.shadowHover};
+      transform: translateY(-2px) scale(1.01);
+      ${props.$variant === "glass" ? `
+        backdrop-filter: blur(15px);
+        background: rgba(255, 255, 255, ${props.$glassIntensity === "light" ? "0.15" : props.$glassIntensity === "medium" ? "0.25" : "0.35"});
+      ` : `
+        box-shadow: ${props.theme.cardShadow.importantHover};
+      `}
     }
   `}
   
@@ -22712,9 +25825,10 @@ const Card = ({
   $borderRadius = "medium",
   $hoverable = false,
   $clickable = false,
+  $gradient,
+  $glassIntensity = "medium",
   onClick,
   className,
-  theme,
   ...props
 }) => {
   const isServicePage = ["/proxy-management", "/chat", "/dev-environment"].some(
@@ -22728,14 +25842,16 @@ const Card = ({
       $borderRadius,
       $hoverable,
       $clickable,
+      $gradient,
+      $glassIntensity,
       onClick,
       className,
       initial: isServicePage ? void 0 : { opacity: 0, y: 20 },
       animate: isServicePage ? void 0 : { opacity: 1, y: 0 },
       transition: isServicePage ? { duration: 0.15 } : { duration: 0.3 },
       whileHover: $hoverable && !isServicePage ? {
-        scale: 1.01,
-        boxShadow: theme?.card.shadowHover,
+        scale: 1.02,
+        y: -2,
         zIndex: 1
       } : void 0,
       whileTap: $clickable ? { scale: 0.98, zIndex: 1 } : void 0,
@@ -22745,29 +25861,98 @@ const Card = ({
   );
 };
 const StyledTabButton = dt.button`
-  padding: 12px 24px;
-  border: none;
-  background: none;
-  color: ${(props) => props.$active ? props.theme.primary.main : props.theme.textSecondary};
-  font-weight: 500;
+  padding: ${(props) => {
+  switch (props.$variant) {
+    case "card":
+      return "16px 24px";
+    case "segment":
+      return "12px 20px";
+    default:
+      return "12px 24px";
+  }
+}};
+  border: ${(props) => {
+  switch (props.$variant) {
+    case "card":
+      return props.$active ? `2px solid ${props.theme.primary.main}` : "2px solid transparent";
+    case "segment":
+      return props.$active ? "none" : "1px solid transparent";
+    default:
+      return "none";
+  }
+}};
+  background: ${(props) => {
+  switch (props.$variant) {
+    case "card":
+      return props.$active ? props.theme.surface : "transparent";
+    case "segment":
+      return props.$active ? props.theme.primary.main : "transparent";
+    default:
+      return "none";
+  }
+}};
+  color: ${(props) => {
+  if (props.$variant === "segment") {
+    return props.$active ? "#FFFFFF" : props.theme.textSecondary;
+  }
+  return props.$active ? props.theme.primary.main : props.theme.textSecondary;
+}};
+  font-weight: 600;
   cursor: pointer;
-  border-bottom: 2px solid ${(props) => props.$active ? props.theme.primary.main : "transparent"};
+  border-radius: ${(props) => {
+  switch (props.$variant) {
+    case "card":
+      return props.theme.borderRadius.medium;
+    case "segment":
+      return props.theme.borderRadius.small;
+    default:
+      return "0";
+  }
+}};
   transition: all ${(props) => props.theme.transition.fast} ease;
   display: flex;
   align-items: center;
   gap: 8px;
+  position: relative;
+  box-shadow: ${(props) => props.$variant === "card" && props.$active ? "0 2px 8px rgba(0, 0, 0, 0.1)" : "none"};
   
   &:hover {
-    color: ${(props) => props.theme.primary.main};
+    color: ${(props) => props.$variant === "segment" ? props.$active ? "#FFFFFF" : props.theme.primary.main : props.theme.primary.main};
+    background: ${(props) => {
+  if (props.$variant === "segment") {
+    return props.$active ? props.theme.primary.main : props.theme.primary.light + "20";
+  }
+  return props.$variant === "card" ? props.theme.surface : "transparent";
+}};
+    transform: ${(props) => props.$variant === "card" ? "translateY(-1px)" : "none"};
+    box-shadow: ${(props) => props.$variant === "card" ? "0 4px 12px rgba(0, 0, 0, 0.15)" : "none"};
+  }
+  
+  &:active {
+    transform: ${(props) => props.$variant === "card" ? "translateY(0)" : "none"};
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: ${(props) => props.$variant === "default" ? "-2px" : "0"};
+    left: 0;
+    right: 0;
+    height: ${(props) => props.$variant === "default" ? "3px" : "0"};
+    background: ${(props) => props.theme.primary.main};
+    border-radius: ${(props) => props.$variant === "default" ? "2px 2px 0 0" : "0"};
+    transform: ${(props) => props.$variant === "default" && props.$active ? "scaleX(1)" : "scaleX(0)"};
+    transition: transform ${(props) => props.theme.transition.fast} ease;
   }
 `;
 const TabButton = ({
   $active,
   onClick,
   children,
-  icon
+  icon,
+  variant = "default"
 }) => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(StyledTabButton, { $active, onClick, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(StyledTabButton, { $active, onClick, $variant: variant, children: [
     icon,
     children
   ] });
@@ -22842,15 +26027,18 @@ const Switch = ({
 };
 const ToastContainer = dt.div`
   position: fixed;
-  top: ${(props) => props.theme.spacing.xl};
+  top: 60px;
   right: ${(props) => props.theme.spacing.xl};
   z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: ${(props) => props.theme.spacing.sm};
 `;
 const StyledToast = dt.div`
   display: flex;
   align-items: center;
   gap: ${(props) => props.theme.spacing.sm};
-  padding: ${(props) => props.theme.spacing.md} ${(props) => props.theme.spacing.lg};
+  padding: ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.md};
   background-color: ${(props) => {
   switch (props.$type) {
     case "success":
@@ -22864,10 +26052,12 @@ const StyledToast = dt.div`
   }
 }};
   color: white;
-  border-radius: ${(props) => props.theme.borderRadius.large};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: slideIn ${(props) => props.theme.transition.normal} ease forwards;
-  min-width: 300px;
+  min-width: 280px;
+  max-width: 400px;
+  font-size: 0.9rem;
   
   @keyframes slideIn {
     from {
@@ -22903,13 +26093,15 @@ const ToastIcon = dt.div`
 const ToastContent = dt.div`
   flex: 1;
   font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.4;
 `;
 const ToastClose = dt.button`
   background: none;
   border: none;
   color: white;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1rem;
   opacity: 0.8;
   display: flex;
   align-items: center;
@@ -22930,73 +26122,21 @@ const Toast = ({
   const getIcon = () => {
     switch (type) {
       case "success":
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 20 });
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 18 });
       case "error":
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(CircleX, { size: 20 });
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(CircleX, { size: 18 });
       case "info":
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(Info, { size: 20 });
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Info, { size: 18 });
       default:
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(Info, { size: 20 });
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Info, { size: 18 });
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(StyledToast, { $type: type, className: exiting ? "exiting" : "", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(ToastIcon, { children: getIcon() }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(ToastContent, { children: message }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ToastClose, { onClick: () => onClose(id2), children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 16 }) })
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ToastClose, { onClick: () => onClose(id2), children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 14 }) })
   ] });
 };
-const PageContainer = dt.div`
-  flex-grow: 1;
-  padding: ${(props) => props.theme.spacing.xl};
-  background-color: ${(props) => props.theme.background};
-  color: ${(props) => props.theme.textPrimary};
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  height: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  @media (max-width: 768px) {
-    padding: ${(props) => props.theme.spacing.lg};
-  }
-
-  @media (max-width: 480px) {
-    padding: ${(props) => props.theme.spacing.md};
-  }
-`;
-const getSize = ($size = "medium") => {
-  switch ($size) {
-    case "small":
-      return "8px";
-    case "large":
-      return "12px";
-    case "medium":
-    default:
-      return "10px";
-  }
-};
-const StatusIndicator$1 = dt.span`
-  display: inline-block;
-  width: ${(props) => getSize(props.$size)};
-  height: ${(props) => getSize(props.$size)};
-  border-radius: 50%;
-  background-color: ${(props) => {
-  switch (props.$status) {
-    case "success":
-      return props.theme.success.main;
-    case "error":
-      return props.theme.error.main;
-    case "warning":
-      return props.theme.warning.main;
-    case "info":
-      return props.theme.info.main;
-    default:
-      return props.theme.textSecondary;
-  }
-}};
-  margin-right: 8px;
-`;
 const Label$1 = dt.label`
   display: block;
   margin-bottom: 8px;
@@ -23033,7 +26173,7 @@ const baseInputStyles = `
 const Input = dt.input`
   ${baseInputStyles}
 `;
-const Textarea = dt.textarea`
+dt.textarea`
   ${baseInputStyles}
   min-height: 100px;
   resize: vertical;
@@ -23061,7 +26201,7 @@ const SelectWrapper = ({ children }) => {
     /* @__PURE__ */ jsxRuntimeExports.jsx(SelectArrow, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ jsxRuntimeExports.jsx("polyline", { points: "6 9 12 15 18 9" }) }) })
   ] });
 };
-const FormGroup$1 = dt.div`
+const FormGroup = dt.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 12px;
@@ -23071,12 +26211,7 @@ dt.div`
   gap: 20px;
   margin-bottom: 20px;
   
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 0;
-  }
-  
-  & > ${FormGroup$1} {
+  & > ${FormGroup} {
     flex: 1;
     margin-bottom: 0;
   }
@@ -23089,6 +26224,925 @@ dt.div`
   padding-right: 24px;
   width: 100%;
 `;
+dt.div`
+  padding: 24px;
+  border-bottom: 1px solid ${(props) => props.theme?.border || "#E5E7EB"};
+  background: ${(props) => props.theme?.surface || "#FFFFFF"};
+`;
+const ContentArea = dt.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px;
+  min-height: 0;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+`;
+dt.h1`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${(props) => props.theme?.textPrimary || "#111827"};
+  margin: 0;
+`;
+dt.p`
+  font-size: 0.9rem;
+  color: ${(props) => props.theme?.textSecondary || "#4B5563"};
+  margin: 8px 0 0 0;
+`;
+dt.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+dt.div`
+  flex: 1;
+`;
+dt.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+`;
+const Container$1 = dt(motion.div)`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+const Header$1 = dt.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+`;
+const HeaderLeft = dt.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+const Title$1 = dt.h2`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+const Subtitle = dt.p`
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0;
+  font-size: 0.9rem;
+`;
+const HeaderRight = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+const Controls = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+const SearchBox = dt.div`
+  position: relative;
+  min-width: 200px;
+`;
+const SearchInput$1 = dt.input`
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 12px;
+  background: ${(props) => props.theme.surface};
+  color: ${(props) => props.theme.textPrimary};
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: ${(props) => props.theme.primary.main};
+    box-shadow: 0 0 0 3px ${(props) => props.theme.primary.main}20;
+  }
+  
+  &::placeholder {
+    color: ${(props) => props.theme.textSecondary};
+  }
+`;
+const SearchIcon = dt.div`
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${(props) => props.theme.textSecondary};
+`;
+const FilterDropdown = dt.div`
+  position: relative;
+`;
+const FilterButton = dt.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid ${(props) => props.$active ? props.theme.primary.main : props.theme.border};
+  border-radius: 12px;
+  background: ${(props) => props.$active ? props.theme.primary.main + "20" : props.theme.surface};
+  color: ${(props) => props.$active ? props.theme.primary.main : props.theme.textPrimary};
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${(props) => props.theme.surfaceVariant};
+  }
+`;
+const SortButton = dt(FilterButton)``;
+const GroupsList = dt.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+const GroupCard = dt(motion.div)`
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+`;
+const GroupHeader = dt.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: ${(props) => props.theme.surface};
+  border-bottom: 1px solid ${(props) => props.theme.border};
+  cursor: pointer;
+`;
+const GroupInfo = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+`;
+const GroupIcon = dt.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${(props) => props.$color}20;
+  color: ${(props) => props.$color};
+`;
+const GroupDetails = dt.div`
+  flex: 1;
+`;
+const GroupName = dt.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.textPrimary};
+  margin: 0 0 0.5rem 0;
+`;
+const GroupMeta = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+const GroupType = dt.span`
+  font-size: 0.8rem;
+  color: ${(props) => props.theme.textSecondary};
+  background: ${(props) => props.theme.surfaceVariant};
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+`;
+const GroupStats = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: ${(props) => props.theme.textSecondary};
+  font-size: 0.85rem;
+`;
+const StatItem = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+`;
+const CurrentProxy = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: ${(props) => props.theme.primary.main}10;
+  border: 1px solid ${(props) => props.theme.primary.main}30;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: ${(props) => props.theme.primary.main};
+`;
+const ExpandButton = dt.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: ${(props) => props.theme.surfaceVariant};
+  border-radius: 8px;
+  color: ${(props) => props.theme.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${(props) => props.theme.border};
+    transform: scale(1.05);
+  }
+`;
+const GroupContent = dt(motion.div)`
+  padding: 1.5rem;
+  background: ${(props) => props.theme.background};
+`;
+const ProxiesGrid = dt.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+`;
+const ProxyCard = dt(motion.div)`
+  background: ${(props) => props.$selected ? props.theme.primary.main : props.theme.surface};
+  border: 1px solid ${(props) => {
+  if (props.$selected) return props.theme.primary.main;
+  if (props.$isHealthy === false) return props.theme.error.main;
+  return props.theme.border;
+}};
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  ${(props) => props.$selected && `
+    color: white;
+  `}
+  
+  ${(props) => props.$delay !== void 0 && `
+    &::after {
+      content: '${props.$delay}ms';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: ${props.$delay < 100 ? "#10B981" : props.$delay < 300 ? "#F59E0B" : "#EF4444"};
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+  `}
+`;
+const ProxyContent = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+const ProxyIndicator = dt.div`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: ${(props) => {
+  if (props.$selected) return "rgba(255, 255, 255, 0.8)";
+  if (props.$isHealthy === false) return props.theme.error.main;
+  if (props.$isHealthy === true) return props.theme.success.main;
+  return props.theme.surfaceVariant;
+}};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  ${(props) => props.$selected && `
+    animation: pulse 2s infinite;
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+  `}
+`;
+const ProxyName = dt.span`
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+`;
+const NoResults = dt(motion.div)`
+  text-align: center;
+  padding: 4rem 2rem;
+  color: ${(props) => props.theme.textSecondary};
+`;
+const LoadingIndicator = dt.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: ${(props) => props.theme.textSecondary};
+`;
+const SpinIcon = dt(motion.div)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+const EnhancedProxyGroupManager = ({
+  groups,
+  latencyData,
+  isLoading = false,
+  isTestingLatency = false,
+  onSelectProxy,
+  onTestLatency,
+  onRefreshGroups
+}) => {
+  const [searchQuery, setSearchQuery] = reactExports.useState("");
+  const [sortBy, setSortBy] = reactExports.useState("name");
+  const [filterBy, setFilterBy] = reactExports.useState("all");
+  const [expandedGroups, setExpandedGroups] = reactExports.useState(/* @__PURE__ */ new Set());
+  const filteredAndSortedGroups = reactExports.useMemo(() => {
+    let filtered = groups.filter((group) => {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = group.name.toLowerCase().includes(query);
+        const matchesProxy = group.proxies.some(
+          (proxy) => proxy.toLowerCase().includes(query)
+        );
+        if (!matchesName && !matchesProxy) return false;
+      }
+      switch (filterBy) {
+        case "active":
+          return !!group.now;
+        case "healthy":
+          return group.proxies.some((proxy) => {
+            const delay2 = latencyData[proxy];
+            return delay2 && delay2 > 0;
+          });
+        case "unhealthy":
+          return group.proxies.some((proxy) => {
+            const delay2 = latencyData[proxy];
+            return delay2 === -1 || delay2 === void 0;
+          });
+        default:
+          return true;
+      }
+    });
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "type":
+          return a.type.localeCompare(b.type);
+        case "proxies":
+          return b.proxies.length - a.proxies.length;
+        case "current":
+          if (a.now && !b.now) return -1;
+          if (!a.now && b.now) return 1;
+          return 0;
+        default:
+          return 0;
+      }
+    });
+    return filtered;
+  }, [groups, searchQuery, sortBy, filterBy, latencyData]);
+  const toggleGroupExpansion = (groupName) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupName)) {
+      newExpanded.delete(groupName);
+    } else {
+      newExpanded.add(groupName);
+    }
+    setExpandedGroups(newExpanded);
+  };
+  const getProxyHealthStatus = (proxyName) => {
+    const delay2 = latencyData[proxyName];
+    if (delay2 === void 0) return void 0;
+    return delay2 > 0;
+  };
+  const getSortLabel = (sort) => {
+    switch (sort) {
+      case "name":
+        return "名称";
+      case "type":
+        return "类型";
+      case "proxies":
+        return "节点数";
+      case "current":
+        return "当前选择";
+      default:
+        return "名称";
+    }
+  };
+  const getFilterLabel = (filter2) => {
+    switch (filter2) {
+      case "all":
+        return "全部";
+      case "active":
+        return "活跃";
+      case "healthy":
+        return "健康";
+      case "unhealthy":
+        return "异常";
+      default:
+        return "全部";
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    Container$1,
+    {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.5 },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(Header$1, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(HeaderLeft, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(Title$1, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Layers, { size: 24 }),
+              "代理组管理"
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Subtitle, { children: "管理和配置您的代理服务器组，选择最优节点" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(HeaderRight, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Button,
+              {
+                variant: "outline",
+                size: "small",
+                onClick: onRefreshGroups,
+                disabled: isLoading,
+                startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { size: 16 }),
+                children: "刷新"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Button,
+              {
+                variant: "outline",
+                size: "small",
+                onClick: onTestLatency,
+                disabled: isTestingLatency || groups.length === 0,
+                startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Zap, { size: 16 }),
+                children: isTestingLatency ? "测试中..." : "测试延迟"
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(Controls, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(SearchBox, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(SearchIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { size: 16 }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              SearchInput$1,
+              {
+                placeholder: "搜索代理组或节点...",
+                value: searchQuery,
+                onChange: (e) => setSearchQuery(e.target.value)
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(FilterDropdown, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(FilterButton, { $active: filterBy !== "all", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Funnel, { size: 16 }),
+            getFilterLabel(filterBy),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 16 })
+          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(SortButton, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowUpDown, { size: 16 }),
+            getSortLabel(sortBy),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 16 })
+          ] })
+        ] }),
+        isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsxs(LoadingIndicator, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            SpinIcon,
+            {
+              animate: { rotate: 360 },
+              transition: { duration: 1, repeat: Infinity, ease: "linear" },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { size: 20 })
+            }
+          ),
+          "加载代理组..."
+        ] }) : filteredAndSortedGroups.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          NoResults,
+          {
+            initial: { opacity: 0 },
+            animate: { opacity: 1 },
+            transition: { delay: 0.2 },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Globe, { size: 48, style: { opacity: 0.3, marginBottom: "1rem" } }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.5rem" }, children: searchQuery || filterBy !== "all" ? "未找到匹配的代理组" : "未找到代理组" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "0.9rem" }, children: searchQuery || filterBy !== "all" ? "尝试调整搜索条件或过滤器" : "启动代理服务并加载配置以查看代理组" })
+            ]
+          }
+        ) : /* @__PURE__ */ jsxRuntimeExports.jsx(GroupsList, { children: filteredAndSortedGroups.map((group, index) => {
+          const isExpanded = expandedGroups.has(group.name);
+          return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            GroupCard,
+            {
+              $isExpanded: isExpanded,
+              initial: { opacity: 0, y: 20 },
+              animate: { opacity: 1, y: 0 },
+              transition: { delay: index * 0.1 },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(GroupHeader, { onClick: () => toggleGroupExpansion(group.name), children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(GroupInfo, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(GroupIcon, { $color: "#3B82F6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Layers, { size: 20 }) }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(GroupDetails, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(GroupName, { children: group.name }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(GroupMeta, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(GroupType, { children: group.type }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(GroupStats, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(StatItem, { children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Globe, { size: 14 }),
+                            group.proxies.length,
+                            " 节点"
+                          ] }),
+                          group.now && /* @__PURE__ */ jsxRuntimeExports.jsxs(StatItem, { children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 14 }),
+                            group.now
+                          ] })
+                        ] })
+                      ] })
+                    ] })
+                  ] }),
+                  group.now && /* @__PURE__ */ jsxRuntimeExports.jsxs(CurrentProxy, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 16 }),
+                    group.now
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(ExpandButton, { children: isExpanded ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { size: 16 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 16 }) })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(AnimatePresence, { children: isExpanded && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  GroupContent,
+                  {
+                    initial: { height: 0, opacity: 0 },
+                    animate: { height: "auto", opacity: 1 },
+                    exit: { height: 0, opacity: 0 },
+                    transition: { duration: 0.3 },
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(ProxiesGrid, { children: group.proxies.map((proxyName) => {
+                      const delay2 = latencyData[proxyName];
+                      const isSelected = group.now === proxyName;
+                      const isHealthy = getProxyHealthStatus(proxyName);
+                      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        ProxyCard,
+                        {
+                          $selected: isSelected,
+                          $delay: delay2 > 0 ? delay2 : void 0,
+                          $isHealthy: isHealthy,
+                          onClick: () => onSelectProxy(group.name, proxyName),
+                          whileHover: { scale: 1.02 },
+                          whileTap: { scale: 0.98 },
+                          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ProxyContent, { children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              ProxyIndicator,
+                              {
+                                $selected: isSelected,
+                                $isHealthy: isHealthy
+                              }
+                            ),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(ProxyName, { children: proxyName })
+                          ] })
+                        },
+                        proxyName
+                      );
+                    }) })
+                  }
+                ) })
+              ]
+            },
+            group.name
+          );
+        }) })
+      ]
+    }
+  );
+};
+const Container = dt.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+`;
+const StatusMessageContainer = dt(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.theme.surfaceVariant};
+  margin-bottom: 1rem;
+  
+  ${(props) => props.$isSuccess ? `
+    border: 1px solid ${props.theme.success.main};
+    background: ${props.theme.success.main}10;
+    color: ${props.theme.success.main};
+  ` : `
+    border: 1px solid ${props.theme.error.main};
+    background: ${props.theme.error.main}10;
+    color: ${props.theme.error.main};
+  `}
+`;
+const StatusIcon$1 = dt.div`
+  font-size: 1.2rem;
+  font-weight: bold;
+`;
+const StatusText = dt.div`
+  font-size: 0.9rem;
+  font-weight: 500;
+`;
+const SectionContainer = dt(motion.div)`
+  margin-bottom: 2rem;
+`;
+const RestructuredProxyManager = () => {
+  const {
+    state,
+    startProxy,
+    stopProxy,
+    selectProxy,
+    testAllDelays,
+    refreshProxyGroups,
+    setConfigURL,
+    setConfig,
+    setAutoStart,
+    setTunMode,
+    setUnifiedDelay,
+    setTcpConcurrent,
+    setEnableSniffer,
+    setPort,
+    setSocksPort,
+    setMixedPort,
+    setMode,
+    setLogLevel
+  } = useEnhancedProxyState();
+  const fetchConfigFromURL = async () => {
+    if (!state.configURL.trim()) {
+      return;
+    }
+    try {
+      const result = await proxyService.fetchConfigFromURL(state.configURL);
+      if (result.success && result.data) {
+        const yamlStr = dump(result.data);
+        setConfig(yamlStr);
+        const configObj = result.data;
+        if (configObj) {
+          setTunMode(!!configObj.tun);
+          setUnifiedDelay(configObj["unified-delay"] || false);
+          setTcpConcurrent(configObj["tcp-concurrent"] || false);
+          setEnableSniffer(configObj.sniffer?.enable || false);
+          setPort(configObj.port || 7890);
+          setSocksPort(configObj["socks-port"] || 7891);
+          setMixedPort(configObj["mixed-port"] || 7892);
+          setMode(configObj.mode || "rule");
+          setLogLevel(configObj["log-level"] || "info");
+        }
+      }
+    } catch (error) {
+      console.error("获取配置失败:", error);
+    }
+  };
+  const saveConfig = async () => {
+    if (!state.config.trim()) {
+      return;
+    }
+    try {
+      const configObj = load(state.config) || {};
+      if (state.tunMode) {
+        configObj.tun = {
+          enable: true,
+          stack: "system",
+          "dns-hijack": ["any:53"],
+          "auto-route": true,
+          "auto-detect-interface": true
+        };
+      } else {
+        delete configObj.tun;
+      }
+      configObj["unified-delay"] = state.unifiedDelay;
+      configObj["tcp-concurrent"] = state.tcpConcurrent;
+      if (state.enableSniffer) {
+        configObj.sniffer = {
+          enable: true,
+          "parse-pure-ip": true
+        };
+      } else {
+        delete configObj.sniffer;
+      }
+      configObj.port = state.port;
+      configObj["socks-port"] = state.socksPort;
+      configObj["mixed-port"] = state.mixedPort;
+      configObj.mode = state.mode;
+      configObj["log-level"] = state.logLevel;
+      const result = await proxyService.saveConfig(configObj);
+      if (result.success) {
+        const yamlStr = dump(configObj);
+        setConfig(yamlStr);
+      }
+    } catch (error) {
+      console.error("保存配置失败:", error);
+    }
+  };
+  const loadConfig = async () => {
+    try {
+      const result = await proxyService.getConfig();
+      if (result.success && result.data) {
+        const yamlStr = dump(result.data);
+        setConfig(yamlStr);
+        const configObj = result.data;
+        if (configObj) {
+          setTunMode(!!configObj.tun);
+          setUnifiedDelay(configObj["unified-delay"] || false);
+          setTcpConcurrent(configObj["tcp-concurrent"] || false);
+          setEnableSniffer(configObj.sniffer?.enable || false);
+          setPort(configObj.port || 7890);
+          setSocksPort(configObj["socks-port"] || 7891);
+          setMixedPort(configObj["mixed-port"] || 7892);
+          setMode(configObj.mode || "rule");
+          setLogLevel(configObj["log-level"] || "info");
+        }
+      }
+    } catch (error) {
+      console.error("加载配置失败:", error);
+    }
+  };
+  const handleAutoStartChange = async (checked) => {
+    if (!state.apiAvailable) return;
+    try {
+      const result = await window.electronAPI.config.setProxyAutoStart(checked);
+      if (result.success) {
+        setAutoStart(checked);
+      }
+    } catch (error) {
+      console.error("更新自动启动设置失败:", error);
+    }
+  };
+  const openConfigDirectory = async () => {
+    if (!state.apiAvailable) return;
+    try {
+      await window.electronAPI.mihomo.openConfigDir();
+    } catch (error) {
+      console.error("打开配置目录失败:", error);
+    }
+  };
+  reactExports.useEffect(() => {
+    if (state.apiAvailable && state.isRunning) {
+      refreshProxyGroups();
+    }
+  }, [state.apiAvailable, state.isRunning, refreshProxyGroups]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorBoundary, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ProxyOverview,
+      {
+        isRunning: state.isRunning,
+        connectionInfo: state.connectionInfo,
+        metrics: state.metrics,
+        isLoading: state.isLoading
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      SectionContainer,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.1 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(WorkflowSteps, { currentStep: state.currentStep })
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      SectionContainer,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.2 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          ProxyStatus,
+          {
+            isRunning: state.isRunning,
+            isLoading: state.isLoading,
+            onStart: startProxy,
+            onStop: stopProxy,
+            onTestLatency: testAllDelays,
+            hasConfig: state.hasConfig,
+            isValidConfig: state.isValidConfig
+          }
+        )
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      SectionContainer,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.3 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          ConfigManager,
+          {
+            configURL: state.configURL,
+            config: state.config,
+            configPath: state.configPath,
+            isValidConfig: state.isValidConfig,
+            isConfigLoading: state.isConfigLoading,
+            isConfigSaving: state.isConfigSaving,
+            onConfigURLChange: setConfigURL,
+            onConfigChange: setConfig,
+            onFetchConfig: fetchConfigFromURL,
+            onSaveConfig: saveConfig,
+            onLoadConfig: loadConfig,
+            onOpenConfigDir: openConfigDirectory
+          }
+        )
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      SectionContainer,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.4 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          AdvancedSettings,
+          {
+            autoStart: state.autoStart,
+            tunMode: state.tunMode,
+            unifiedDelay: state.unifiedDelay,
+            tcpConcurrent: state.tcpConcurrent,
+            enableSniffer: state.enableSniffer,
+            port: state.port,
+            socksPort: state.socksPort,
+            mixedPort: state.mixedPort,
+            mode: state.mode,
+            logLevel: state.logLevel,
+            onAutoStartChange: handleAutoStartChange,
+            onTunModeChange: setTunMode,
+            onUnifiedDelayChange: setUnifiedDelay,
+            onTcpConcurrentChange: setTcpConcurrent,
+            onEnableSnifferChange: setEnableSniffer,
+            onPortChange: setPort,
+            onSocksPortChange: setSocksPort,
+            onMixedPortChange: setMixedPort,
+            onModeChange: setMode,
+            onLogLevelChange: setLogLevel
+          }
+        )
+      }
+    ),
+    state.isRunning && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      SectionContainer,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.5 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          EnhancedProxyGroupManager,
+          {
+            groups: state.proxyGroups,
+            latencyData: state.latencyData,
+            isLoading: state.isFetchingGroups,
+            isTestingLatency: state.isTestingLatency,
+            onSelectProxy: selectProxy,
+            onTestLatency: testAllDelays,
+            onRefreshGroups: refreshProxyGroups
+          }
+        )
+      }
+    ),
+    state.statusMessage && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      StatusMessageContainer,
+      {
+        $isSuccess: state.isSuccess,
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -10 },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon$1, { children: state.isSuccess ? "✓" : "✗" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusText, { children: state.statusMessage })
+        ]
+      }
+    )
+  ] }) });
+};
 const Header = dt.div`
   display: flex;
   justify-content: space-between;
@@ -23102,1388 +27156,99 @@ const Title = dt.h1`
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
 `;
-const ThemeToggle = dt.button`
-  width: 40px;
-  height: 40px;
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  background: ${(props) => props.theme.surfaceVariant};
-  border: none;
+const WelcomeCard = dt(motion.div)`
+  background: ${(props) => props.$isDarkMode ? "linear-gradient(135deg, #1e293b, #334155)" : "linear-gradient(135deg, #f8fafc, #e2e8f0)"};
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid ${(props) => props.theme.border};
+  position: relative;
+  overflow: hidden;
+  min-height: 120px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${(props) => props.$isDarkMode ? "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)" : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)"};
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+`;
+const WelcomeContent = dt.div`
+  position: relative;
+  z-index: 1;
+  flex: 1;
+`;
+const WelcomeTitle = dt.h2`
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 0.8rem 0;
   color: ${(props) => props.theme.textPrimary};
-  transition: all ${(props) => props.theme.transition.fast} ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+const WelcomeSubtitle = dt.p`
+  font-size: 1rem;
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0;
+  line-height: 1.6;
+`;
+const ProxyStatusCard = dt(motion.div)`
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
   
   &:hover {
-    background: ${(props) => props.theme.border};
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   }
 `;
-const HeroSection = dt(motion.div)`
-  text-align: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xxl};
-  padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.lg};
-`;
-const AppName = dt.h1`
-  font-size: 4rem;
-  font-weight: 800;
-  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
-  background: ${(props) => props.theme.name === "dark" ? "linear-gradient(135deg, #3B82F6, #8B5CF6)" : "linear-gradient(135deg, #2563EB, #7C3AED)"};
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-`;
-const AppDescription = dt.p`
-  font-size: 1.2rem;
-  color: ${(props) => props.theme.textSecondary};
-  max-width: 600px;
-  margin: 0 auto ${({ theme }) => theme.spacing.xl};
-  line-height: 1.6;
-`;
-const QuickActions = dt.div`
-  display: flex;
-  justify-content: center;
-  gap: ${({ theme }) => theme.spacing.lg};
-  margin-bottom: ${({ theme }) => theme.spacing.xxl};
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: center;
-  }
-`;
-const QuickActionCard = dt(Card)`
-  text-align: center;
-  width: 250px;
-  cursor: pointer;
-  $hoverable: true;
-`;
-const QuickActionIcon = dt.div`
-  width: 60px;
-  height: 60px;
-  border-radius: ${({ theme }) => theme.borderRadius.large};
+const StatusIcon = dt.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto ${({ theme }) => theme.spacing.lg};
   background: ${(props) => props.$color}20;
   color: ${(props) => props.$color};
-`;
-const QuickActionTitle = dt.h3`
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: ${(props) => props.theme.textPrimary};
-  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
-`;
-const QuickActionDescription = dt.p`
-  color: ${(props) => props.theme.textSecondary};
-  line-height: 1.6;
-  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
-  font-size: 0.9rem;
-`;
-const FeaturesGrid = dt.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: ${({ theme }) => theme.spacing.lg};
-  margin-bottom: ${({ theme }) => theme.spacing.xxl};
-`;
-const FeatureCard$1 = dt(Card)`
-  text-align: center;
-  $hoverable: true;
-`;
-const FeatureIcon$1 = dt.div`
-  width: 60px;
-  height: 60px;
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto ${({ theme }) => theme.spacing.lg};
-  background: ${(props) => props.$color}20;
-  color: ${(props) => props.$color};
-`;
-const FeatureTitle$1 = dt.h3`
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: ${(props) => props.theme.textPrimary};
-  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
-`;
-const FeatureDescription$1 = dt.p`
-  color: ${(props) => props.theme.textSecondary};
-  line-height: 1.6;
-  margin: 0;
-`;
-const Footer = dt.div`
-  margin-top: auto;
-  text-align: center;
-  padding: ${({ theme }) => theme.spacing.lg} 0;
-  color: ${(props) => props.theme.textTertiary};
-  font-size: 0.9rem;
-`;
-const HomePage = () => {
-  const { isDarkMode, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const [proxyStatus, setProxyStatus] = reactExports.useState(null);
-  const [loading, setLoading] = reactExports.useState(false);
-  reactExports.useEffect(() => {
-    checkProxyStatus();
-  }, []);
-  const checkProxyStatus = async () => {
-    try {
-      if (window.electronAPI?.mihomo) {
-        const status = await window.electronAPI.mihomo.status();
-        setProxyStatus(status);
-      }
-    } catch (error) {
-      console.error("Failed to check proxy status:", error);
-    }
-  };
-  const toggleProxy = async () => {
-    if (!window.electronAPI?.mihomo) return;
-    setLoading(true);
-    try {
-      if (proxyStatus?.isRunning) {
-        const result = await window.electronAPI.mihomo.stop();
-        if (result.success) {
-          setProxyStatus({ isRunning: false });
-        }
-      } else {
-        const result = await window.electronAPI.mihomo.start();
-        if (result.success) {
-          setProxyStatus({ isRunning: true });
-        }
-      }
-    } catch (error) {
-      console.error("Failed to toggle proxy:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const features = [
-    {
-      icon: Shield,
-      title: "系统代理",
-      description: "智能管理网络代理配置，支持多种代理协议，确保网络安全稳定。",
-      color: "#3B82F6"
-    },
-    {
-      icon: MessageSquare,
-      title: "AI 对话",
-      description: "集成多种大语言模型，提供智能对话服务，支持个性化配置。",
-      color: "#8B5CF6"
-    },
-    {
-      icon: Code,
-      title: "开发环境",
-      description: "一键部署开发工具和环境，支持多种编程语言和框架。",
-      color: "#10B981"
-    },
-    {
-      icon: Settings,
-      title: "统一设置",
-      description: "集中管理所有应用配置，提供导入导出和备份恢复功能。",
-      color: "#F59E0B"
-    }
-  ];
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Header, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Title, { children: "欢迎使用 Catalyst" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeToggle, { onClick: toggleTheme, children: isDarkMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Sun, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Moon, { size: 20 }) })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      HeroSection,
-      {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.6 },
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(AppName, { children: "Catalyst" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(AppDescription, { children: "现代化综合性桌面应用平台，集成了系统代理、AI对话、开发环境部署和统一设置管理等功能。" })
-        ]
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(QuickActions, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        motion.div,
-        {
-          initial: { opacity: 0, y: 20 },
-          animate: { opacity: 1, y: 0 },
-          transition: { delay: 0.2, duration: 0.5 },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            QuickActionCard,
-            {
-              $padding: "large",
-              onClick: toggleProxy,
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionIcon, { $color: "#3B82F6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 28 }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionTitle, { children: "代理服务" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionDescription, { children: proxyStatus?.isRunning ? "代理正在运行" : "代理已停止" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Button,
-                  {
-                    variant: proxyStatus?.isRunning ? "danger" : "primary",
-                    disabled: loading,
-                    startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { size: 16 }),
-                    children: loading ? "处理中..." : proxyStatus?.isRunning ? "停止代理" : "启动代理"
-                  }
-                )
-              ]
-            }
-          )
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        motion.div,
-        {
-          initial: { opacity: 0, y: 20 },
-          animate: { opacity: 1, y: 0 },
-          transition: { delay: 0.3, duration: 0.5 },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            QuickActionCard,
-            {
-              $padding: "large",
-              onClick: () => navigate("/proxy-management"),
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionIcon, { $color: "#10B981", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 28 }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionTitle, { children: "代理管理" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(QuickActionDescription, { children: "配置和管理您的代理设置" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "outline", children: "前往管理" })
-              ]
-            }
-          )
-        }
-      )
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(FeaturesGrid, { children: features.map((feature, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      motion.div,
-      {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { delay: 0.1 * index + 0.4, duration: 0.5 },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          FeatureCard$1,
-          {
-            $padding: "large",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureIcon$1, { $color: feature.color, children: /* @__PURE__ */ jsxRuntimeExports.jsx(feature.icon, { size: 28 }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureTitle$1, { children: feature.title }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(FeatureDescription$1, { children: feature.description })
-            ]
-          }
-        )
-      },
-      feature.title
-    )) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Footer, { children: [
-      "© ",
-      (/* @__PURE__ */ new Date()).getFullYear(),
-      " Catalyst - All rights reserved"
-    ] })
-  ] });
-};
-const ProxyManagerContainer = dt.div`
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  
-  @media (max-width: 768px) {
-    gap: 16px;
-  }
-`;
-const Section$3 = dt.section`
-  margin-bottom: 24px;
-  
-  @media (max-width: 768px) {
-    margin-bottom: 16px;
-  }
-`;
-const SectionHeader$3 = dt.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  
-  @media (max-width: 768px) {
-    margin-bottom: 12px;
-  }
-`;
-const SectionTitle$4 = dt.h3`
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: ${(props) => props.theme.textPrimary};
-  margin: 0;
-  
-  @media (max-width: 768px) {
-    font-size: 1.1rem;
-  }
-`;
-const StatusCard = dt(Card)`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px;
-  
-  @media (max-width: 768px) {
-    padding: 16px;
-    gap: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 `;
 const StatusContent = dt.div`
   flex: 1;
 `;
-const StatusTitle = dt.h4`
-  font-size: 1.1rem;
+const StatusTitle = dt.h3`
+  font-size: 1.2rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
-  margin: 0 0 8px 0;
-  
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
+  margin: 0 0 0.5rem 0;
 `;
 const StatusDescription = dt.p`
   color: ${(props) => props.theme.textSecondary};
-  margin: 0;
-  
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
-`;
-const ControlButtonGroup = dt.div`
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-  
-  @media (max-width: 768px) {
-    flex-wrap: wrap;
-  }
-  
-  @media (max-width: 480px) {
-    width: 100%;
-    
-    & > ${Button} {
-      flex: 1;
-    }
-  }
-`;
-const ConfigCard$1 = dt(Card)`
-  margin-bottom: 24px;
-  
-  @media (max-width: 768px) {
-    margin-bottom: 16px;
-  }
-`;
-const ConfigHeader = dt.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  
-  @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-`;
-const ConfigTitle = dt.h4`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${(props) => props.theme.textPrimary};
-  margin: 0;
-  
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
-`;
-const URLInputContainer = dt.div`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-  
-  @media (max-width: 480px) {
-    gap: 8px;
-  }
-`;
-const ConfigTextArea = dt.textarea`
-  width: 100%;
-  padding: 16px;
-  border: 1px solid ${(props) => props.theme.inputBorder};
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.inputBackground};
-  color: ${(props) => props.theme.textPrimary};
-  font-family: 'Fira Code', 'Consolas', 'Menlo', monospace;
   font-size: 0.9rem;
-  resize: vertical;
-  min-height: 300px;
-
-  &:focus {
-    outline: none;
-    border-color: ${(props) => props.theme.inputFocusBorder};
-    box-shadow: 0 0 0 2px ${(props) => props.theme.accent}40;
-  }
-`;
-const ConfigActions = dt.div`
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-`;
-const ConfigPathDisplay = dt.div`
-  padding: 16px;
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-  font-size: 0.9rem;
-  color: ${(props) => props.theme.textPrimary};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-const AutoStartContainer = dt.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding: 16px;
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-`;
-const Checkbox = dt.input`
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-`;
-const StatusMessageContainer$1 = dt.div`
-  margin-top: 24px;
-  padding: 16px;
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.9rem;
-  color: ${(props) => props.theme.textPrimary};
-`;
-const AdvancedSettingsContainer = dt.div`
-  margin-top: 24px;
-  padding: 16px;
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-`;
-const SettingRow = dt.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-const FormGroup = dt.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-`;
-const StepIndicator = dt.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding: 12px;
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.surfaceVariant};
-`;
-const Step = dt.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  background-color: ${(props) => props.$completed ? props.theme.success.main : props.$active ? props.theme.primary.main : props.theme.border};
-  color: ${(props) => props.$completed || props.$active ? "#FFFFFF" : props.theme.textSecondary};
-  font-weight: 500;
-  transition: all 0.3s ease;
-`;
-const ProxyManager = () => {
-  const [isRunning, setIsRunning] = reactExports.useState(false);
-  const [isLoading, setIsLoading] = reactExports.useState(true);
-  const [isConfigLoading, setIsConfigLoading] = reactExports.useState(false);
-  const [isConfigSaving, setIsConfigSaving] = reactExports.useState(false);
-  const [statusMessage, setStatusMessage] = reactExports.useState("");
-  const [isSuccess, setIsSuccess] = reactExports.useState(false);
-  const [configPath, setConfigPath] = reactExports.useState("");
-  const [configURL, setConfigURL] = reactExports.useState("");
-  const [config, setConfig] = reactExports.useState("");
-  const [autoStart, setAutoStart] = reactExports.useState(false);
-  const [apiAvailable, setApiAvailable] = reactExports.useState(false);
-  const [hasConfig, setHasConfig] = reactExports.useState(false);
-  const [isValidConfig, setIsValidConfig] = reactExports.useState(false);
-  const [currentStep, setCurrentStep] = reactExports.useState(1);
-  const [tunMode, setTunMode] = reactExports.useState(false);
-  const [unifiedDelay, setUnifiedDelay] = reactExports.useState(false);
-  const [tcpConcurrent, setTcpConcurrent] = reactExports.useState(false);
-  const [enableSniffer, setEnableSniffer] = reactExports.useState(false);
-  const [port, setPort] = reactExports.useState(7890);
-  const [socksPort, setSocksPort] = reactExports.useState(7891);
-  const [mixedPort, setMixedPort] = reactExports.useState(7892);
-  const [mode, setMode] = reactExports.useState("rule");
-  const [logLevel, setLogLevel] = reactExports.useState("info");
-  reactExports.useEffect(() => {
-    if (window.electronAPI && window.electronAPI.mihomo && window.electronAPI.config) {
-      setApiAvailable(true);
-      checkStatus();
-      loadVpnUrl();
-      loadAutoStart();
-      loadConfig();
-      getConfigPath();
-    } else {
-      console.error("Electron API is not available.");
-      setIsLoading(false);
-    }
-  }, []);
-  reactExports.useEffect(() => {
-    if (config.trim()) {
-      try {
-        const configObj = jsYaml.load(config);
-        setIsValidConfig(!!configObj && typeof configObj === "object");
-      } catch {
-        setIsValidConfig(false);
-      }
-    } else {
-      setIsValidConfig(false);
-    }
-  }, [config]);
-  const checkStatus = async () => {
-    if (!apiAvailable) return;
-    setIsLoading(true);
-    try {
-      const status = await window.electronAPI.mihomo.status();
-      setIsRunning(status.isRunning);
-      if (status.isRunning) {
-        setCurrentStep(4);
-      }
-    } catch (error) {
-      console.error("Error checking Mihomo status:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const loadVpnUrl = async () => {
-    if (!apiAvailable) return;
-    try {
-      const result = await window.electronAPI.config.getVpnUrl();
-      if (result.success && result.data) {
-        setConfigURL(result.data);
-      }
-    } catch (error) {
-      console.error("Error loading VPN URL:", error);
-    }
-  };
-  const loadAutoStart = async () => {
-    if (!apiAvailable) return;
-    try {
-      const result = await window.electronAPI.config.getProxyAutoStart();
-      if (result.success && result.data !== void 0) {
-        setAutoStart(result.data);
-      }
-    } catch (error) {
-      console.error("Error loading auto start setting:", error);
-    }
-  };
-  const loadConfig = async () => {
-    if (!apiAvailable) return;
-    setIsConfigLoading(true);
-    try {
-      const result = await window.electronAPI.mihomo.loadConfig();
-      if (result.success && result.data) {
-        const yamlStr = jsYaml.dump(result.data);
-        setConfig(yamlStr);
-        setHasConfig(true);
-        try {
-          const configObj = jsYaml.load(yamlStr);
-          if (configObj) {
-            setTunMode(!!configObj.tun);
-            setUnifiedDelay(configObj["unified-delay"] || false);
-            setTcpConcurrent(configObj["tcp-concurrent"] || false);
-            setEnableSniffer(configObj.sniffer?.enable || false);
-            setPort(configObj.port || 7890);
-            setSocksPort(configObj["socks-port"] || 7891);
-            setMixedPort(configObj["mixed-port"] || 7892);
-            setMode(configObj.mode || "rule");
-            setLogLevel(configObj["log-level"] || "info");
-          }
-        } catch (e) {
-          console.error("Error parsing config for advanced settings:", e);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading config:", error);
-    } finally {
-      setIsConfigLoading(false);
-    }
-  };
-  const getConfigPath = async () => {
-    if (!apiAvailable) return;
-    try {
-      const result = await window.electronAPI.mihomo.getConfigPath();
-      if (result.success && result.data) {
-        setConfigPath(result.data);
-      }
-    } catch (error) {
-      console.error("Error getting config path:", error);
-    }
-  };
-  const handleStart = async () => {
-    if (!apiAvailable || !hasConfig || !isValidConfig) {
-      setStatusMessage("Please fetch and validate configuration before starting");
-      setIsSuccess(false);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await window.electronAPI.mihomo.start();
-      if (result.success) {
-        setStatusMessage("Mihomo started successfully");
-        setIsSuccess(true);
-        setCurrentStep(4);
-      } else {
-        setStatusMessage(`Failed to start Mihomo: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setStatusMessage("An error occurred while trying to start Mihomo");
-      setIsSuccess(false);
-      console.error("Error starting Mihomo:", error);
-    } finally {
-      await checkStatus();
-    }
-  };
-  const handleStop = async () => {
-    if (!apiAvailable) return;
-    setIsLoading(true);
-    try {
-      const result = await window.electronAPI.mihomo.stop();
-      if (result.success) {
-        setStatusMessage("Mihomo stopped successfully");
-        setIsSuccess(true);
-        setCurrentStep(3);
-      } else {
-        setStatusMessage(`Failed to stop Mihomo: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setStatusMessage("An error occurred while trying to stop Mihomo");
-      setIsSuccess(false);
-      console.error("Error stopping Mihomo:", error);
-    } finally {
-      await checkStatus();
-    }
-  };
-  const saveConfig = async () => {
-    if (!config.trim()) {
-      setStatusMessage("Configuration cannot be empty");
-      setIsSuccess(false);
-      return;
-    }
-    setIsConfigSaving(true);
-    try {
-      const configObj = jsYaml.load(config) || {};
-      if (tunMode) {
-        configObj.tun = {
-          enable: true,
-          stack: "system",
-          "dns-hijack": ["any:53"],
-          "auto-route": true,
-          "auto-detect-interface": true
-        };
-      } else {
-        delete configObj.tun;
-      }
-      configObj["unified-delay"] = unifiedDelay;
-      configObj["tcp-concurrent"] = tcpConcurrent;
-      if (enableSniffer) {
-        configObj.sniffer = {
-          enable: true,
-          "parse-pure-ip": true
-        };
-      } else {
-        delete configObj.sniffer;
-      }
-      configObj.port = port;
-      configObj["socks-port"] = socksPort;
-      configObj["mixed-port"] = mixedPort;
-      configObj.mode = mode;
-      configObj["log-level"] = logLevel;
-      const result = await window.electronAPI.mihomo.saveConfig(configObj);
-      if (result.success) {
-        const yamlStr = jsYaml.dump(configObj);
-        setConfig(yamlStr);
-        setStatusMessage("Configuration saved successfully");
-        setIsSuccess(true);
-        setHasConfig(true);
-        setIsValidConfig(true);
-        setCurrentStep(3);
-      } else {
-        setStatusMessage(`Failed to save configuration: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setStatusMessage("Failed to save configuration. Please check the YAML format.");
-      setIsSuccess(false);
-      console.error("Error saving config:", error);
-    } finally {
-      setIsConfigSaving(false);
-    }
-  };
-  const fetchConfigFromURL = async () => {
-    if (!configURL.trim()) {
-      setStatusMessage("Please enter a valid URL");
-      setIsSuccess(false);
-      return;
-    }
-    setIsConfigLoading(true);
-    try {
-      const result = await window.electronAPI.mihomo.fetchConfigFromURL(configURL);
-      if (result.success && result.data) {
-        const yamlStr = jsYaml.dump(result.data);
-        setConfig(yamlStr);
-        setStatusMessage("Configuration fetched successfully");
-        setIsSuccess(true);
-        setHasConfig(true);
-        setCurrentStep(2);
-        await window.electronAPI.config.setVpnUrl(configURL);
-      } else {
-        setStatusMessage(`Failed to fetch configuration: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setStatusMessage("Failed to fetch configuration");
-      setIsSuccess(false);
-      console.error("Error fetching config:", error);
-    } finally {
-      setIsConfigLoading(false);
-    }
-  };
-  const handleAutoStartChange = async (checked) => {
-    if (!apiAvailable) return;
-    try {
-      const result = await window.electronAPI.config.setProxyAutoStart(checked);
-      if (result.success) {
-        setAutoStart(checked);
-        setStatusMessage(`Auto-start ${checked ? "enabled" : "disabled"}`);
-        setIsSuccess(true);
-      } else {
-        setStatusMessage(`Failed to update auto-start: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setStatusMessage("Failed to update auto-start setting");
-      setIsSuccess(false);
-      console.error("Error updating auto-start:", error);
-    }
-  };
-  const openConfigDirectory = async () => {
-    if (!apiAvailable) return;
-    try {
-      const result = await window.electronAPI.mihomo.openConfigDir();
-      if (!result.success) {
-        console.error("Failed to open config directory:", result.error);
-      }
-    } catch (error) {
-      console.error("Error opening config directory:", error);
-    }
-  };
-  const testLatency = async () => {
-    if (!apiAvailable) return;
-    setStatusMessage("Testing latency for all proxies...");
-    setIsSuccess(false);
-    try {
-      const result = await window.electronAPI.mihomo.getProxies();
-      if (result.success && result.data) {
-        setStatusMessage("Latency test completed for all proxies");
-        setIsSuccess(true);
-      } else {
-        setStatusMessage(`Failed to test latency: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setStatusMessage("Failed to test latency");
-      setIsSuccess(false);
-      console.error("Error testing latency:", error);
-    }
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(ProxyManagerContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$3, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$3, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Gauge, { size: 20 }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$4, { children: "Setup Workflow" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(StepIndicator, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Step, { $active: currentStep === 1, $completed: currentStep > 1, children: [
-          currentStep > 1 ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 16 }) : "1",
-          " Set Provider URL"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Step, { $active: currentStep === 2, $completed: currentStep > 2, children: [
-          currentStep > 2 ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 16 }) : currentStep === 2 ? "2" : "‧‧‧",
-          " Fetch Config"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Step, { $active: currentStep === 3, $completed: currentStep > 3, children: [
-          currentStep > 3 ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 16 }) : currentStep === 3 ? "3" : "‧‧‧",
-          " Validate Config"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Step, { $active: currentStep === 4, $completed: currentStep > 4, children: [
-          currentStep > 4 ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 16 }) : currentStep === 4 ? "4" : "‧‧‧",
-          " Start Proxy"
-        ] })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$3, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$3, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 20 }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$4, { children: "Service Status" })
-      ] }),
-      isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusCard, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator$1, { $status: "info" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusContent, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusTitle, { children: "Loading Status" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDescription, { children: "Checking Mihomo service status..." })
-        ] })
-      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusCard, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator$1, { $status: isRunning ? "success" : "error" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusContent, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(StatusTitle, { children: "Service Status" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDescription, { children: isRunning ? "Mihomo is Running" : "Mihomo is Stopped" })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ControlButtonGroup, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: handleStart,
-              disabled: isRunning || isLoading || !hasConfig || !isValidConfig,
-              variant: "primary",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { size: 16 }),
-              children: isRunning ? "Running" : "Start Proxy"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: handleStop,
-              disabled: !isRunning || isLoading,
-              variant: "danger",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Square, { size: 16 }),
-              children: "Stop Proxy"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: testLatency,
-              disabled: !isRunning || isLoading,
-              variant: "outline",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { size: 16 }),
-              children: "Test Latency"
-            }
-          )
-        ] })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$3, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$3, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Gauge, { size: 20 }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$4, { children: "Configuration Management" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(AutoStartContainer, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Checkbox,
-          {
-            type: "checkbox",
-            checked: autoStart,
-            onChange: (e) => handleAutoStartChange(e.target.checked),
-            disabled: isLoading
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Start proxy automatically when application launches" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigTitle, { children: "Step 1: Provider Configuration" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(URLInputContainer, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              type: "text",
-              value: configURL,
-              onChange: (e) => setConfigURL(e.target.value),
-              placeholder: "Enter VPN provider config URL...",
-              disabled: isConfigLoading || isConfigSaving
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: fetchConfigFromURL,
-              disabled: isConfigLoading || isConfigSaving || !configURL.trim(),
-              startIcon: isConfigLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { size: 16 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 16 }),
-              children: isConfigLoading ? "Fetching..." : "Fetch Config"
-            }
-          )
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigTitle, { children: "Step 2: Advanced Configuration" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          ConfigTextArea,
-          {
-            value: config,
-            onChange: (e) => setConfig(e.target.value),
-            placeholder: "Enter your Mihomo configuration in YAML format...",
-            disabled: isConfigLoading || isConfigSaving
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigActions, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: loadConfig,
-              disabled: isConfigLoading || isConfigSaving,
-              variant: "outline",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { size: 16 }),
-              children: isConfigLoading ? "Loading..." : "Reload Config"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: saveConfig,
-              disabled: isConfigLoading || isConfigSaving || !config.trim(),
-              variant: "primary",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { size: 16 }),
-              children: isConfigSaving ? "Saving..." : "Save Config"
-            }
-          ),
-          configPath && /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: openConfigDirectory,
-              variant: "outline",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(FolderOpen, { size: 16 }),
-              children: "Open Directory"
-            }
-          )
-        ] }),
-        configPath && /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigPathDisplay, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Config Path:" }),
-          " ",
-          configPath
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(StatusMessageContainer$1, { style: { marginTop: 16 }, children: isValidConfig ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator$1, { $status: "success" }),
-          "Configuration is valid and ready to use"
-        ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator$1, { $status: "error" }),
-          "Configuration is invalid or empty. Please fetch or enter a valid configuration."
-        ] }) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(AdvancedSettingsContainer, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionHeader$3, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$4, { children: "Advanced Settings" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Checkbox,
-            {
-              type: "checkbox",
-              checked: tunMode,
-              onChange: (e) => setTunMode(e.target.checked)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "TUN Mode (System Proxy)" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Checkbox,
-            {
-              type: "checkbox",
-              checked: unifiedDelay,
-              onChange: (e) => setUnifiedDelay(e.target.checked)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Unified Delay" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Checkbox,
-            {
-              type: "checkbox",
-              checked: tcpConcurrent,
-              onChange: (e) => setTcpConcurrent(e.target.checked)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "TCP Concurrent" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Checkbox,
-            {
-              type: "checkbox",
-              checked: enableSniffer,
-              onChange: (e) => setEnableSniffer(e.target.checked)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Enable Sniffer" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Port" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                type: "number",
-                value: port,
-                onChange: (e) => setPort(Number(e.target.value)),
-                min: "1",
-                max: "65535"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "SOCKS Port" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                type: "number",
-                value: socksPort,
-                onChange: (e) => setSocksPort(Number(e.target.value)),
-                min: "1",
-                max: "65535"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Mixed Port" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                type: "number",
-                value: mixedPort,
-                onChange: (e) => setMixedPort(Number(e.target.value)),
-                min: "1",
-                max: "65535"
-              }
-            )
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingRow, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Mode" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: mode, onChange: (e) => setMode(e.target.value), children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "rule", children: "Rule" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "global", children: "Global" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "direct", children: "Direct" })
-            ] }) })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Log Level" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: logLevel, onChange: (e) => setLogLevel(e.target.value), children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "silent", children: "Silent" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "error", children: "Error" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "warning", children: "Warning" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "info", children: "Info" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "debug", children: "Debug" })
-            ] }) })
-          ] })
-        ] })
-      ] }),
-      statusMessage && /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusMessageContainer$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator$1, { $status: isSuccess ? "success" : "error" }),
-        statusMessage
-      ] })
-    ] })
-  ] });
-};
-const ProxyGroupContainer = dt.div`
-  margin-bottom: 24px;
-  border: 1px solid ${(props) => props.theme.border};
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  overflow: hidden;
-`;
-const ProxyGroupHeader = dt.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: ${(props) => props.theme.surfaceVariant};
-  border-bottom: 1px solid ${(props) => props.theme.border};
-`;
-const ProxyGroupName = dt.h3`
-  margin: 0;
-  color: ${(props) => props.theme.textPrimary};
-  font-weight: 600;
-`;
-const ProxyGroupType = dt.span`
-  font-size: 0.8rem;
-  color: ${(props) => props.theme.textSecondary};
-  background-color: ${(props) => props.theme.background};
-  padding: 4px 8px;
-  border-radius: 4px;
-`;
-const ProxyGroupContent = dt.div`
-  padding: 16px;
-`;
-const CurrentProxy = dt.div`
-  margin-bottom: 16px;
-  padding: 12px;
-  background-color: ${(props) => props.theme.background};
-  border-radius: ${(props) => props.theme.borderRadius.small};
-  border: 1px solid ${(props) => props.theme.border};
-`;
-const ProxyList = dt.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-  
-  @media (max-width: 768px) {
-    gap: 6px;
-  }
-`;
-const ProxyItem = dt(Button)`
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  border-radius: ${(props) => props.theme.borderRadius.small};
-  position: relative;
-  
-  ${(props) => props.$selected && `
-    background-color: ${props.theme.primary.main};
-    color: white;
-    border-color: ${props.theme.primary.main};
-  `}
-  
-  ${(props) => props.$delay !== void 0 && `
-    &::after {
-      content: '${props.$delay}ms';
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background-color: ${props.$delay < 100 ? props.theme.success.main : props.$delay < 300 ? props.theme.warning.main : props.theme.error.main};
-      color: white;
-      font-size: 0.7rem;
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-weight: bold;
-    }
-  `}
-  
-  @media (max-width: 768px) {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-  }
-`;
-const TestLatencyButton = dt(Button)`
-  font-size: 0.9rem;
-  padding: 8px 16px;
-  
-  @media (max-width: 768px) {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-  }
-`;
-const NoProxiesMessage = dt.div`
-  text-align: center;
-  padding: 40px 20px;
-  color: ${(props) => props.theme.textSecondary};
-  border: 1px dashed ${(props) => props.theme.border};
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-`;
-const LatencyIndicator = dt.span`
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: ${(props) => props.$delay < 100 ? props.theme.success.main : props.$delay < 300 ? props.theme.warning.main : props.theme.error.main};
-  margin-right: 8px;
-`;
-const ProxyGroupManager = () => {
-  const [proxyGroups, setProxyGroups] = reactExports.useState([]);
-  const [loading, setLoading] = reactExports.useState(true);
-  const [testingLatency, setTestingLatency] = reactExports.useState(false);
-  const [latencyData, setLatencyData] = reactExports.useState({});
-  reactExports.useEffect(() => {
-    loadProxyGroups();
-  }, []);
-  const loadProxyGroups = async () => {
-    if (!window.electronAPI?.mihomo) return;
-    setLoading(true);
-    try {
-      const result = await window.electronAPI.mihomo.getProxies();
-      if (result.success && result.data) {
-        const groups = [];
-        Object.entries(result.data.proxies).forEach(([name, proxy]) => {
-          if (proxy.all && Array.isArray(proxy.all) || proxy.proxies && Array.isArray(proxy.proxies)) {
-            groups.push({
-              name,
-              type: proxy.type,
-              now: proxy.now,
-              proxies: proxy.all || proxy.proxies,
-              providers: proxy.providers || [],
-              latencyHistory: proxy.history || []
-            });
-          }
-        });
-        setProxyGroups(groups);
-      }
-    } catch (error) {
-      console.error("Failed to load proxy groups:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleSelectProxy = async (groupName, proxyName) => {
-    if (!window.electronAPI?.mihomo) return;
-    try {
-      const result = await window.electronAPI.mihomo.selectProxy(groupName, proxyName);
-      if (result.success) {
-        setProxyGroups((prev) => prev.map((group) => {
-          if (group.name === groupName) {
-            return { ...group, now: proxyName };
-          }
-          return group;
-        }));
-      } else {
-        console.error("Failed to select proxy:", result.error);
-      }
-    } catch (error) {
-      console.error("Error selecting proxy:", error);
-    }
-  };
-  const testLatencyForAll = async () => {
-    if (!window.electronAPI?.mihomo || testingLatency) return;
-    setTestingLatency(true);
-    try {
-      const result = await window.electronAPI.mihomo.getProxies();
-      if (result.success && result.data) {
-        const newLatencyData = {};
-        const proxies = result.data.proxies;
-        for (const [name, proxy] of Object.entries(proxies)) {
-          if (proxy.type !== "Direct" && proxy.type !== "Reject") {
-            try {
-              const delayResult = await window.electronAPI.mihomo.testProxyDelay(name);
-              if (delayResult.success && delayResult.data !== void 0) {
-                newLatencyData[name] = delayResult.data;
-              } else {
-                newLatencyData[name] = -1;
-              }
-            } catch (error) {
-              console.error(`Failed to test latency for ${name}:`, error);
-              newLatencyData[name] = -1;
-            }
-          }
-        }
-        setLatencyData(newLatencyData);
-      }
-    } catch (error) {
-      console.error("Error testing latency:", error);
-    } finally {
-      setTestingLatency(false);
-    }
-  };
-  const getProxyDelay = (proxyName) => {
-    return latencyData[proxyName];
-  };
-  if (loading) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "Loading proxy groups..." });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { style: { margin: 0, color: (props) => props.theme.textPrimary }, children: "Proxy Groups" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        TestLatencyButton,
-        {
-          onClick: testLatencyForAll,
-          disabled: testingLatency,
-          variant: "outline",
-          startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Zap, { size: 16 }),
-          children: testingLatency ? "Testing Latency..." : "Test All Latency"
-        }
-      )
-    ] }),
-    proxyGroups.map((group) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ProxyGroupContainer, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(ProxyGroupHeader, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ProxyGroupName, { children: group.name }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ProxyGroupType, { children: group.type })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(ProxyGroupContent, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(CurrentProxy, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Current Proxy:" }),
-          " ",
-          group.now || "None"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ProxyList, { children: group.proxies.map((proxy) => {
-          const delay2 = getProxyDelay(proxy);
-          return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            ProxyItem,
-            {
-              $selected: group.now === proxy,
-              $delay: delay2 >= 0 ? delay2 : void 0,
-              onClick: () => handleSelectProxy(group.name, proxy),
-              variant: group.now === proxy ? "primary" : "outline",
-              children: [
-                delay2 >= 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(LatencyIndicator, { $delay: delay2 }),
-                proxy
-              ]
-            },
-            proxy
-          );
-        }) })
-      ] })
-    ] }, group.name)),
-    proxyGroups.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs(NoProxiesMessage, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 48, style: { opacity: 0.3, marginBottom: 10 } }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "No proxy groups found." }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "0.9rem", marginTop: 5 }, children: "Start the proxy service and load a configuration to see proxy groups." })
-    ] })
-  ] });
-};
-const PageHeader$2 = dt.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-`;
-const PageTitle$2 = dt.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${(props) => props.theme.textPrimary};
   margin: 0;
 `;
-const Section$2 = dt.section`
-  margin-top: ${({ theme }) => theme.spacing.xl};
-`;
-const SectionHeader$2 = dt.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`;
-const SectionTitle$3 = dt.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${(props) => props.theme.textPrimary};
-  margin: 0;
+const ContentSection = dt(motion.div)`
+  margin-bottom: 2rem;
 `;
 const ProxyPage = () => {
+  const { isDarkMode } = useTheme();
   const [isProxyRunning, setIsProxyRunning] = reactExports.useState(false);
   reactExports.useEffect(() => {
     const checkStatus = async () => {
@@ -24501,154 +27266,193 @@ const ProxyPage = () => {
     return () => clearInterval(interval);
   }, []);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(PageHeader$2, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 32 }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(PageTitle$2, { children: "Proxy Management" })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ProxyManager, {}),
-    isProxyRunning && /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$2, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$2, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Layers, { size: 24 }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$3, { children: "Proxy Group Management" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ProxyGroupManager, {})
-    ] })
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Header, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Title, { children: "代理管理" }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      WelcomeCard,
+      {
+        $isDarkMode: isDarkMode,
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeContent, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeTitle, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 32 }),
+            "代理管理中心"
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(WelcomeSubtitle, { children: "配置和管理您的代理服务，享受安全、快速的网络体验" })
+        ] })
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      ProxyStatusCard,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6, delay: 0.1 },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon, { $color: isProxyRunning ? "#10B981" : "#EF4444", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 24 }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusContent, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(StatusTitle, { children: "代理状态" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDescription, { children: isProxyRunning ? "代理服务正在运行" : "代理服务已停止" })
+          ] })
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ContentSection,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6, delay: 0.2 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(RestructuredProxyManager, {})
+      }
+    )
   ] });
 };
-const float = mt`
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-`;
 const pulse = mt`
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 `;
 const ModernChatContainer = dt.div`
   height: 100%;
-  background: ${(props) => props.theme.background};
+  background: ${(props) => props.theme.name === "dark" ? "linear-gradient(135deg, #030712 0%, #111827 50%, #1f2937 100%)" : "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)"};
   position: relative;
   font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  overflow: hidden;
   
-  /* 确保占满父容器空间 */
-  width: 100%;
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${(props) => props.theme.name === "dark" ? "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)" : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)"};
+    animation: float 8s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
 `;
 const MainLayout = dt.div`
   display: flex;
   height: 100%;
   position: relative;
   z-index: 1;
-  
-  /* 确保没有外边距和内边距 */
   margin: 0;
-  padding: 0;
-  
-  /* 占满整个可用空间 */
+  padding: 24px;
+  gap: 24px;
   width: 100%;
+  box-sizing: border-box;
 `;
-const ConfigSidebar = dt.div`
-  width: ${(props) => props.$collapsed ? "60px" : "420px"};
-  background: ${(props) => props.theme.surface};
-  border-right: 1px solid ${(props) => props.theme.border};
+const ConfigPanel = dt(motion.div)`
+  width: ${(props) => props.$collapsed ? "80px" : "400px"};
+  height: fit-content;
+  max-height: calc(100vh - 48px);
+  background: ${(props) => props.theme.name === "dark" ? "linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.8))" : "linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(226, 232, 240, 0.8))"};
+  backdrop-filter: blur(20px);
+  border: 1px solid ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.2)" : "rgba(37, 99, 235, 0.2)"};
+  border-radius: 20px;
+  box-shadow: ${(props) => props.theme.name === "dark" ? "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.1)" : "0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(37, 99, 235, 0.1)"};
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
-  transition: width 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.5)" : "rgba(37, 99, 235, 0.5)"}, 
+      transparent
+    );
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
 `;
-const SidebarHeader = dt.div`
-  padding: ${(props) => props.$collapsed ? "16px 8px" : "16px 20px"};
-  border-bottom: 1px solid ${(props) => props.theme.border};
+const ConfigHeader$1 = dt.div`
+  padding: ${(props) => props.$collapsed ? "16px 12px" : "20px 24px"};
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: ${(props) => props.theme.surfaceVariant};
-  color: ${(props) => props.theme.textPrimary};
-  transition: padding 0.3s ease;
+  border-bottom: 1px solid ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.1)" : "rgba(37, 99, 235, 0.1)"};
+  background: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.05)" : "rgba(37, 99, 235, 0.05)"};
+  border-radius: 20px 20px 0 0;
+  transition: padding 0.4s ease;
 `;
-const SidebarTitle = dt.h2`
-  font-size: 1.2rem;
+const ConfigTitle = dt.h2`
+  font-size: 1.1rem;
   font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  color: ${(props) => props.theme.textPrimary};
   
   ${(props) => props.$collapsed && `
     display: none;
   `}
 `;
-const SidebarContent = dt.div`
+const CollapseButton = dt.button`
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: ${(props) => props.theme.textSecondary};
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    background: ${(props) => props.theme.surfaceVariant};
+    color: ${(props) => props.theme.textPrimary};
+  }
+`;
+const ConfigContent = dt.div`
   flex: 1;
   overflow-y: auto;
-  padding: ${(props) => props.$collapsed ? "10px 5px" : "20px"};
+  padding: ${(props) => props.$collapsed ? "16px 8px" : "24px"};
   opacity: ${(props) => props.$collapsed ? 0 : 1};
-  transition: opacity 0.3s ease, padding 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: ${(props) => props.$collapsed ? "none" : "auto"};
   
-  /* 隐藏滚动条但保持滚动功能 */
   &::-webkit-scrollbar {
-    width: 0px;
+    width: 6px;
     background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: transparent;
+    background: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.3)" : "rgba(37, 99, 235, 0.3)"};
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.5)" : "rgba(37, 99, 235, 0.5)"};
   }
   
   -ms-overflow-style: none;
-  scrollbar-width: none;
-`;
-const ConfigCard = dt.div`
-  background: ${(props) => props.theme.surfaceVariant};
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 1px solid ${(props) => props.theme.border};
-`;
-const CollapseButton = dt.button`
-  background: none;
-  border: none;
-  color: ${(props) => props.theme.textSecondary};
-  cursor: pointer;
-  padding: 8px;
-  border-radius: ${(props) => props.theme.borderRadius.small};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all ${(props) => props.theme.transition.fast} ease;
-  
-  &:hover {
-    background: ${(props) => props.theme.surfaceVariant};
-    transform: scale(1.1);
-    color: ${(props) => props.theme.textPrimary};
-  }
-  
-  &:active {
-    transform: scale(0.95);
-  }
-`;
-dt.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  border-radius: 50%;
-  font-size: 12px;
-  margin: 0 auto;
-  
-  ${(props) => {
-  if (props.$status === "success") {
-    return lt`
-        background: ${(props2) => props2.theme.success.main}20;
-        color: ${(props2) => props2.theme.success.main};
-      `;
-  } else {
-    return lt`
-        background: ${(props2) => props2.theme.error.main}20;
-        color: ${(props2) => props2.theme.error.main};
-      `;
-  }
-}}
+  scrollbar-width: thin;
 `;
 const ModernInput = dt.input`
   width: 100%;
@@ -24752,49 +27556,71 @@ const ChatArea = dt.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: ${(props) => props.theme.foreground};
-  
-  /* 确保占满剩余空间 */
+  background: ${(props) => props.theme.name === "dark" ? "linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.6))" : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.6))"};
+  backdrop-filter: blur(20px);
+  border: 1px solid ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.2)" : "rgba(37, 99, 235, 0.2)"};
+  border-radius: 20px;
+  box-shadow: ${(props) => props.theme.name === "dark" ? "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.1)" : "0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(37, 99, 235, 0.1)"};
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  position: relative;
   
-  /* 移除边距 */
-  margin: 0;
-  padding: 0;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.5)" : "rgba(37, 99, 235, 0.5)"}, 
+      transparent
+    );
+    animation: shimmer 3s ease-in-out infinite;
+  }
 `;
 const ChatHeader = dt.div`
-  padding: 16px 24px;
-  background: ${(props) => props.theme.surfaceVariant};
-  border-bottom: 1px solid ${(props) => props.theme.border};
+  padding: 20px 24px;
+  background: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.05)" : "rgba(37, 99, 235, 0.05)"};
+  border-bottom: 1px solid ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.1)" : "rgba(37, 99, 235, 0.1)"};
   display: flex;
   align-items: center;
   justify-content: space-between;
 `;
 const ChatTitle = dt.h1`
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   margin: 0;
   color: ${(props) => props.theme.textPrimary};
   display: flex;
   align-items: center;
   gap: 12px;
+  
+  span {
+    background: ${(props) => props.theme.name === "dark" ? "linear-gradient(135deg, #3B82F6, #8B5CF6)" : "linear-gradient(135deg, #2563EB, #7C3AED)"};
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 `;
 const ChatActions = dt.div`
   display: flex;
   gap: 12px;
 `;
-const ModernButton = dt.button`
+const ModernButton = dt(motion.button)`
   padding: ${(props) => {
   switch (props.$size) {
     case "sm":
-      return "6px 12px";
-    case "lg":
-      return "10px 20px";
-    default:
       return "8px 16px";
+    case "lg":
+      return "12px 24px";
+    default:
+      return "10px 20px";
   }
 }};
-  border-radius: ${(props) => props.theme.borderRadius.small};
+  border-radius: 12px;
   font-size: ${(props) => {
   switch (props.$size) {
     case "sm":
@@ -24806,43 +27632,37 @@ const ModernButton = dt.button`
   }
 }};
   font-weight: 500;
-  transition: all ${(props) => props.theme.transition.fast} ease;
+  transition: all 0.3s ease;
   cursor: pointer;
   border: none;
   display: flex;
   align-items: center;
   gap: 6px;
   font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  backdrop-filter: blur(10px);
   
   ${(props) => {
   switch (props.$variant) {
     case "primary":
       return lt`
-          background: ${props.theme.primary.main};
+          background: ${(props2) => props2.theme.name === "dark" ? "linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.8))" : "linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(124, 58, 237, 0.8))"};
           color: ${props.theme.primary.contrastText};
-          
-          &:hover:not(:disabled) {
-            background: ${props.theme.primary.light};
-          }
+          border: 1px solid ${(props2) => props2.theme.name === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(124, 58, 237, 0.3)"};
+          box-shadow: ${(props2) => props2.theme.name === "dark" ? "0 4px 16px rgba(59, 130, 246, 0.3)" : "0 4px 16px rgba(37, 99, 235, 0.3)"};
         `;
     case "secondary":
       return lt`
-          background: ${props.theme.secondary.main};
-          color: ${props.theme.secondary.contrastText};
-          
-          &:hover:not(:disabled) {
-            background: ${props.theme.secondary.light};
-          }
+          background: ${(props2) => props2.theme.name === "dark" ? "linear-gradient(135deg, rgba(100, 116, 139, 0.9), rgba(148, 163, 184, 0.8))" : "linear-gradient(135deg, rgba(203, 213, 225, 0.9), rgba(226, 232, 240, 0.8))"};
+          color: ${(props2) => props2.theme.secondary.contrastText};
+          border: 1px solid ${(props2) => props2.theme.name === "dark" ? "rgba(148, 163, 184, 0.3)" : "rgba(203, 213, 225, 0.3)"};
+          box-shadow: ${(props2) => props2.theme.name === "dark" ? "0 4px 16px rgba(100, 116, 139, 0.3)" : "0 4px 16px rgba(100, 116, 139, 0.2)"};
         `;
     default:
       return lt`
-          background: transparent;
+          background: ${(props2) => props2.theme.name === "dark" ? "rgba(30, 41, 59, 0.6)" : "rgba(255, 255, 255, 0.6)"};
           color: ${props.theme.textSecondary};
-          
-          &:hover:not(:disabled) {
-            background: ${props.theme.surfaceVariant};
-            color: ${props.theme.textPrimary};
-          }
+          border: 1px solid ${(props2) => props2.theme.name === "dark" ? "rgba(59, 130, 246, 0.2)" : "rgba(37, 99, 235, 0.2)"};
+          backdrop-filter: blur(10px);
         `;
   }
 }}
@@ -24851,84 +27671,83 @@ const ModernButton = dt.button`
     opacity: 0.5;
     cursor: not-allowed;
   }
+  
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
 `;
 const MessageArea = dt.div`
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   min-height: 0;
   
-  /* 隐藏滚动条但保持滚动功能 */
   &::-webkit-scrollbar {
-    width: 0px;
+    width: 6px;
     background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: transparent;
+    background: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.3)" : "rgba(37, 99, 235, 0.3)"};
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.5)" : "rgba(37, 99, 235, 0.5)"};
   }
   
   -ms-overflow-style: none;
-  scrollbar-width: none;
+  scrollbar-width: thin;
 `;
-const MessageContainer = dt.div`
+const MessageContainer = dt(motion.div)`
   display: flex;
   ${(props) => props.$role === "user" ? "justify-content: flex-end" : "justify-content: flex-start"};
-  animation: ${float} 3s ease-in-out infinite;
-  animation-delay: ${Math.random() * 2}s;
-  
-  /* 优化滚动交互 */
   scroll-behavior: smooth;
-  
-  /* 确保消息不会太宽 */
   max-width: 100%;
 `;
-const MessageBubble = dt.div`
-  max-width: 85%;
-  padding: 12px 16px;
-  border-radius: 8px;
+const MessageBubble = dt(motion.div)`
+  max-width: 70%;
+  padding: 16px 20px;
+  border-radius: 20px;
   position: relative;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  
-  /* 响应式设计 */
-  @media (max-width: 768px) {
-    max-width: 90%;
-    padding: 10px 14px;
-  }
-  
-  @media (max-width: 480px) {
-    max-width: 95%;
-    padding: 8px 12px;
-  }
+  backdrop-filter: blur(10px);
   
   ${(props) => {
   if (props.$role === "user") {
     return lt`
-        background: ${props.theme.primary.main};
+        background: ${(props2) => props2.theme.name === "dark" ? "linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.8))" : "linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(124, 58, 237, 0.8))"};
         color: ${props.theme.primary.contrastText};
-        border-bottom-right-radius: 4px;
-        border: 1px solid ${props.theme.primary.dark};
+        border: 1px solid ${(props2) => props2.theme.name === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(124, 58, 237, 0.3)"};
+        box-shadow: ${(props2) => props2.theme.name === "dark" ? "0 4px 16px rgba(59, 130, 246, 0.3)" : "0 4px 16px rgba(37, 99, 235, 0.3)"};
+        border-bottom-right-radius: 8px;
       `;
   } else if (props.$role === "assistant") {
     return lt`
-        background: ${props.theme.surfaceVariant};
+        background: ${(props2) => props2.theme.name === "dark" ? "linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.8))" : "linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8))"};
         color: ${props.theme.textPrimary};
-        border-bottom-left-radius: 4px;
-        border: 1px solid ${props.theme.border};
+        border: 1px solid ${(props2) => props2.theme.name === "dark" ? "rgba(59, 130, 246, 0.2)" : "rgba(37, 99, 235, 0.2)"};
+        box-shadow: ${(props2) => props2.theme.name === "dark" ? "0 4px 16px rgba(0, 0, 0, 0.2)" : "0 4px 16px rgba(0, 0, 0, 0.1)"};
+        border-bottom-left-radius: 8px;
       `;
   } else {
     return lt`
-        background: ${props.theme.surface};
+        background: ${(props2) => props2.theme.name === "dark" ? "rgba(75, 85, 99, 0.3)" : "rgba(156, 163, 175, 0.2)"};
         color: ${props.theme.textSecondary};
-        border: 1px solid ${props.theme.borderLight};
+        border: 1px solid ${(props2) => props2.theme.name === "dark" ? "rgba(75, 85, 99, 0.4)" : "rgba(156, 163, 175, 0.3)"};
         font-style: italic;
+        border-radius: 16px;
       `;
   }
 }}
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${(props) => props.theme.name === "dark" ? "0 6px 20px rgba(59, 130, 246, 0.4)" : "0 6px 20px rgba(37, 99, 235, 0.4)"};
+  }
 `;
 const MessageHeader = dt.div`
   display: flex;
@@ -24999,34 +27818,25 @@ const MessageContent = dt.div`
   }
 `;
 const InputArea = dt.div`
-  padding: 16px 24px;
-  background: ${(props) => props.theme.surfaceVariant};
-  border-top: 1px solid ${(props) => props.theme.border};
-  
-  /* 确保输入区域固定在底部 */
+  padding: 20px 24px;
+  background: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.05)" : "rgba(37, 99, 235, 0.05)"};
+  border-top: 1px solid ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.1)" : "rgba(37, 99, 235, 0.1)"};
   flex-shrink: 0;
-  
-  /* 响应式设计 */
-  @media (max-width: 768px) {
-    padding: 12px 16px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 8px 12px;
-  }
 `;
-const InputContainer = dt.div`
+const InputContainer = dt(motion.div)`
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  background: ${(props) => props.theme.surface};
-  border-radius: 8px;
-  padding: 12px;
-  border: 1px solid ${(props) => props.theme.border};
+  background: ${(props) => props.theme.name === "dark" ? "linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(51, 65, 85, 0.6))" : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.6))"};
+  backdrop-filter: blur(20px);
+  border: 1px solid ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.2)" : "rgba(37, 99, 235, 0.2)"};
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: ${(props) => props.theme.name === "dark" ? "0 4px 16px rgba(0, 0, 0, 0.2)" : "0 4px 16px rgba(0, 0, 0, 0.1)"};
   
   &:focus-within {
-    border-color: ${(props) => props.theme.primary.main};
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    border-color: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.4)" : "rgba(37, 99, 235, 0.4)"};
+    box-shadow: ${(props) => props.theme.name === "dark" ? "0 6px 20px rgba(59, 130, 246, 0.3)" : "0 6px 20px rgba(37, 99, 235, 0.3)"};
   }
 `;
 const ChatInput = dt.textarea`
@@ -25038,63 +27848,52 @@ const ChatInput = dt.textarea`
   line-height: 1.5;
   resize: none;
   outline: none;
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border-radius: 12px;
   max-height: 120px;
   font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  transition: all 0.3s ease;
   
-  /* 优化滚动体验 */
   scroll-behavior: smooth;
   
   &::placeholder {
     color: ${(props) => props.theme.textTertiary};
   }
   
-  /* 隐藏滚动条但保持滚动功能 */
   &::-webkit-scrollbar {
-    width: 0px;
+    width: 6px;
     background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: transparent;
+    background: ${(props) => props.theme.name === "dark" ? "rgba(59, 130, 246, 0.3)" : "rgba(37, 99, 235, 0.3)"};
+    border-radius: 3px;
   }
   
   -ms-overflow-style: none;
-  scrollbar-width: none;
-  
-  /* 响应式设计 */
-  @media (max-width: 768px) {
-    font-size: 13px;
-    padding: 6px 10px;
-    max-height: 100px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 12px;
-    padding: 4px 8px;
-    max-height: 80px;
-  }
+  scrollbar-width: thin;
 `;
-const SendButton = dt.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
+const SendButton = dt(motion.button)`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   border: none;
-  background: ${(props) => props.$disabled ? props.theme.border : props.theme.primary.main};
+  background: ${(props) => props.$disabled ? props.theme.name === "dark" ? "rgba(75, 85, 99, 0.3)" : "rgba(156, 163, 175, 0.3)" : props.theme.name === "dark" ? "linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.8))" : "linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(124, 58, 237, 0.8))"};
   color: ${(props) => props.$disabled ? props.theme.textTertiary : props.theme.primary.contrastText};
   cursor: ${(props) => props.$disabled ? "not-allowed" : "pointer"};
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: ${(props) => props.$disabled ? "none" : props.theme.name === "dark" ? "0 4px 16px rgba(59, 130, 246, 0.3)" : "0 4px 16px rgba(37, 99, 235, 0.3)"};
   
   &:hover:not(:disabled) {
-    background: ${(props) => props.theme.primary.light};
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: ${(props) => props.theme.name === "dark" ? "0 6px 20px rgba(59, 130, 246, 0.4)" : "0 6px 20px rgba(37, 99, 235, 0.4)"};
   }
   
   &:active:not(:disabled) {
-    transform: scale(0.95);
+    transform: translateY(0) scale(0.95);
   }
 `;
 const LoadingDots = dt.div`
@@ -25114,58 +27913,41 @@ const LoadingDots = dt.div`
     &:nth-child(3) { animation-delay: 0s; }
   }
 `;
-const StatusIndicator = dt.div`
+const StatusIndicator = dt(motion.div)`
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 12px 20px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
+  backdrop-filter: blur(10px);
   
   ${(props) => {
   switch (props.$status) {
     case "success":
       return lt`
-          background: ${props.theme.success.main}20;
+          background: ${props.theme.name === "dark" ? "rgba(16, 185, 129, 0.2)" : "rgba(16, 185, 129, 0.1)"};
           color: ${props.theme.success.main};
+          border: 1px solid ${props.theme.name === "dark" ? "rgba(16, 185, 129, 0.3)" : "rgba(16, 185, 129, 0.2)"};
         `;
     case "error":
       return lt`
-          background: ${props.theme.error.main}20;
+          background: ${props.theme.name === "dark" ? "rgba(239, 68, 68, 0.2)" : "rgba(239, 68, 68, 0.1)"};
           color: ${props.theme.error.main};
+          border: 1px solid ${props.theme.name === "dark" ? "rgba(239, 68, 68, 0.3)" : "rgba(239, 68, 68, 0.2)"};
         `;
     default:
       return lt`
-          background: ${props.theme.primary.main}20;
+          background: ${props.theme.name === "dark" ? "rgba(59, 130, 246, 0.2)" : "rgba(37, 99, 235, 0.1)"};
           color: ${props.theme.primary.main};
+          border: 1px solid ${props.theme.name === "dark" ? "rgba(59, 130, 246, 0.3)" : "rgba(37, 99, 235, 0.2)"};
         `;
   }
 }}
-`;
-const ConfigSection = dt.div`
-  margin-bottom: 16px;
-`;
-const ConfigSectionHeader = dt.div`
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  background: ${(props) => props.theme.surfaceVariant};
-  border-radius: ${(props) => props.theme.borderRadius.small};
-  border: 1px solid ${(props) => props.theme.border};
-  margin-bottom: 12px;
-`;
-const ConfigSectionTitle = dt.h4`
-  margin: 0;
-  font-size: 12px;
-  font-weight: 500;
-  color: ${(props) => props.theme.textPrimary};
-  font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
-`;
-const ConfigSectionContent = dt.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
 `;
 const ModernChatPage = () => {
   const [messages, setMessages] = reactExports.useState([]);
@@ -25299,203 +28081,394 @@ const ModernChatPage = () => {
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(ModernChatContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(MainLayout, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigSidebar, { $collapsed: isConfigCollapsed, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(SidebarHeader, { $collapsed: isConfigCollapsed, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SidebarTitle, { $collapsed: isConfigCollapsed, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }),
-          "配置设置"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(CollapseButton, { onClick: toggleConfigPanel, children: isConfigCollapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 16 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronLeft, { size: 16 }) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(SidebarContent, { $collapsed: isConfigCollapsed, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigSection, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigSectionHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigSectionTitle, { children: "基本配置" }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigSectionContent, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "提供商" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(ModernSelect, { value: provider, onChange: (e) => handleProviderChange(e.target.value), children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "选择提供商" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai", children: "OpenAI" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "gemini", children: "Gemini" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openrouter", children: "OpenRouter" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "custom", children: "自定义" })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      ConfigPanel,
+      {
+        $collapsed: isConfigCollapsed,
+        initial: { opacity: 0, x: -50 },
+        animate: { opacity: 1, x: 0 },
+        transition: { duration: 0.5, delay: 0.2 },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigHeader$1, { $collapsed: isConfigCollapsed, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigTitle, { $collapsed: isConfigCollapsed, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }),
+              "模型配置"
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(CollapseButton, { onClick: toggleConfigPanel, children: isConfigCollapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { size: 16 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronLeft, { size: 16 }) })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigContent, { $collapsed: isConfigCollapsed, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "16px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "12px" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "提供商" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(ModernSelect, { value: provider, onChange: (e) => handleProviderChange(e.target.value), children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "选择提供商" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai", children: "OpenAI" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "gemini", children: "Gemini" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openrouter", children: "OpenRouter" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "custom", children: "自定义" })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "12px" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "API Key" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ModernInput,
+                  {
+                    type: "password",
+                    value: apiKey,
+                    onChange: (e) => setApiKey(e.target.value),
+                    placeholder: "输入您的 API 密钥"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "12px" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "模型" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ModernInput,
+                  {
+                    type: "text",
+                    value: model,
+                    onChange: (e) => setModel(e.target.value),
+                    placeholder: "输入模型名称"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "12px" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "Base URL" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ModernInput,
+                  {
+                    type: "text",
+                    value: baseUrl,
+                    onChange: (e) => setBaseUrl(e.target.value),
+                    placeholder: "输入 API 基础 URL"
+                  }
+                )
               ] })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "Base URL" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                ModernInput,
-                {
-                  type: "text",
-                  value: baseUrl,
-                  onChange: (e) => setBaseUrl(e.target.value),
-                  placeholder: "输入 API 基础 URL"
-                }
-              )
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "16px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "12px" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
+                  "Temperature: ",
+                  temperature
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ModernSlider,
+                  {
+                    type: "range",
+                    min: "0",
+                    max: "2",
+                    step: "0.1",
+                    value: temperature,
+                    onChange: (e) => setTemperature(parseFloat(e.target.value))
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "12px" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
+                  "Max Tokens: ",
+                  maxTokens
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ModernSlider,
+                  {
+                    type: "range",
+                    min: "1",
+                    max: "8192",
+                    step: "1",
+                    value: maxTokens,
+                    onChange: (e) => setMaxTokens(parseInt(e.target.value))
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "12px" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
+                  "Top P: ",
+                  topP
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ModernSlider,
+                  {
+                    type: "range",
+                    min: "0",
+                    max: "1",
+                    step: "0.01",
+                    value: topP,
+                    onChange: (e) => setTopP(parseFloat(e.target.value))
+                  }
+                )
+              ] })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "API Key" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginBottom: "16px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginBottom: "12px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "系统提示词" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx(
-                ModernInput,
+                ModernTextarea,
                 {
-                  type: "password",
-                  value: apiKey,
-                  onChange: (e) => setApiKey(e.target.value),
-                  placeholder: "输入您的 API 密钥"
+                  value: systemPrompt,
+                  onChange: (e) => setSystemPrompt(e.target.value),
+                  placeholder: "输入系统提示词..."
                 }
               )
+            ] }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusIndicator, { $status: isConfigValid ? "success" : "error", children: [
+              isConfigValid ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 16 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: 16 }),
+              isConfigValid ? "配置完成" : "配置未完成"
+            ] }) })
+          ] })
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      ChatArea,
+      {
+        initial: { opacity: 0, y: 50 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.5, delay: 0.3 },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatHeader, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatTitle, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 24 }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "AI对话" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 20, style: { animation: "pulse 2s ease-in-out infinite" } })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: "模型" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                ModernInput,
-                {
-                  type: "text",
-                  value: model,
-                  onChange: (e) => setModel(e.target.value),
-                  placeholder: "输入模型名称"
-                }
-              )
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatActions, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(ModernButton, { $variant: "ghost", $size: "sm", onClick: clearMessages, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 16 }),
+                "清空"
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(ModernButton, { $variant: "secondary", $size: "sm", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 16 }),
+                "导出"
+              ] })
             ] })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigSection, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigSectionHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigSectionTitle, { children: "高级参数" }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigSectionContent, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
-                "Temperature: ",
-                temperature
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                ModernSlider,
-                {
-                  type: "range",
-                  min: "0",
-                  max: "2",
-                  step: "0.1",
-                  value: temperature,
-                  onChange: (e) => setTemperature(parseFloat(e.target.value))
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
-                "Max Tokens: ",
-                maxTokens
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                ModernSlider,
-                {
-                  type: "range",
-                  min: "1",
-                  max: "8192",
-                  step: "1",
-                  value: maxTokens,
-                  onChange: (e) => setMaxTokens(parseInt(e.target.value))
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigCard, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { children: [
-                "Top P: ",
-                topP
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                ModernSlider,
-                {
-                  type: "range",
-                  min: "0",
-                  max: "1",
-                  step: "0.01",
-                  value: topP,
-                  onChange: (e) => setTopP(parseFloat(e.target.value))
-                }
-              )
-            ] })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigSection, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigSectionHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigSectionTitle, { children: "系统提示词" }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigSectionContent, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCard, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            ModernTextarea,
-            {
-              value: systemPrompt,
-              onChange: (e) => setSystemPrompt(e.target.value),
-              placeholder: "输入系统提示词..."
-            }
-          ) }) })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCard, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusIndicator, { $status: isConfigValid ? "success" : "error", children: [
-          isConfigValid ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 16 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: 16 }),
-          isConfigValid ? "配置完成" : "配置未完成"
-        ] }) })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatArea, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatHeader, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatTitle, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 24 }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 20, style: { animation: "pulse 2s ease-in-out infinite" } }),
-          "智能对话"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ChatActions, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ModernButton, { $variant: "ghost", $size: "sm", onClick: clearMessages, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 16 }),
-            "清空"
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ModernButton, { $variant: "secondary", $size: "sm", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 16 }),
-            "导出"
-          ] })
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageArea, { children: [
-        messages.map((message, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(MessageContainer, { $role: message.role, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageBubble, { $role: message.role, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageHeader, { children: [
-            message.role === "user" ? /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 14 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Bot, { size: 14 }),
-            message.role === "user" ? "您" : "AI助手"
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageArea, { children: [
+            messages.map((message, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+              MessageContainer,
+              {
+                $role: message.role,
+                initial: { opacity: 0, y: 20 },
+                animate: { opacity: 1, y: 0 },
+                transition: { duration: 0.4, delay: index * 0.1 },
+                children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  MessageBubble,
+                  {
+                    $role: message.role,
+                    whileHover: { scale: 1.02 },
+                    whileTap: { scale: 0.98 },
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageHeader, { children: [
+                        message.role === "user" ? /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 14 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Bot, { size: 14 }),
+                        message.role === "user" ? "您" : "AI助手"
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(MessageContent, { children: message.content })
+                    ]
+                  }
+                )
+              },
+              index
+            )),
+            isLoading && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              MessageContainer,
+              {
+                $role: "assistant",
+                initial: { opacity: 0, y: 20 },
+                animate: { opacity: 1, y: 0 },
+                transition: { duration: 0.4 },
+                children: /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageBubble, { $role: "assistant", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageHeader, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Bot, { size: 14 }),
+                    "AI助手"
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(LoadingDots, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", {}),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", {}),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", {})
+                  ] })
+                ] })
+              }
+            )
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(MessageContent, { children: message.content })
-        ] }) }, index)),
-        isLoading && /* @__PURE__ */ jsxRuntimeExports.jsx(MessageContainer, { $role: "assistant", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageBubble, { $role: "assistant", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(MessageHeader, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Bot, { size: 14 }),
-            "AI助手"
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(LoadingDots, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", {}),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", {}),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", {})
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(InputArea, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              InputContainer,
+              {
+                whileHover: { scale: 1.01 },
+                whileTap: { scale: 0.99 },
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    ChatInput,
+                    {
+                      value: inputMessage,
+                      onChange: (e) => setInputMessage(e.target.value),
+                      onKeyPress: handleKeyPress,
+                      placeholder: "输入您的问题...",
+                      disabled: isLoading || !isConfigValid,
+                      rows: 1
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    SendButton,
+                    {
+                      onClick: handleSendMessage,
+                      disabled: !inputMessage.trim() || isLoading || !isConfigValid,
+                      whileHover: { scale: 1.1 },
+                      whileTap: { scale: 0.9 },
+                      children: isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 20, style: { animation: "pulse 1s ease-in-out infinite" } }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { size: 20 })
+                    }
+                  )
+                ]
+              }
+            ),
+            error && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
+              marginTop: "12px",
+              color: "#ef4444",
+              fontSize: "14px",
+              fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+              background: "rgba(239, 68, 68, 0.1)",
+              padding: "12px",
+              borderRadius: "8px",
+              border: "1px solid rgba(239, 68, 68, 0.2)"
+            }, children: error })
           ] })
-        ] }) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(InputArea, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(InputContainer, { children: [
+        ]
+      }
+    )
+  ] }) });
+};
+const CardContainer = dt(motion.div)`
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: ${(props) => props.theme?.name === "dark" ? props.theme?.card?.background || "#111827" : props.theme?.card?.background || "#FFFFFF"};
+  border: 1px solid ${(props) => props.theme?.name === "dark" ? props.theme?.card?.border || "#374151" : props.theme?.card?.border || "#E5E7EB"};
+  border-radius: ${(props) => props.theme?.borderRadius?.medium || "12px"};
+  box-shadow: ${(props) => props.theme?.name === "dark" ? props.theme?.card?.shadow || "0 1px 2px 0 rgba(0, 0, 0, 0.1)" : props.theme?.card?.shadow || "0 1px 2px 0 rgba(0, 0, 0, 0.05)"};
+  transition: all ${(props) => props.theme?.transition?.normal || "0.2s"} ease;
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${(props) => props.theme?.name === "dark" ? props.theme?.card?.shadowHover || "0 4px 12px 0 rgba(0, 0, 0, 0.15)" : props.theme?.card?.shadowHover || "0 4px 12px 0 rgba(0, 0, 0, 0.08)"};
+    border-color: ${(props) => props.theme?.primary?.main || "#2563EB"};
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+const IconContainer = dt.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-right: 16px;
+  color: ${(props) => props.theme?.primary?.main || "#2563EB"};
+  background: ${(props) => props.theme?.name === "dark" ? "rgba(59, 130, 246, 0.1)" : "rgba(37, 99, 235, 0.08)"};
+  border-radius: ${(props) => props.theme?.borderRadius?.medium || "12px"};
+`;
+const ContentContainer = dt.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+const ToolName = dt.h3`
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${(props) => props.theme?.textPrimary || "#111827"};
+`;
+const OfficialLink = dt.button`
+  font-size: 14px;
+  color: ${(props) => props.theme?.textSecondary || "#4B5563"};
+  text-decoration: none;
+  transition: color ${(props) => props.theme?.transition?.fast || "0.15s"} ease;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  
+  &:hover {
+    color: ${(props) => props.theme?.primary?.main || "#2563EB"};
+  }
+`;
+const DownloadButton = dt(motion.button)`
+  padding: 8px 16px;
+  background: ${(props) => props.theme?.primary?.main || "#2563EB"};
+  color: ${(props) => props.theme?.primary?.contrastText || "#FFFFFF"};
+  border: none;
+  border-radius: ${(props) => props.theme?.borderRadius?.small || "8px"};
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all ${(props) => props.theme?.transition?.fast || "0.15s"} ease;
+  
+  &:hover {
+    background: ${(props) => props.theme?.name === "dark" ? props.theme?.primary?.dark || "#1D4ED8" : props.theme?.primary?.dark || "#1E40AF"};
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+const SimpleToolCard = ({
+  icon,
+  name,
+  officialUrl,
+  downloadUrl,
+  onDownload,
+  className
+}) => {
+  const theme = useTheme();
+  const handleDownload = (e) => {
+    e.stopPropagation();
+    if (onDownload) {
+      onDownload();
+    } else {
+      window.open(downloadUrl, "_blank");
+    }
+  };
+  const handleOfficialLink = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    window.open(officialUrl, "_blank", "noopener,noreferrer");
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    CardContainer,
+    {
+      className,
+      whileHover: { scale: 1.01 },
+      whileTap: { scale: 0.99 },
+      theme,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(IconContainer, { theme, children: icon }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(ContentContainer, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolName, { theme, children: name }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
-            ChatInput,
+            OfficialLink,
             {
-              value: inputMessage,
-              onChange: (e) => setInputMessage(e.target.value),
-              onKeyPress: handleKeyPress,
-              placeholder: "输入您的问题...",
-              disabled: isLoading || !isConfigValid,
-              rows: 1
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            SendButton,
-            {
-              onClick: handleSendMessage,
-              disabled: !inputMessage.trim() || isLoading || !isConfigValid,
-              children: isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 20, style: { animation: "pulse 1s ease-in-out infinite" } }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { size: 20 })
+              onClick: handleOfficialLink,
+              theme,
+              children: "官网"
             }
           )
         ] }),
-        error && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "12px", color: "#ef4444", fontSize: "14px", fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif' }, children: error })
-      ] })
-    ] })
-  ] }) });
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          DownloadButton,
+          {
+            onClick: handleDownload,
+            whileHover: { scale: 1.05 },
+            whileTap: { scale: 0.95 },
+            theme,
+            children: "下载"
+          }
+        )
+      ]
+    }
+  );
 };
 var DefaultContext = {
   color: void 0,
@@ -25627,485 +28600,751 @@ function IconBase(props) {
   };
   return IconContext !== void 0 ? /* @__PURE__ */ React.createElement(IconContext.Consumer, null, (conf) => elem(conf)) : elem(DefaultContext);
 }
-function FaJava(props) {
-  return GenIcon({ "attr": { "viewBox": "0 0 384 512" }, "child": [{ "tag": "path", "attr": { "d": "M277.74 312.9c9.8-6.7 23.4-12.5 23.4-12.5s-38.7 7-77.2 10.2c-47.1 3.9-97.7 4.7-123.1 1.3-60.1-8 33-30.1 33-30.1s-36.1-2.4-80.6 19c-52.5 25.4 130 37 224.5 12.1zm-85.4-32.1c-19-42.7-83.1-80.2 0-145.8C296 53.2 242.84 0 242.84 0c21.5 84.5-75.6 110.1-110.7 162.6-23.9 35.9 11.7 74.4 60.2 118.2zm114.6-176.2c.1 0-175.2 43.8-91.5 140.2 24.7 28.4-6.5 54-6.5 54s62.7-32.4 33.9-72.9c-26.9-37.8-47.5-56.6 64.1-121.3zm-6.1 270.5a12.19 12.19 0 0 1-2 2.6c128.3-33.7 81.1-118.9 19.8-97.3a17.33 17.33 0 0 0-8.2 6.3 70.45 70.45 0 0 1 11-3c31-6.5 75.5 41.5-20.6 91.4zM348 437.4s14.5 11.9-15.9 21.2c-57.9 17.5-240.8 22.8-291.6.7-18.3-7.9 16-19 26.8-21.3 11.2-2.4 17.7-2 17.7-2-20.3-14.3-131.3 28.1-56.4 40.2C232.84 509.4 401 461.3 348 437.4zM124.44 396c-78.7 22 47.9 67.4 148.1 24.5a185.89 185.89 0 0 1-28.2-13.8c-44.7 8.5-65.4 9.1-106 4.5-33.5-3.8-13.9-15.2-13.9-15.2zm179.8 97.2c-78.7 14.8-175.8 13.1-233.3 3.6 0-.1 11.8 9.7 72.4 13.6 92.2 5.9 233.8-3.3 237.1-46.9 0 0-6.4 16.5-76.2 29.7zM260.64 353c-59.2 11.4-93.5 11.1-136.8 6.6-33.5-3.5-11.6-19.7-11.6-19.7-86.8 28.8 48.2 61.4 169.5 25.9a60.37 60.37 0 0 1-21.1-12.8z" }, "child": [] }] })(props);
-}
-function VscCode(props) {
-  return GenIcon({ "attr": { "viewBox": "0 0 16 16", "fill": "currentColor" }, "child": [{ "tag": "path", "attr": { "d": "M4.708 5.578L2.061 8.224l2.647 2.646-.708.708-3-3V7.87l3-3 .708.708zm7-.708L11 5.578l2.647 2.646L11 10.87l.708.708 3-3V7.87l-3-3zM4.908 13l.894.448 5-10L9.908 3l-5 10z" }, "child": [] }] })(props);
-}
-function SiAngular(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M16.712 17.711H7.288l-1.204 2.916L12 24l5.916-3.373-1.204-2.916ZM14.692 0l7.832 16.855.814-12.856L14.692 0ZM9.308 0 .662 3.999l.814 12.856L9.308 0Zm-.405 13.93h6.198L12 6.396 8.903 13.93Z" }, "child": [] }] })(props);
-}
-function SiDocker(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z" }, "child": [] }] })(props);
-}
-function SiDotnet(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M24 8.77h-2.468v7.565h-1.425V8.77h-2.462V7.53H24zm-6.852 7.565h-4.821V7.53h4.63v1.24h-3.205v2.494h2.953v1.234h-2.953v2.604h3.396zm-6.708 0H8.882L4.78 9.863a2.896 2.896 0 0 1-.258-.51h-.036c.032.189.048.592.048 1.21v5.772H3.157V7.53h1.659l3.965 6.32c.167.261.275.442.323.54h.024c-.04-.233-.06-.629-.06-1.185V7.529h1.372zm-8.703-.693a.868.829 0 0 1-.869.829.868.829 0 0 1-.868-.83.868.829 0 0 1 .868-.828.868.829 0 0 1 .869.829Z" }, "child": [] }] })(props);
-}
-function SiGit(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M23.546 10.93L13.067.452c-.604-.603-1.582-.603-2.188 0L8.708 2.627l2.76 2.76c.645-.215 1.379-.07 1.889.441.516.515.658 1.258.438 1.9l2.658 2.66c.645-.223 1.387-.078 1.9.435.721.72.721 1.884 0 2.604-.719.719-1.881.719-2.6 0-.539-.541-.674-1.337-.404-1.996L12.86 8.955v6.525c.176.086.342.203.488.348.713.721.713 1.883 0 2.6-.719.721-1.889.721-2.609 0-.719-.719-.719-1.879 0-2.598.182-.18.387-.316.605-.406V8.835c-.217-.091-.424-.222-.6-.401-.545-.545-.676-1.342-.396-2.009L7.636 3.7.45 10.881c-.6.605-.6 1.584 0 2.189l10.48 10.477c.604.604 1.582.604 2.186 0l10.43-10.43c.605-.603.605-1.582 0-2.187" }, "child": [] }] })(props);
-}
-function SiGithub(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" }, "child": [] }] })(props);
+function SiBrave(props) {
+  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M15.68 0l2.096 2.38s1.84-.512 2.709.358c.868.87 1.584 1.638 1.584 1.638l-.562 1.381.715 2.047s-2.104 7.98-2.35 8.955c-.486 1.919-.818 2.66-2.198 3.633-1.38.972-3.884 2.66-4.293 2.916-.409.256-.92.692-1.38.692-.46 0-.97-.436-1.38-.692a185.796 185.796 0 01-4.293-2.916c-1.38-.973-1.712-1.714-2.197-3.633-.247-.975-2.351-8.955-2.351-8.955l.715-2.047-.562-1.381s.716-.768 1.585-1.638c.868-.87 2.708-.358 2.708-.358L8.321 0h7.36zm-3.679 14.936c-.14 0-1.038.317-1.758.69-.72.373-1.242.637-1.409.742-.167.104-.065.301.087.409.152.107 2.194 1.69 2.393 1.866.198.175.489.464.687.464.198 0 .49-.29.688-.464.198-.175 2.24-1.759 2.392-1.866.152-.108.254-.305.087-.41-.167-.104-.689-.368-1.41-.741-.72-.373-1.617-.69-1.757-.69zm0-11.278s-.409.001-1.022.206-1.278.46-1.584.46c-.307 0-2.581-.434-2.581-.434S4.119 7.152 4.119 7.849c0 .697.339.881.68 1.243l2.02 2.149c.192.203.59.511.356 1.066-.235.555-.58 1.26-.196 1.977.384.716 1.042 1.194 1.464 1.115.421-.08 1.412-.598 1.776-.834.364-.237 1.518-1.19 1.518-1.554 0-.365-1.193-1.02-1.413-1.168-.22-.15-1.226-.725-1.247-.95-.02-.227-.012-.293.284-.851.297-.559.831-1.304.742-1.8-.089-.495-.95-.753-1.565-.986-.615-.232-1.799-.671-1.947-.74-.148-.068-.11-.133.339-.175.448-.043 1.719-.212 2.292-.052.573.16 1.552.403 1.632.532.079.13.149.134.067.579-.081.445-.5 2.581-.541 2.96-.04.38-.12.63.288.724.409.094 1.097.256 1.333.256s.924-.162 1.333-.256c.408-.093.329-.344.288-.723-.04-.38-.46-2.516-.541-2.961-.082-.445-.012-.45.067-.579.08-.129 1.059-.372 1.632-.532.573-.16 1.845.009 2.292.052.449.042.487.107.339.175-.148.069-1.332.508-1.947.74-.615.233-1.476.49-1.565.986-.09.496.445 1.241.742 1.8.297.558.304.624.284.85-.02.226-1.026.802-1.247.95-.22.15-1.413.804-1.413 1.169 0 .364 1.154 1.317 1.518 1.554.364.236 1.355.755 1.776.834.422.079 1.08-.4 1.464-1.115.384-.716.039-1.422-.195-1.977-.235-.555.163-.863.355-1.066l2.02-2.149c.341-.362.68-.546.68-1.243 0-.697-2.695-3.96-2.695-3.96s-2.274.436-2.58.436c-.307 0-.972-.256-1.585-.461-.613-.205-1.022-.206-1.022-.206z" }, "child": [] }] })(props);
 }
 function SiIntellijidea(props) {
   return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M0 0v24h24V0zm3.723 3.111h5v1.834h-1.39v6.277h1.39v1.834h-5v-1.834h1.444V4.945H3.723zm11.055 0H17v6.5c0 .612-.055 1.111-.222 1.556-.167.444-.39.777-.723 1.11-.277.279-.666.557-1.11.668a3.933 3.933 0 0 1-1.445.278c-.778 0-1.444-.167-1.944-.445a4.81 4.81 0 0 1-1.279-1.056l1.39-1.555c.277.334.555.555.833.722.277.167.611.278.945.278.389 0 .721-.111 1-.389.221-.278.333-.667.333-1.278zM2.222 19.5h9V21h-9z" }, "child": [] }] })(props);
 }
-function SiJuejin(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "m12 14.316 7.454-5.88-2.022-1.625L12 11.1l-.004.003-5.432-4.288-2.02 1.624 7.452 5.88Zm0-7.247 2.89-2.298L12 2.453l-.004-.005-2.884 2.318 2.884 2.3Zm0 11.266-.005.002-9.975-7.87L0 12.088l.194.156 11.803 9.308 7.463-5.885L24 12.085l-2.023-1.624Z" }, "child": [] }] })(props);
-}
-function SiMedium(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M4.21 0A4.201 4.201 0 0 0 0 4.21v15.58A4.201 4.201 0 0 0 4.21 24h15.58A4.201 4.201 0 0 0 24 19.79v-1.093c-.137.013-.278.02-.422.02-2.577 0-4.027-2.146-4.09-4.832a7.592 7.592 0 0 1 .022-.708c.093-1.186.475-2.241 1.105-3.022a3.885 3.885 0 0 1 1.395-1.1c.468-.237 1.127-.367 1.664-.367h.023c.101 0 .202.004.303.01V4.211A4.201 4.201 0 0 0 19.79 0Zm.198 5.583h4.165l3.588 8.435 3.59-8.435h3.864v.146l-.019.004c-.705.16-1.063.397-1.063 1.254h-.003l.003 10.274c.06.676.424.885 1.063 1.03l.02.004v.145h-4.923v-.145l.019-.005c.639-.144.994-.353 1.054-1.03V7.267l-4.745 11.15h-.261L6.15 7.569v9.445c0 .857.358 1.094 1.063 1.253l.02.004v.147H4.405v-.147l.019-.004c.705-.16 1.065-.397 1.065-1.253V6.987c0-.857-.358-1.094-1.064-1.254l-.018-.004zm19.25 3.668c-1.086.023-1.733 1.323-1.813 3.124H24V9.298a1.378 1.378 0 0 0-.342-.047Zm-1.862 3.632c-.1 1.756.86 3.239 2.204 3.634v-3.634z" }, "child": [] }] })(props);
-}
-function SiMongodb(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M17.193 9.555c-1.264-5.58-4.252-7.414-4.573-8.115-.28-.394-.53-.954-.735-1.44-.036.495-.055.685-.523 1.184-.723.566-4.438 3.682-4.74 10.02-.282 5.912 4.27 9.435 4.888 9.884l.07.05A73.49 73.49 0 0111.91 24h.481c.114-1.032.284-2.056.51-3.07.417-.296.604-.463.85-.693a11.342 11.342 0 003.639-8.464c.01-.814-.103-1.662-.197-2.218zm-5.336 8.195s0-8.291.275-8.29c.213 0 .49 10.695.49 10.695-.381-.045-.765-1.76-.765-2.405z" }, "child": [] }] })(props);
-}
-function SiMysql(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M16.405 5.501c-.115 0-.193.014-.274.033v.013h.014c.054.104.146.18.214.273.054.107.1.214.154.32l.014-.015c.094-.066.14-.172.14-.333-.04-.047-.046-.094-.08-.14-.04-.067-.126-.1-.18-.153zM5.77 18.695h-.927a50.854 50.854 0 00-.27-4.41h-.008l-1.41 4.41H2.45l-1.4-4.41h-.01a72.892 72.892 0 00-.195 4.41H0c.055-1.966.192-3.81.41-5.53h1.15l1.335 4.064h.008l1.347-4.064h1.095c.242 2.015.384 3.86.428 5.53zm4.017-4.08c-.378 2.045-.876 3.533-1.492 4.46-.482.716-1.01 1.073-1.583 1.073-.153 0-.34-.046-.566-.138v-.494c.11.017.24.026.386.026.268 0 .483-.075.647-.222.197-.18.295-.382.295-.605 0-.155-.077-.47-.23-.944L6.23 14.615h.91l.727 2.36c.164.536.233.91.205 1.123.4-1.064.678-2.227.835-3.483zm12.325 4.08h-2.63v-5.53h.885v4.85h1.745zm-3.32.135l-1.016-.5c.09-.076.177-.158.255-.25.433-.506.648-1.258.648-2.253 0-1.83-.718-2.746-2.155-2.746-.704 0-1.254.232-1.65.697-.43.508-.646 1.256-.646 2.245 0 .972.19 1.686.574 2.14.35.41.877.615 1.583.615.264 0 .506-.033.725-.098l1.325.772.36-.622zM15.5 17.588c-.225-.36-.337-.94-.337-1.736 0-1.393.424-2.09 1.27-2.09.443 0 .77.167.977.5.224.362.336.936.336 1.723 0 1.404-.424 2.108-1.27 2.108-.445 0-.77-.167-.978-.5zm-1.658-.425c0 .47-.172.856-.516 1.156-.344.3-.803.45-1.384.45-.543 0-1.064-.172-1.573-.515l.237-.476c.438.22.833.328 1.19.328.332 0 .593-.073.783-.22a.754.754 0 00.3-.615c0-.33-.23-.61-.648-.845-.388-.213-1.163-.657-1.163-.657-.422-.307-.632-.636-.632-1.177 0-.45.157-.81.47-1.085.315-.278.72-.415 1.22-.415.512 0 .98.136 1.4.41l-.213.476a2.726 2.726 0 00-1.064-.23c-.283 0-.502.068-.654.206a.685.685 0 00-.248.524c0 .328.234.61.666.85.393.215 1.187.67 1.187.67.433.305.648.63.648 1.168zm9.382-5.852c-.535-.014-.95.04-1.297.188-.1.04-.26.04-.274.167.055.053.063.14.11.214.08.134.218.313.346.407.14.11.28.216.427.31.26.16.555.255.81.416.145.094.293.213.44.313.073.05.12.14.214.172v-.02c-.046-.06-.06-.147-.105-.214-.067-.067-.134-.127-.2-.193a3.223 3.223 0 00-.695-.675c-.214-.146-.682-.35-.77-.595l-.013-.014c.146-.013.32-.066.46-.106.227-.06.435-.047.67-.106.106-.027.213-.06.32-.094v-.06c-.12-.12-.21-.283-.334-.395a8.867 8.867 0 00-1.104-.823c-.21-.134-.476-.22-.697-.334-.08-.04-.214-.06-.26-.127-.12-.146-.19-.34-.275-.514a17.69 17.69 0 01-.547-1.163c-.12-.262-.193-.523-.34-.763-.69-1.137-1.437-1.826-2.586-2.5-.247-.14-.543-.2-.856-.274-.167-.008-.334-.02-.5-.027-.11-.047-.216-.174-.31-.235-.38-.24-1.364-.76-1.644-.072-.18.434.267.862.422 1.082.115.153.26.328.34.5.047.116.06.235.107.356.106.294.207.622.347.897.073.14.153.287.247.413.054.073.146.107.167.227-.094.136-.1.334-.154.5-.24.757-.146 1.693.194 2.25.107.166.362.534.703.393.3-.12.234-.5.32-.835.02-.08.007-.133.048-.187v.015c.094.188.188.367.274.555.206.328.566.668.867.895.16.12.287.328.487.402v-.02h-.015c-.043-.058-.1-.086-.154-.133a3.445 3.445 0 01-.35-.4 8.76 8.76 0 01-.747-1.218c-.11-.21-.202-.436-.29-.643-.04-.08-.04-.2-.107-.24-.1.146-.247.273-.32.453-.127.288-.14.642-.188 1.01-.027.007-.014 0-.027.014-.214-.052-.287-.274-.367-.46-.2-.475-.233-1.238-.06-1.785.047-.14.247-.582.167-.716-.042-.127-.174-.2-.247-.303a2.478 2.478 0 01-.24-.427c-.16-.374-.24-.788-.414-1.162-.08-.173-.22-.354-.334-.513-.127-.18-.267-.307-.368-.52-.033-.073-.08-.194-.027-.274.014-.054.042-.075.094-.09.088-.072.335.022.422.062.247.1.455.194.662.334.094.066.195.193.315.226h.14c.214.047.455.014.655.073.355.114.675.28.962.46a5.953 5.953 0 012.085 2.286c.08.154.115.295.188.455.14.33.313.663.455.982.14.315.275.636.476.897.1.14.502.213.682.286.133.06.34.115.46.188.23.14.454.3.67.454.11.076.443.243.463.378z" }, "child": [] }] })(props);
-}
 function SiNodedotjs(props) {
   return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M11.998,24c-0.321,0-0.641-0.084-0.922-0.247l-2.936-1.737c-0.438-0.245-0.224-0.332-0.08-0.383 c0.585-0.203,0.703-0.25,1.328-0.604c0.065-0.037,0.151-0.023,0.218,0.017l2.256,1.339c0.082,0.045,0.197,0.045,0.272,0l8.795-5.076 c0.082-0.047,0.134-0.141,0.134-0.238V6.921c0-0.099-0.053-0.192-0.137-0.242l-8.791-5.072c-0.081-0.047-0.189-0.047-0.271,0 L3.075,6.68C2.99,6.729,2.936,6.825,2.936,6.921v10.15c0,0.097,0.054,0.189,0.139,0.235l2.409,1.392 c1.307,0.654,2.108-0.116,2.108-0.89V7.787c0-0.142,0.114-0.253,0.256-0.253h1.115c0.139,0,0.255,0.112,0.255,0.253v10.021 c0,1.745-0.95,2.745-2.604,2.745c-0.508,0-0.909,0-2.026-0.551L2.28,18.675c-0.57-0.329-0.922-0.945-0.922-1.604V6.921 c0-0.659,0.353-1.275,0.922-1.603l8.795-5.082c0.557-0.315,1.296-0.315,1.848,0l8.794,5.082c0.57,0.329,0.924,0.944,0.924,1.603 v10.15c0,0.659-0.354,1.273-0.924,1.604l-8.794,5.078C12.643,23.916,12.324,24,11.998,24z M19.099,13.993 c0-1.9-1.284-2.406-3.987-2.763c-2.731-0.361-3.009-0.548-3.009-1.187c0-0.528,0.235-1.233,2.258-1.233 c1.807,0,2.473,0.389,2.747,1.607c0.024,0.115,0.129,0.199,0.247,0.199h1.141c0.071,0,0.138-0.031,0.186-0.081 c0.048-0.054,0.074-0.123,0.067-0.196c-0.177-2.098-1.571-3.076-4.388-3.076c-2.508,0-4.004,1.058-4.004,2.833 c0,1.925,1.488,2.457,3.895,2.695c2.88,0.282,3.103,0.703,3.103,1.269c0,0.983-0.789,1.402-2.642,1.402 c-2.327,0-2.839-0.584-3.011-1.742c-0.02-0.124-0.126-0.215-0.253-0.215h-1.137c-0.141,0-0.254,0.112-0.254,0.253 c0,1.482,0.806,3.248,4.655,3.248C17.501,17.007,19.099,15.91,19.099,13.993z" }, "child": [] }] })(props);
 }
-function SiNpm(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z" }, "child": [] }] })(props);
-}
-function SiPostgresql(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M23.5594 14.7228a.5269.5269 0 0 0-.0563-.1191c-.139-.2632-.4768-.3418-1.0074-.2321-1.6533.3411-2.2935.1312-2.5256-.0191 1.342-2.0482 2.445-4.522 3.0411-6.8297.2714-1.0507.7982-3.5237.1222-4.7316a1.5641 1.5641 0 0 0-.1509-.235C21.6931.9086 19.8007.0248 17.5099.0005c-1.4947-.0158-2.7705.3461-3.1161.4794a9.449 9.449 0 0 0-.5159-.0816 8.044 8.044 0 0 0-1.3114-.1278c-1.1822-.0184-2.2038.2642-3.0498.8406-.8573-.3211-4.7888-1.645-7.2219.0788C.9359 2.1526.3086 3.8733.4302 6.3043c.0409.818.5069 3.334 1.2423 5.7436.4598 1.5065.9387 2.7019 1.4334 3.582.553.9942 1.1259 1.5933 1.7143 1.7895.4474.1491 1.1327.1441 1.8581-.7279.8012-.9635 1.5903-1.8258 1.9446-2.2069.4351.2355.9064.3625 1.39.3772a.0569.0569 0 0 0 .0004.0041 11.0312 11.0312 0 0 0-.2472.3054c-.3389.4302-.4094.5197-1.5002.7443-.3102.064-1.1344.2339-1.1464.8115-.0025.1224.0329.2309.0919.3268.2269.4231.9216.6097 1.015.6331 1.3345.3335 2.5044.092 3.3714-.6787-.017 2.231.0775 4.4174.3454 5.0874.2212.5529.7618 1.9045 2.4692 1.9043.2505 0 .5263-.0291.8296-.0941 1.7819-.3821 2.5557-1.1696 2.855-2.9059.1503-.8707.4016-2.8753.5388-4.1012.0169-.0703.0357-.1207.057-.1362.0007-.0005.0697-.0471.4272.0307a.3673.3673 0 0 0 .0443.0068l.2539.0223.0149.001c.8468.0384 1.9114-.1426 2.5312-.4308.6438-.2988 1.8057-1.0323 1.5951-1.6698zM2.371 11.8765c-.7435-2.4358-1.1779-4.8851-1.2123-5.5719-.1086-2.1714.4171-3.6829 1.5623-4.4927 1.8367-1.2986 4.8398-.5408 6.108-.13-.0032.0032-.0066.0061-.0098.0094-2.0238 2.044-1.9758 5.536-1.9708 5.7495-.0002.0823.0066.1989.0162.3593.0348.5873.0996 1.6804-.0735 2.9184-.1609 1.1504.1937 2.2764.9728 3.0892.0806.0841.1648.1631.2518.2374-.3468.3714-1.1004 1.1926-1.9025 2.1576-.5677.6825-.9597.5517-1.0886.5087-.3919-.1307-.813-.5871-1.2381-1.3223-.4796-.839-.9635-2.0317-1.4155-3.5126zm6.0072 5.0871c-.1711-.0428-.3271-.1132-.4322-.1772.0889-.0394.2374-.0902.4833-.1409 1.2833-.2641 1.4815-.4506 1.9143-1.0002.0992-.126.2116-.2687.3673-.4426a.3549.3549 0 0 0 .0737-.1298c.1708-.1513.2724-.1099.4369-.0417.156.0646.3078.26.3695.4752.0291.1016.0619.2945-.0452.4444-.9043 1.2658-2.2216 1.2494-3.1676 1.0128zm2.094-3.988-.0525.141c-.133.3566-.2567.6881-.3334 1.003-.6674-.0021-1.3168-.2872-1.8105-.8024-.6279-.6551-.9131-1.5664-.7825-2.5004.1828-1.3079.1153-2.4468.079-3.0586-.005-.0857-.0095-.1607-.0122-.2199.2957-.2621 1.6659-.9962 2.6429-.7724.4459.1022.7176.4057.8305.928.5846 2.7038.0774 3.8307-.3302 4.7363-.084.1866-.1633.3629-.2311.5454zm7.3637 4.5725c-.0169.1768-.0358.376-.0618.5959l-.146.4383a.3547.3547 0 0 0-.0182.1077c-.0059.4747-.054.6489-.115.8693-.0634.2292-.1353.4891-.1794 1.0575-.11 1.4143-.8782 2.2267-2.4172 2.5565-1.5155.3251-1.7843-.4968-2.0212-1.2217a6.5824 6.5824 0 0 0-.0769-.2266c-.2154-.5858-.1911-1.4119-.1574-2.5551.0165-.5612-.0249-1.9013-.3302-2.6462.0044-.2932.0106-.5909.019-.8918a.3529.3529 0 0 0-.0153-.1126 1.4927 1.4927 0 0 0-.0439-.208c-.1226-.4283-.4213-.7866-.7797-.9351-.1424-.059-.4038-.1672-.7178-.0869.067-.276.1831-.5875.309-.9249l.0529-.142c.0595-.16.134-.3257.213-.5012.4265-.9476 1.0106-2.2453.3766-5.1772-.2374-1.0981-1.0304-1.6343-2.2324-1.5098-.7207.0746-1.3799.3654-1.7088.5321a5.6716 5.6716 0 0 0-.1958.1041c.0918-1.1064.4386-3.1741 1.7357-4.4823a4.0306 4.0306 0 0 1 .3033-.276.3532.3532 0 0 0 .1447-.0644c.7524-.5706 1.6945-.8506 2.802-.8325.4091.0067.8017.0339 1.1742.081 1.939.3544 3.2439 1.4468 4.0359 2.3827.8143.9623 1.2552 1.9315 1.4312 2.4543-1.3232-.1346-2.2234.1268-2.6797.779-.9926 1.4189.543 4.1729 1.2811 5.4964.1353.2426.2522.4522.2889.5413.2403.5825.5515.9713.7787 1.2552.0696.087.1372.1714.1885.245-.4008.1155-1.1208.3825-1.0552 1.717-.0123.1563-.0423.4469-.0834.8148-.0461.2077-.0702.4603-.0994.7662zm.8905-1.6211c-.0405-.8316.2691-.9185.5967-1.0105a2.8566 2.8566 0 0 0 .135-.0406 1.202 1.202 0 0 0 .1342.103c.5703.3765 1.5823.4213 3.0068.1344-.2016.1769-.5189.3994-.9533.6011-.4098.1903-1.0957.333-1.7473.3636-.7197.0336-1.0859-.0807-1.1721-.151zm.5695-9.2712c-.0059.3508-.0542.6692-.1054 1.0017-.055.3576-.112.7274-.1264 1.1762-.0142.4368.0404.8909.0932 1.3301.1066.887.216 1.8003-.2075 2.7014a3.5272 3.5272 0 0 1-.1876-.3856c-.0527-.1276-.1669-.3326-.3251-.6162-.6156-1.1041-2.0574-3.6896-1.3193-4.7446.3795-.5427 1.3408-.5661 2.1781-.463zm.2284 7.0137a12.3762 12.3762 0 0 0-.0853-.1074l-.0355-.0444c.7262-1.1995.5842-2.3862.4578-3.4385-.0519-.4318-.1009-.8396-.0885-1.2226.0129-.4061.0666-.7543.1185-1.0911.0639-.415.1288-.8443.1109-1.3505.0134-.0531.0188-.1158.0118-.1902-.0457-.4855-.5999-1.938-1.7294-3.253-.6076-.7073-1.4896-1.4972-2.6889-2.0395.5251-.1066 1.2328-.2035 2.0244-.1859 2.0515.0456 3.6746.8135 4.8242 2.2824a.908.908 0 0 1 .0667.1002c.7231 1.3556-.2762 6.2751-2.9867 10.5405zm-8.8166-6.1162c-.025.1794-.3089.4225-.6211.4225a.5821.5821 0 0 1-.0809-.0056c-.1873-.026-.3765-.144-.5059-.3156-.0458-.0605-.1203-.178-.1055-.2844.0055-.0401.0261-.0985.0925-.1488.1182-.0894.3518-.1226.6096-.0867.3163.0441.6426.1938.6113.4186zm7.9305-.4114c.0111.0792-.049.201-.1531.3102-.0683.0717-.212.1961-.4079.2232a.5456.5456 0 0 1-.075.0052c-.2935 0-.5414-.2344-.5607-.3717-.024-.1765.2641-.3106.5611-.352.297-.0414.6111.0088.6356.1851z" }, "child": [] }] })(props);
-}
-function SiPycharm(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M7.833 6.666v-.055c0-1-.667-1.5-1.778-1.5H4.389v3.055h1.723c1.111 0 1.721-.666 1.721-1.5zM0 0v24h24V0H0zm2.223 3.167h4c2.389 0 3.833 1.389 3.833 3.445v.055c0 2.278-1.778 3.5-4.001 3.5H4.389v2.945H2.223V3.167zM11.277 21h-9v-1.5h9V21zm4.779-7.777c-2.944.055-5.111-2.223-5.111-5.057C10.944 5.333 13.056 3 16.111 3c1.889 0 3 .611 3.944 1.556l-1.389 1.61c-.778-.722-1.556-1.111-2.556-1.111-1.658 0-2.873 1.375-2.887 3.084.014 1.709 1.174 3.083 2.887 3.083 1.111 0 1.833-.445 2.61-1.167l1.39 1.389c-.999 1.112-2.166 1.779-4.054 1.779z" }, "child": [] }] })(props);
+function SiObsidian(props) {
+  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M19.355 18.538a68.967 68.959 0 0 0 1.858-2.954.81.81 0 0 0-.062-.9c-.516-.685-1.504-2.075-2.042-3.362-.553-1.321-.636-3.375-.64-4.377a1.707 1.707 0 0 0-.358-1.05l-3.198-4.064a3.744 3.744 0 0 1-.076.543c-.106.503-.307 1.004-.536 1.5-.134.29-.29.6-.446.914l-.31.626c-.516 1.068-.997 2.227-1.132 3.59-.124 1.26.046 2.73.815 4.481.128.011.257.025.386.044a6.363 6.363 0 0 1 3.326 1.505c.916.79 1.744 1.922 2.415 3.5zM8.199 22.569c.073.012.146.02.22.02.78.024 2.095.092 3.16.29.87.16 2.593.64 4.01 1.055 1.083.316 2.198-.548 2.355-1.664.114-.814.33-1.735.725-2.58l-.01.005c-.67-1.87-1.522-3.078-2.416-3.849a5.295 5.295 0 0 0-2.778-1.257c-1.54-.216-2.952.19-3.84.45.532 2.218.368 4.829-1.425 7.531zM5.533 9.938c-.023.1-.056.197-.098.29L2.82 16.059a1.602 1.602 0 0 0 .313 1.772l4.116 4.24c2.103-3.101 1.796-6.02.836-8.3-.728-1.73-1.832-3.081-2.55-3.831zM9.32 14.01c.615-.183 1.606-.465 2.745-.534-.683-1.725-.848-3.233-.716-4.577.154-1.552.7-2.847 1.235-3.95.113-.235.223-.454.328-.664.149-.297.288-.577.419-.86.217-.47.379-.885.46-1.27.08-.38.08-.72-.014-1.043-.095-.325-.297-.675-.68-1.06a1.6 1.6 0 0 0-1.475.36l-4.95 4.452a1.602 1.602 0 0 0-.513.952l-.427 2.83c.672.59 2.328 2.316 3.335 4.711.09.21.175.43.253.653z" }, "child": [] }] })(props);
 }
 function SiPython(props) {
   return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M14.25.18l.9.2.73.26.59.3.45.32.34.34.25.34.16.33.1.3.04.26.02.2-.01.13V8.5l-.05.63-.13.55-.21.46-.26.38-.3.31-.33.25-.35.19-.35.14-.33.1-.3.07-.26.04-.21.02H8.77l-.69.05-.59.14-.5.22-.41.27-.33.32-.27.35-.2.36-.15.37-.1.35-.07.32-.04.27-.02.21v3.06H3.17l-.21-.03-.28-.07-.32-.12-.35-.18-.36-.26-.36-.36-.35-.46-.32-.59-.28-.73-.21-.88-.14-1.05-.05-1.23.06-1.22.16-1.04.24-.87.32-.71.36-.57.4-.44.42-.33.42-.24.4-.16.36-.1.32-.05.24-.01h.16l.06.01h8.16v-.83H6.18l-.01-2.75-.02-.37.05-.34.11-.31.17-.28.25-.26.31-.23.38-.2.44-.18.51-.15.58-.12.64-.1.71-.06.77-.04.84-.02 1.27.05zm-6.3 1.98l-.23.33-.08.41.08.41.23.34.33.22.41.09.41-.09.33-.22.23-.34.08-.41-.08-.41-.23-.33-.33-.22-.41-.09-.41.09zm13.09 3.95l.28.06.32.12.35.18.36.27.36.35.35.47.32.59.28.73.21.88.14 1.04.05 1.23-.06 1.23-.16 1.04-.24.86-.32.71-.36.57-.4.45-.42.33-.42.24-.4.16-.36.09-.32.05-.24.02-.16-.01h-8.22v.82h5.84l.01 2.76.02.36-.05.34-.11.31-.17.29-.25.25-.31.24-.38.2-.44.17-.51.15-.58.13-.64.09-.71.07-.77.04-.84.01-1.27-.04-1.07-.14-.9-.2-.73-.25-.59-.3-.45-.33-.34-.34-.25-.34-.16-.33-.1-.3-.04-.25-.02-.2.01-.13v-5.34l.05-.64.13-.54.21-.46.26-.38.3-.32.33-.24.35-.2.35-.14.33-.1.3-.06.26-.04.21-.02.13-.01h5.84l.69-.05.59-.14.5-.21.41-.28.33-.32.27-.35.2-.36.15-.36.1-.35.07-.32.04-.28.02-.21V6.07h2.09l.14.01zm-6.47 14.25l-.23.33-.08.41.08.41.23.33.33.23.41.08.41-.08.33-.23.23-.33.08-.41-.08-.41-.23-.33-.33-.23-.41-.08-.41.08z" }, "child": [] }] })(props);
 }
-function SiReact(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z" }, "child": [] }] })(props);
+function SiTencentqq(props) {
+  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M21.395 15.035a40 40 0 0 0-.803-2.264l-1.079-2.695c.001-.032.014-.562.014-.836C19.526 4.632 17.351 0 12 0S4.474 4.632 4.474 9.241c0 .274.013.804.014.836l-1.08 2.695a39 39 0 0 0-.802 2.264c-1.021 3.283-.69 4.643-.438 4.673.54.065 2.103-2.472 2.103-2.472 0 1.469.756 3.387 2.394 4.771-.612.188-1.363.479-1.845.835-.434.32-.379.646-.301.778.343.578 5.883.369 7.482.189 1.6.18 7.14.389 7.483-.189.078-.132.132-.458-.301-.778-.483-.356-1.233-.646-1.846-.836 1.637-1.384 2.393-3.302 2.393-4.771 0 0 1.563 2.537 2.103 2.472.251-.03.581-1.39-.438-4.673" }, "child": [] }] })(props);
 }
-function SiStackoverflow(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M15.725 0l-1.72 1.277 6.39 8.588 1.716-1.277L15.725 0zm-3.94 3.418l-1.369 1.644 8.225 6.85 1.369-1.644-8.225-6.85zm-3.15 4.465l-.905 1.94 9.702 4.517.904-1.94-9.701-4.517zm-1.85 4.86l-.44 2.093 10.473 2.201.44-2.092-10.473-2.203zM1.89 15.47V24h19.19v-8.53h-2.133v6.397H4.021v-6.396H1.89zm4.265 2.133v2.13h10.66v-2.13H6.154Z" }, "child": [] }] })(props);
+function VscCode(props) {
+  return GenIcon({ "attr": { "viewBox": "0 0 16 16", "fill": "currentColor" }, "child": [{ "tag": "path", "attr": { "d": "M4.708 5.578L2.061 8.224l2.647 2.646-.708.708-3-3V7.87l3-3 .708.708zm7-.708L11 5.578l2.647 2.646L11 10.87l.708.708 3-3V7.87l-3-3zM4.908 13l.894.448 5-10L9.908 3l-5 10z" }, "child": [] }] })(props);
 }
-function SiVuedotjs(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z" }, "child": [] }] })(props);
+function FaCode(props) {
+  return GenIcon({ "attr": { "viewBox": "0 0 640 512" }, "child": [{ "tag": "path", "attr": { "d": "M278.9 511.5l-61-17.7c-6.4-1.8-10-8.5-8.2-14.9L346.2 8.7c1.8-6.4 8.5-10 14.9-8.2l61 17.7c6.4 1.8 10 8.5 8.2 14.9L293.8 503.3c-1.9 6.4-8.5 10.1-14.9 8.2zm-114-112.2l43.5-46.4c4.6-4.9 4.3-12.7-.8-17.2L117 256l90.6-79.7c5.1-4.5 5.5-12.3.8-17.2l-43.5-46.4c-4.5-4.8-12.1-5.1-17-.5L3.8 247.2c-5.1 4.7-5.1 12.8 0 17.5l144.1 135.1c4.9 4.6 12.5 4.4 17-.5zm327.2.6l144.1-135.1c5.1-4.7 5.1-12.8 0-17.5L492.1 112.1c-4.8-4.5-12.4-4.3-17 .5L431.6 159c-4.6 4.9-4.3 12.7.8 17.2L523 256l-90.6 79.7c-5.1 4.5-5.5 12.3-.8 17.2l43.5 46.4c4.5 4.9 12.1 5.1 17 .6z" }, "child": [] }] })(props);
 }
-function SiWebstorm(props) {
-  return GenIcon({ "attr": { "role": "img", "viewBox": "0 0 24 24" }, "child": [{ "tag": "path", "attr": { "d": "M0 0v24h24V0H0zm17.889 2.889c1.444 0 2.667.444 3.667 1.278l-1.111 1.667c-.889-.611-1.722-1-2.556-1s-1.278.389-1.278.889v.056c0 .667.444.889 2.111 1.333 2 .556 3.111 1.278 3.111 3v.056c0 2-1.5 3.111-3.611 3.111-1.5-.056-3-.611-4.167-1.667l1.278-1.556c.889.722 1.833 1.222 2.944 1.222.889 0 1.389-.333 1.389-.944v-.056c0-.556-.333-.833-2-1.278-2-.5-3.222-1.056-3.222-3.056v-.056c0-1.833 1.444-3 3.444-3zm-16.111.222h2.278l1.5 5.778 1.722-5.778h1.667l1.667 5.778 1.5-5.778h2.333l-2.833 9.944H9.723L8.112 7.277l-1.667 5.778H4.612L1.779 3.111zm.5 16.389h9V21h-9v-1.5z" }, "child": [] }] })(props);
+function FaLaptopCode(props) {
+  return GenIcon({ "attr": { "viewBox": "0 0 640 512" }, "child": [{ "tag": "path", "attr": { "d": "M255.03 261.65c6.25 6.25 16.38 6.25 22.63 0l11.31-11.31c6.25-6.25 6.25-16.38 0-22.63L253.25 192l35.71-35.72c6.25-6.25 6.25-16.38 0-22.63l-11.31-11.31c-6.25-6.25-16.38-6.25-22.63 0l-58.34 58.34c-6.25 6.25-6.25 16.38 0 22.63l58.35 58.34zm96.01-11.3l11.31 11.31c6.25 6.25 16.38 6.25 22.63 0l58.34-58.34c6.25-6.25 6.25-16.38 0-22.63l-58.34-58.34c-6.25-6.25-16.38-6.25-22.63 0l-11.31 11.31c-6.25 6.25-6.25 16.38 0 22.63L386.75 192l-35.71 35.72c-6.25 6.25-6.25 16.38 0 22.63zM624 416H381.54c-.74 19.81-14.71 32-32.74 32H288c-18.69 0-33.02-17.47-32.77-32H16c-8.8 0-16 7.2-16 16v16c0 35.2 28.8 64 64 64h512c35.2 0 64-28.8 64-64v-16c0-8.8-7.2-16-16-16zM576 48c0-26.4-21.6-48-48-48H112C85.6 0 64 21.6 64 48v336h512V48zm-64 272H128V64h384v256z" }, "child": [] }] })(props);
 }
-const SectionsContainer = dt.div`
+function FaTerminal(props) {
+  return GenIcon({ "attr": { "viewBox": "0 0 640 512" }, "child": [{ "tag": "path", "attr": { "d": "M257.981 272.971L63.638 467.314c-9.373 9.373-24.569 9.373-33.941 0L7.029 444.647c-9.357-9.357-9.375-24.522-.04-33.901L161.011 256 6.99 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L257.981 239.03c9.373 9.372 9.373 24.568 0 33.941zM640 456v-32c0-13.255-10.745-24-24-24H312c-13.255 0-24 10.745-24 24v32c0 13.255 10.745 24 24 24h304c13.255 0 24-10.745 24-24z" }, "child": [] }] })(props);
+}
+function FaTools(props) {
+  return GenIcon({ "attr": { "viewBox": "0 0 512 512" }, "child": [{ "tag": "path", "attr": { "d": "M501.1 395.7L384 278.6c-23.1-23.1-57.6-27.6-85.4-13.9L192 158.1V96L64 0 0 64l96 128h62.1l106.6 106.6c-13.6 27.8-9.2 62.3 13.9 85.4l117.1 117.1c14.6 14.6 38.2 14.6 52.7 0l52.7-52.7c14.5-14.6 14.5-38.2 0-52.7zM331.7 225c28.3 0 54.9 11 74.9 31l19.4 19.4c15.8-6.9 30.8-16.5 43.8-29.5 37.1-37.1 49.7-89.3 37.9-136.7-2.2-9-13.5-12.1-20.1-5.5l-74.4 74.4-67.9-11.3L334 98.9l74.4-74.4c6.6-6.6 3.4-17.9-5.7-20.2-47.4-11.7-99.6.9-136.6 37.9-28.5 28.5-41.9 66.1-41.2 103.6l82.1 82.1c8.1-1.9 16.5-2.9 24.7-2.9zm-103.9 82l-56.7-56.7L18.7 402.8c-25 25-25 65.5 0 90.5s65.5 25 90.5 0l123.6-123.6c-7.6-19.9-9.9-41.6-5-62.7zM64 472c-13.2 0-24-10.8-24-24 0-13.3 10.7-24 24-24s24 10.7 24 24c0 13.2-10.7 24-24 24z" }, "child": [] }] })(props);
+}
+function FaUser(props) {
+  return GenIcon({ "attr": { "viewBox": "0 0 448 512" }, "child": [{ "tag": "path", "attr": { "d": "M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z" }, "child": [] }] })(props);
+}
+const devToolsSimple = [
+  // 开发环境
+  {
+    id: "nodejs",
+    name: "Node.js",
+    description: "JavaScript 运行时环境",
+    category: "开发环境",
+    icon: SiNodedotjs,
+    website: "https://nodejs.org",
+    downloadUrl: "https://nodejs.org/download/"
+  },
+  {
+    id: "anaconda",
+    name: "Anaconda",
+    description: "Python数据科学平台",
+    category: "开发环境",
+    icon: SiPython,
+    website: "https://www.anaconda.com",
+    downloadUrl: "https://www.anaconda.com/download"
+  },
+  {
+    id: "powershell",
+    name: "PowerShell",
+    description: "Windows命令行工具",
+    category: "开发环境",
+    icon: FaTerminal,
+    website: "https://docs.microsoft.com/powershell",
+    downloadUrl: "https://docs.microsoft.com/powershell/scripting/install/installing-powershell-on-windows"
+  },
+  // IDE工具
+  {
+    id: "vscode",
+    name: "Visual Studio Code",
+    description: "免费、开源的代码编辑器，支持多种编程语言",
+    category: "IDE工具",
+    icon: VscCode,
+    website: "https://code.visualstudio.com",
+    downloadUrl: "https://code.visualstudio.com/download"
+  },
+  {
+    id: "vscode-insider",
+    name: "VS Code Insiders",
+    description: "VS Code预览版，获取最新功能",
+    category: "IDE工具",
+    icon: VscCode,
+    website: "https://code.visualstudio.com/insiders",
+    downloadUrl: "https://code.visualstudio.com/insiders"
+  },
+  {
+    id: "intellij",
+    name: "IntelliJ IDEA",
+    description: "强大的Java IDE，也支持其他语言",
+    category: "IDE工具",
+    icon: SiIntellijidea,
+    website: "https://www.jetbrains.com/idea/",
+    downloadUrl: "https://www.jetbrains.com/idea/download/"
+  },
+  // 命令行工具
+  {
+    id: "windows-terminal",
+    name: "Windows Terminal",
+    description: "现代化的Windows终端应用",
+    category: "命令行工具",
+    icon: FaTerminal,
+    website: "https://aka.ms/terminal",
+    downloadUrl: "https://aka.ms/terminal"
+  },
+  {
+    id: "powershell7",
+    name: "PowerShell 7",
+    description: "跨平台的PowerShell",
+    category: "命令行工具",
+    icon: FaTerminal,
+    website: "https://docs.microsoft.com/powershell",
+    downloadUrl: "https://docs.microsoft.com/powershell/scripting/install/installing-powershell-on-windows"
+  },
+  {
+    id: "winget",
+    name: "Winget",
+    description: "Windows包管理器",
+    category: "命令行工具",
+    icon: FaTerminal,
+    website: "https://docs.microsoft.com/windows/package-manager/winget",
+    downloadUrl: "https://docs.microsoft.com/windows/package-manager/winget"
+  },
+  {
+    id: "choco",
+    name: "Chocolatey",
+    description: "Windows软件包管理器",
+    category: "命令行工具",
+    icon: FaTools,
+    website: "https://chocolatey.org",
+    downloadUrl: "https://chocolatey.org/install"
+  },
+  // 个人软件
+  {
+    id: "qq",
+    name: "QQ",
+    description: "即时通讯软件",
+    category: "个人软件",
+    icon: SiTencentqq,
+    website: "https://im.qq.com",
+    downloadUrl: "https://im.qq.com/pcqq"
+  },
+  {
+    id: "obsidian",
+    name: "Obsidian",
+    description: "知识管理和笔记软件",
+    category: "个人软件",
+    icon: SiObsidian,
+    website: "https://obsidian.md",
+    downloadUrl: "https://obsidian.md/download"
+  },
+  {
+    id: "nanazip",
+    name: "NanaZip",
+    description: "现代化的压缩工具",
+    category: "个人软件",
+    icon: FaTools,
+    website: "https://github.com/M2Team/NanaZip",
+    downloadUrl: "https://github.com/M2Team/NanaZip/releases"
+  },
+  {
+    id: "zen-browser",
+    name: "Zen Browser",
+    description: "注重隐私的浏览器",
+    category: "个人软件",
+    icon: SiBrave,
+    website: "https://zen-browser.app",
+    downloadUrl: "https://zen-browser.app/download"
+  }
+];
+const PageLayout = dt.div`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xl};
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 `;
-const Section$1 = dt.div``;
-const SectionHeader$1 = dt.div`
+const CategorySection = dt.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+const CategoryHeader = dt.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+  gap: 12px;
+  margin-bottom: 8px;
 `;
-const SectionTitle$2 = dt.h2`
+const CategoryIcon = dt.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: ${(props) => props.theme?.borderRadius?.medium || "12px"};
+  background: ${(props) => props.theme?.name === "dark" ? "rgba(59, 130, 246, 0.2)" : "rgba(37, 99, 235, 0.1)"};
+  color: ${(props) => props.theme?.primary?.main || "#2563EB"};
+`;
+const CategoryTitle = dt.h2`
   margin: 0;
-  color: ${({ theme }) => theme.textPrimary};
+  color: ${(props) => props.theme?.textPrimary || "#111827"};
   font-size: 1.5rem;
   font-weight: 600;
 `;
-const SectionIcon = dt.div`
-  width: 36px;
-  height: 36px;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background: ${({ theme }) => {
-  const primaryColor = typeof theme.primary === "string" ? theme.primary : theme.primary.main;
-  return `linear-gradient(135deg, ${primaryColor}, ${theme.accent})`;
-}};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
+const CategoryDescription = dt.p`
+  margin: 0;
+  color: ${(props) => props.theme?.textSecondary || "#4B5563"};
+  font-size: 0.9rem;
+  line-height: 1.5;
 `;
 const ToolsGrid = dt.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-  
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+  @media (min-width: 768px) {
+    gap: 16px;
   }
 `;
-const ToolCard = dt(Card)`
+const categories = [
+  {
+    id: "开发环境",
+    name: "开发环境",
+    description: "必需的开发运行时环境和工具",
+    icon: FaCode
+  },
+  {
+    id: "IDE工具",
+    name: "IDE工具",
+    description: "集成开发环境和代码编辑器",
+    icon: FaLaptopCode
+  },
+  {
+    id: "命令行工具",
+    name: "命令行工具",
+    description: "提高开发效率的命令行工具",
+    icon: FaTerminal
+  },
+  {
+    id: "个人软件",
+    name: "个人软件",
+    description: "日常开发和工作中常用的软件",
+    icon: FaUser
+  }
+];
+const DevEnvironmentPage = () => {
+  const [installingTools, setInstallingTools] = reactExports.useState(/* @__PURE__ */ new Set());
+  const handleDownload = (toolId) => {
+    setInstallingTools((prev) => new Set(prev).add(toolId));
+    setTimeout(() => {
+      setInstallingTools((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(toolId);
+        return newSet;
+      });
+    }, 2e3);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(PageContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ContentArea, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(PageLayout, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { style: {
+        margin: 0,
+        color: "var(--text-primary)",
+        fontSize: "2rem",
+        fontWeight: 700,
+        marginBottom: "8px"
+      }, children: "开发环境工具" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { style: {
+        margin: 0,
+        color: "var(--text-secondary)",
+        fontSize: "1rem",
+        lineHeight: 1.5
+      }, children: "这里收录了开发所需的各类工具，包括开发环境、IDE、命令行工具和个人常用软件" })
+    ] }),
+    categories.map((category) => {
+      const categoryTools = devToolsSimple.filter((tool) => tool.category === category.id);
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(CategorySection, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(CategoryHeader, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CategoryIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(category.icon, { size: 20 }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(CategoryTitle, { children: category.name }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(CategoryDescription, { children: category.description })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: categoryTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          SimpleToolCard,
+          {
+            icon: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, { size: 24 }),
+            name: tool.name,
+            officialUrl: tool.website,
+            downloadUrl: tool.downloadUrl,
+            onDownload: () => handleDownload(tool.id),
+            className: installingTools.has(tool.id) ? "installing" : ""
+          },
+          tool.id
+        )) })
+      ] }, category.id);
+    })
+  ] }) }) });
+};
+const SidebarContainer = dt.div`
+  width: 280px;
+  background: ${(props) => props.theme.surface};
+  border-right: 1px solid ${(props) => props.theme.border};
   display: flex;
   flex-direction: column;
   height: 100%;
-`;
-const ToolHeader = dt.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`;
-const ToolIcon = dt.div`
-  width: 40px;
-  height: 40px;
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-  background-color: ${(props) => props.theme.surfaceVariant};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: ${(props) => props.theme.primary.main};
-  font-size: 24px;
-`;
-const ToolInfo = dt.div`
-  flex: 1;
-`;
-const ToolName = dt.h4`
-  margin: 0 0 ${({ theme }) => theme.spacing.sm} 0;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.1rem;
-  font-weight: 600;
-`;
-const ToolDescription = dt.p`
-  margin: 0 0 ${({ theme }) => theme.spacing.md} 0;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.9rem;
-  line-height: 1.5;
-  flex-grow: 1;
-`;
-const ToolFooter = dt.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-`;
-const ToolCategory = dt.span`
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.textTertiary};
-  background-color: ${({ theme }) => theme.surfaceVariant};
-  padding: 4px 8px;
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-`;
-const WebsiteCard = dt(Card)`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  text-decoration: none;
-  color: inherit;
-  transition: all ${({ theme }) => theme.transition.fast} ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${(props) => props.theme.card.shadowHover};
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: ${(props) => props.theme.border};
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${(props) => props.theme.borderLight};
   }
 `;
-const WebsiteIcon = dt.div`
-  width: 48px;
-  height: 48px;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background-color: ${(props) => props.theme.surfaceVariant};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  color: ${(props) => props.theme.textPrimary};
+const SidebarHeader = dt.div`
+  padding: ${(props) => props.theme.spacing.lg};
+  border-bottom: 1px solid ${(props) => props.theme.border};
 `;
-const WebsiteInfo = dt.div`
-  flex: 1;
-`;
-const WebsiteName = dt.h4`
-  margin: 0 0 ${({ theme }) => theme.spacing.xs} 0;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.1rem;
-`;
-const WebsiteDescription = dt.p`
+const SidebarTitle = dt.h2`
+  font-size: 1.25rem;
+  font-weight: 700;
   margin: 0;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.9rem;
-`;
-const StatusMessageContainer = dt.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  padding: ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background-color: ${({ theme }) => theme.surfaceVariant};
-  border: 1px solid ${({ theme }) => theme.border};
+  color: ${(props) => props.theme.textPrimary};
   display: flex;
   align-items: center;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.textPrimary};
+  gap: ${(props) => props.theme.spacing.sm};
 `;
-const DevEnvironmentPage = () => {
-  const [tools, setTools] = reactExports.useState([
-    // IDEs
-    { id: "vscode", name: "Visual Studio Code", description: "免费、开源的代码编辑器，支持多种编程语言", category: "IDE", status: "not-installed", icon: VscCode },
-    { id: "intellij", name: "IntelliJ IDEA", description: "强大的Java IDE，也支持其他语言", category: "IDE", status: "not-installed", icon: SiIntellijidea },
-    { id: "pycharm", name: "PyCharm", description: "专业的Python IDE", category: "IDE", status: "not-installed", icon: SiPycharm },
-    { id: "webstorm", name: "WebStorm", description: "专业的JavaScript和Web开发IDE", category: "IDE", status: "not-installed", icon: SiWebstorm },
-    // Runtimes
-    { id: "nodejs", name: "Node.js", description: "JavaScript 运行时环境", category: "Runtime", status: "not-installed", icon: SiNodedotjs },
-    { id: "python", name: "Python", description: "通用编程语言", category: "Runtime", status: "not-installed", icon: SiPython },
-    { id: "java", name: "Java JDK", description: "Java开发工具包", category: "Runtime", status: "not-installed", icon: FaJava },
-    { id: "dotnet", name: ".NET SDK", description: "微软的开发平台", category: "Runtime", status: "not-installed", icon: SiDotnet },
-    // Databases
-    { id: "mysql", name: "MySQL", description: "流行的开源关系型数据库", category: "Database", status: "not-installed", icon: SiMysql },
-    { id: "postgresql", name: "PostgreSQL", description: "强大的开源对象关系型数据库", category: "Database", status: "not-installed", icon: SiPostgresql },
-    { id: "mongodb", name: "MongoDB", description: "流行的NoSQL文档数据库", category: "Database", status: "not-installed", icon: SiMongodb },
-    // Tools
-    { id: "docker", name: "Docker", description: "容器化平台，用于构建、部署和运行应用", category: "Tool", status: "not-installed", icon: SiDocker },
-    { id: "git", name: "Git", description: "分布式版本控制系统", category: "Tool", status: "not-installed", icon: SiGit },
-    { id: "npm", name: "npm", description: "Node.js的包管理器", category: "Tool", status: "not-installed", icon: SiNpm },
-    // Frameworks
-    { id: "react", name: "React", description: "用于构建用户界面的JavaScript库", category: "Framework", status: "not-installed", icon: SiReact },
-    { id: "vue", name: "Vue.js", description: "渐进式JavaScript框架", category: "Framework", status: "not-installed", icon: SiVuedotjs },
-    { id: "angular", name: "Angular", description: "平台和框架，用于构建单页应用", category: "Framework", status: "not-installed", icon: SiAngular }
-  ]);
-  const websites = [
-    { name: "GitHub", description: "代码托管与协作平台", url: "https://github.com", icon: SiGithub },
-    { name: "Stack Overflow", description: "开发者问答社区", url: "https://stackoverflow.com", icon: SiStackoverflow },
-    { name: "掘金", description: "中文技术社区", url: "https://juejin.cn", icon: SiJuejin },
-    { name: "Medium", description: "高质量技术文章分享", url: "https://medium.com", icon: SiMedium }
-  ];
-  const [statusMessage, setStatusMessage] = reactExports.useState("");
-  const [isSuccess, setIsSuccess] = reactExports.useState(false);
-  const installTool = async (toolId) => {
-    setStatusMessage(`Installing ${toolId}...`);
-    setIsSuccess(false);
-    setTools(
-      (prevTools) => prevTools.map(
-        (tool) => tool.id === toolId ? { ...tool, status: "installing" } : tool
-      )
-    );
-    try {
-      let result;
-      switch (toolId) {
-        case "vscode":
-          result = await window.electronAPI.devEnvironment.installVSCode();
-          break;
-        case "nodejs":
-          result = await window.electronAPI.devEnvironment.installNodeJS();
-          break;
-        case "python":
-          result = await window.electronAPI.devEnvironment.installPython();
-          break;
-        default:
-          await new Promise((resolve) => setTimeout(resolve, 2e3));
-          result = { success: true };
-      }
-      if (result.success) {
-        setTools(
-          (prevTools) => prevTools.map(
-            (tool) => tool.id === toolId ? { ...tool, status: "installed" } : tool
-          )
-        );
-        setStatusMessage(`${toolId} installed successfully`);
-        setIsSuccess(true);
-      } else {
-        setTools(
-          (prevTools) => prevTools.map(
-            (tool) => tool.id === toolId ? { ...tool, status: "error" } : tool
-          )
-        );
-        setStatusMessage(`Failed to install ${toolId}: ${result.error}`);
-        setIsSuccess(false);
-      }
-    } catch (error) {
-      setTools(
-        (prevTools) => prevTools.map(
-          (tool) => tool.id === toolId ? { ...tool, status: "error" } : tool
-        )
-      );
-      setStatusMessage(`Failed to install ${toolId}: ${error}`);
-      setIsSuccess(false);
-      console.error(`Error installing ${toolId}:`, error);
+const SidebarSearch = dt.div`
+  padding: ${(props) => props.theme.spacing.md};
+  border-bottom: 1px solid ${(props) => props.theme.border};
+`;
+const SearchInput = dt.div`
+  position: relative;
+  
+  input {
+    width: 100%;
+    padding: ${(props) => props.theme.spacing.sm} ${(props) => props.theme.sm} ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.lg};
+    border: 1px solid ${(props) => props.theme.border};
+    border-radius: ${(props) => props.theme.borderRadius.small};
+    background: ${(props) => props.theme.surface};
+    color: ${(props) => props.theme.textPrimary};
+    font-size: 0.875rem;
+    transition: border-color ${(props) => props.theme.transition.fast} ease;
+    
+    &:focus {
+      outline: none;
+      border-color: ${(props) => props.theme.primary.main};
     }
-  };
-  const ideTools = tools.filter((tool) => tool.category === "IDE");
-  const runtimeTools = tools.filter((tool) => tool.category === "Runtime");
-  const databaseTools = tools.filter((tool) => tool.category === "Database");
-  const otherTools = tools.filter((tool) => tool.category === "Tool" || tool.category === "Framework");
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionsContainer, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$1, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Globe, { size: 20 }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "常用开发者网站" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: websites.map((site) => /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: site.url, target: "_blank", rel: "noopener noreferrer", style: { textDecoration: "none" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(WebsiteCard, { $padding: "medium", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(WebsiteIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(site.icon, {}) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(WebsiteInfo, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(WebsiteName, { children: site.name }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(WebsiteDescription, { children: site.description })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { size: 18 })
-        ] }) }, site.name)) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$1, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Code, { size: 20 }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "集成开发环境 (IDE)" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: ideTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "medium", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolHeader, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ToolIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, {}) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolInfo, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ToolName, { children: tool.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ToolCategory, { children: tool.category })
+    
+    &::placeholder {
+      color: ${(props) => props.theme.textTertiary};
+    }
+  }
+`;
+const SearchIconWrapper = dt.div`
+  position: absolute;
+  left: ${(props) => props.theme.spacing.sm};
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${(props) => props.theme.textTertiary};
+`;
+const NavSection = dt.div`
+  padding: ${(props) => props.theme.spacing.sm} 0;
+`;
+const NavItem = dt.button`
+  width: 100%;
+  padding: ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.lg};
+  border: none;
+  background: ${(props) => props.$active ? props.theme.primary.light + "20" : "transparent"};
+  color: ${(props) => props.$active ? props.theme.primary.main : props.theme.textSecondary};
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all ${(props) => props.theme.transition.fast} ease;
+  display: flex;
+  align-items: center;
+  gap: ${(props) => props.theme.spacing.sm};
+  position: relative;
+  
+  &:hover {
+    background: ${(props) => props.$active ? props.theme.primary.light + "30" : props.theme.surfaceVariant};
+    color: ${(props) => props.$active ? props.theme.primary.main : props.theme.textPrimary};
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: ${(props) => props.theme.primary.main};
+    border-radius: 0 3px 3px 0;
+    transform: ${(props) => props.$active ? "scaleX(1)" : "scaleX(0)"};
+    transition: transform ${(props) => props.theme.transition.fast} ease;
+  }
+`;
+const NavItemContent = dt.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+const NavItemLabel = dt.div`
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: ${(props) => props.theme.spacing.sm};
+`;
+const NavItemDescription = dt.div`
+  font-size: 0.75rem;
+  color: ${(props) => props.theme.textTertiary};
+  font-weight: 400;
+`;
+const NavItemBadge = dt.span`
+  background: ${(props) => props.theme.error.main};
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  text-transform: uppercase;
+`;
+const navItems = [
+  {
+    id: "user",
+    label: "个人信息",
+    icon: /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 18 }),
+    description: "管理您的个人资料"
+  },
+  {
+    id: "appearance",
+    label: "外观设置",
+    icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { size: 18 }),
+    description: "主题、语言和显示"
+  },
+  {
+    id: "system",
+    label: "系统行为",
+    icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Monitor, { size: 18 }),
+    description: "启动、关闭和通知"
+  },
+  {
+    id: "network",
+    label: "网络设置",
+    icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Globe, { size: 18 }),
+    description: "代理和连接配置"
+  },
+  {
+    id: "privacy",
+    label: "隐私安全",
+    icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 18 }),
+    description: "数据和隐私设置"
+  },
+  {
+    id: "notifications",
+    label: "通知设置",
+    icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Bell, { size: 18 }),
+    description: "通知和提醒"
+  },
+  {
+    id: "llm",
+    label: "语言模型",
+    icon: /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 18 }),
+    description: "AI模型配置"
+  },
+  {
+    id: "backup",
+    label: "数据管理",
+    icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Database, { size: 18 }),
+    description: "备份和恢复"
+  }
+];
+const SettingsSidebar = ({
+  activeSection,
+  onSectionChange
+}) => {
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const filteredItems = navItems.filter(
+    (item) => item.label.toLowerCase().includes(searchQuery.toLowerCase()) || item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(SidebarContainer, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(SidebarHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(SidebarTitle, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }),
+      "设置"
+    ] }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(SidebarSearch, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(SearchInput, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(SearchIconWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { size: 16 }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "text",
+          placeholder: "搜索设置...",
+          value: searchQuery,
+          onChange: (e) => setSearchQuery(e.target.value)
+        }
+      )
+    ] }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(NavSection, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        NavItem,
+        {
+          $active: activeSection === "general",
+          onClick: () => onSectionChange("general"),
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 18 }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(NavItemContent, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(NavItemLabel, { children: "通用设置" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(NavItemDescription, { children: "基本配置和偏好" })
             ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolDescription, { children: tool.description }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolFooter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: () => installTool(tool.id),
-              disabled: tool.status === "installing" || tool.status === "installed",
-              variant: tool.status === "error" ? "danger" : "primary",
-              size: "small",
-              children: tool.status === "installing" ? "安装中..." : tool.status === "installed" ? "已安装" : tool.status === "error" ? "错误" : "安装"
-            }
-          ) })
-        ] }, tool.id)) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$1, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Terminal, { size: 20 }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "运行时环境" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: runtimeTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "medium", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolHeader, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ToolIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, {}) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolInfo, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ToolName, { children: tool.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ToolCategory, { children: tool.category })
+          ]
+        },
+        "general"
+      ),
+      filteredItems.map((item) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        NavItem,
+        {
+          $active: activeSection === item.id,
+          onClick: () => onSectionChange(item.id),
+          children: [
+            item.icon,
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(NavItemContent, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(NavItemLabel, { children: [
+                item.label,
+                item.badge && /* @__PURE__ */ jsxRuntimeExports.jsx(NavItemBadge, { children: item.badge })
+              ] }),
+              item.description && /* @__PURE__ */ jsxRuntimeExports.jsx(NavItemDescription, { children: item.description })
             ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolDescription, { children: tool.description }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolFooter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: () => installTool(tool.id),
-              disabled: tool.status === "installing" || tool.status === "installed",
-              variant: tool.status === "error" ? "danger" : "primary",
-              size: "small",
-              children: tool.status === "installing" ? "安装中..." : tool.status === "installed" ? "已安装" : tool.status === "error" ? "错误" : "安装"
-            }
-          ) })
-        ] }, tool.id)) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$1, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Database, { size: 20 }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "数据库" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: databaseTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "medium", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolHeader, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ToolIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, {}) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolInfo, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ToolName, { children: tool.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ToolCategory, { children: tool.category })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolDescription, { children: tool.description }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolFooter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: () => installTool(tool.id),
-              disabled: tool.status === "installing" || tool.status === "installed",
-              variant: tool.status === "error" ? "danger" : "primary",
-              size: "small",
-              children: tool.status === "installing" ? "安装中..." : tool.status === "installed" ? "已安装" : tool.status === "error" ? "错误" : "安装"
-            }
-          ) })
-        ] }, tool.id)) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader$1, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zap, { size: 20 }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$2, { children: "工具和框架" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: otherTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolCard, { $padding: "medium", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolHeader, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ToolIcon, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, {}) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(ToolInfo, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ToolName, { children: tool.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ToolCategory, { children: tool.category })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolDescription, { children: tool.description }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolFooter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: () => installTool(tool.id),
-              disabled: tool.status === "installing" || tool.status === "installed",
-              variant: tool.status === "error" ? "danger" : "primary",
-              size: "small",
-              children: tool.status === "installing" ? "安装中..." : tool.status === "installed" ? "已安装" : tool.status === "error" ? "错误" : "安装"
-            }
-          ) })
-        ] }, tool.id)) })
-      ] })
-    ] }),
-    statusMessage && /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusMessageContainer, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator$1, { $status: isSuccess ? "success" : "error" }),
-      statusMessage
+          ]
+        },
+        item.id
+      ))
     ] })
   ] });
 };
-const PageHeader$1 = dt.div`
-  margin-bottom: ${(props) => props.theme.spacing.xl};
-`;
 const PageTitle$1 = dt.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: ${(props) => props.theme.textPrimary};
   margin-bottom: ${(props) => props.theme.spacing.sm};
   display: flex;
   align-items: center;
   gap: ${(props) => props.theme.spacing.sm};
+  text-shadow: ${(props) => props.theme.textShadow.light};
 `;
 const PageSubtitle$1 = dt.p`
   color: ${(props) => props.theme.textSecondary};
   margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
 `;
-const TabsContainer = dt.div`
+const SettingsContentContainer = dt.div`
+  flex: 1;
   display: flex;
-  gap: ${(props) => props.theme.spacing.sm};
-  margin-bottom: ${(props) => props.theme.spacing.lg};
-  border-bottom: 1px solid ${(props) => props.theme.border};
-  
-  @media (max-width: 768px) {
-    overflow-x: auto;
-    padding-bottom: ${(props) => props.theme.spacing.sm};
-  }
+  overflow: hidden;
 `;
-const TabContent = dt.div`
+const MainContent = dt.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: ${(props) => props.theme.spacing.xl};
+  background: ${(props) => props.theme.background};
+  min-height: 0;
+`;
+const ContentHeader = dt.div`
+  padding: 24px;
+  border-bottom: 1px solid ${(props) => props.theme.border};
+  background: ${(props) => props.theme.surface};
+`;
+const TabsContainer = dt.div`
+  display: none;
+  gap: 8px;
+  margin-bottom: 32px;
+  padding: 16px;
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+`;
+const TabContent = dt(motion.div)`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  padding: 24px;
+  min-height: 0;
+  
+  /* 隐藏滚动条 */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: ${(props) => props.theme.border};
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${(props) => props.theme.borderLight};
+  }
+`;
+const SectionTitle$1 = dt.h3`
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: ${(props) => props.theme.textShadow.medium};
+`;
+const SectionDescription = dt.p`
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  font-weight: 500;
 `;
 const SectionHeader = dt.div`
   display: flex;
   align-items: center;
   gap: ${(props) => props.theme.spacing.sm};
-  margin-bottom: ${(props) => props.theme.spacing.lg};
-`;
-const SectionTitle$1 = dt.h3`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${(props) => props.theme.textPrimary};
-  margin: 0;
-`;
-const SectionDescription = dt.p`
-  color: ${(props) => props.theme.textSecondary};
-  margin: 0;
-  line-height: 1.5;
-`;
-const FormGrid = dt.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: ${(props) => props.theme.spacing.lg};
+  margin-bottom: ${(props) => props.theme.spacing.md};
+  padding-bottom: ${(props) => props.theme.spacing.sm};
+  border-bottom: 1px solid ${(props) => props.theme.borderLight};
   
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+  & > div > ${SectionTitle$1} {
+    background: ${(props) => {
+  switch (props.$variant) {
+    case "primary":
+      return props.theme.gradient.primary;
+    case "accent":
+      return props.theme.gradient.warning;
+    default:
+      return "none";
   }
+}};
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: ${(props) => props.$variant ? "transparent" : props.theme.textPrimary};
+  }
+`;
+const CompactFormGrid = dt.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+`;
+const SettingsSection = dt(motion.div)`
+  background: ${(props) => {
+  switch (props.$variant) {
+    case "primary":
+      return props.theme.cardLayer.primary;
+    case "accent":
+      return props.theme.cardLayer.accent;
+    case "important":
+      return props.theme.primary.light + "10";
+    default:
+      return props.theme.surface;
+  }
+}};
+  border: ${(props) => {
+  switch (props.$variant) {
+    case "primary":
+      return `1px solid ${props.theme.primary.light}`;
+    case "accent":
+      return `1px solid ${props.theme.warning.light}`;
+    case "important":
+      return `2px solid ${props.theme.primary.main}`;
+    default:
+      return `1px solid ${props.theme.border}`;
+  }
+}};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: ${(props) => {
+  switch (props.$variant) {
+    case "important":
+      return props.theme.cardShadow.important;
+    default:
+      return props.theme.cardShadow.default;
+  }
+}};
+  position: relative;
+  z-index: 1;
+  transition: all ${(props) => props.theme.transition.normal} ease;
+  
+  &:hover {
+    box-shadow: ${(props) => {
+  switch (props.$variant) {
+    case "important":
+      return props.theme.cardShadow.importantHover;
+    default:
+      return props.theme.cardShadow.hover;
+  }
+}};
+  }
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+const SaveBar = dt.div`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: ${(props) => props.theme.surface};
+  backdrop-filter: blur(10px);
+  border: 1px solid ${(props) => props.theme.border};
+  padding: 8px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-radius: ${(props) => props.theme.borderRadius.large};
+  box-shadow: ${(props) => props.theme.cardShadow.hover};
+  z-index: 1000;
+  transition: all ${(props) => props.theme.transition.normal} ease;
+  min-width: 280px;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${(props) => props.theme.cardShadow.importantHover};
+  }
+`;
+const SaveStatusContainer = dt.div`
+  display: flex;
+  align-items: center;
+  gap: ${(props) => props.theme.spacing.sm};
 `;
 const AvatarContainer = dt.div`
   display: flex;
@@ -26117,12 +29356,13 @@ const Avatar = dt.div`
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background-color: ${(props) => props.theme.surfaceVariant};
+  background: ${(props) => props.theme.gradient.primary};
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
+  box-shadow: ${(props) => props.theme.cardShadow.hover};
   
   img {
     width: 100%;
@@ -26135,17 +29375,13 @@ const UploadButton = dt.label`
   align-items: center;
   gap: ${(props) => props.theme.spacing.sm};
   padding: ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.md};
-  background-color: ${(props) => props.theme.primary.main};
+  background: ${(props) => props.theme.gradient.primary};
   color: white;
   border-radius: ${(props) => props.theme.borderRadius.small};
   cursor: pointer;
   font-size: 0.9rem;
-  font-weight: 500;
-  transition: all ${(props) => props.theme.transition.fast} ease;
-  
-  &:hover {
-    background-color: ${(props) => props.theme.primary.dark};
-  }
+  font-weight: 600;
+  box-shadow: ${(props) => props.theme.cardShadow.default};
 `;
 const HiddenInput = dt.input`
   display: none;
@@ -26155,32 +29391,81 @@ const SwitchContainer = dt.div`
   align-items: center;
   justify-content: space-between;
   padding: ${(props) => props.theme.spacing.md} 0;
+  border-radius: ${(props) => props.theme.borderRadius.small};
 `;
 const ButtonGroup = dt.div`
   display: flex;
   gap: ${(props) => props.theme.spacing.sm};
   flex-wrap: wrap;
 `;
+const LlmConfigItem = dt.div`
+  background: ${(props) => props.$isActive ? props.theme.primary.light + "10" : props.theme.surface};
+  border: 2px solid ${(props) => props.$isActive ? props.theme.primary.main : props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  padding: ${(props) => props.theme.spacing.md};
+  margin-bottom: ${(props) => props.theme.spacing.sm};
+  transition: background-color ${(props) => props.theme.transition.normal} ease, border-color ${(props) => props.theme.transition.normal} ease;
+`;
+const LlmConfigForm = dt.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: ${(props) => props.theme.spacing.md};
+  margin-bottom: ${(props) => props.theme.spacing.md};
+`;
+const ConfigHeader = dt.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${(props) => props.theme.spacing.md};
+`;
+const ConfigName = dt.div`
+  font-weight: 600;
+  color: ${(props) => props.theme.textPrimary};
+  display: flex;
+  align-items: center;
+  gap: ${(props) => props.theme.spacing.sm};
+`;
+const ConfigActions = dt.div`
+  display: flex;
+  gap: ${(props) => props.theme.spacing.sm};
+`;
+const NewConfigForm = dt.div`
+  background: ${(props) => props.theme.surface};
+  border: 2px dashed ${(props) => props.theme.border};
+  border-radius: ${(props) => props.theme.borderRadius.medium};
+  padding: ${(props) => props.theme.spacing.lg};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
+`;
 const SettingsPage = () => {
   const { nickname, avatar, setProfile } = useUser();
-  const [activeTab, setActiveTab] = reactExports.useState("user");
-  const [loading, setLoading] = reactExports.useState(false);
-  const [userName, setUserName] = reactExports.useState("");
+  const { themeMode, setThemeMode } = useTheme();
+  const [activeSection, setActiveSection] = reactExports.useState("user");
   const [userEmail, setUserEmail] = reactExports.useState("");
   const [userNickname, setUserNickname] = reactExports.useState(nickname);
   const [userAvatar, setUserAvatar] = reactExports.useState(avatar);
-  const [userBio, setUserBio] = reactExports.useState("");
-  const [theme, setTheme] = reactExports.useState("auto");
   const [language, setLanguage] = reactExports.useState("zh-CN");
   const [startup, setStartup] = reactExports.useState(false);
   const [minimizeToTray, setMinimizeToTray] = reactExports.useState(false);
   const [notifications, setNotifications] = reactExports.useState(true);
-  const [llmProvider, setLlmProvider] = reactExports.useState("openai");
-  const [llmModel, setLlmModel] = reactExports.useState("gpt-3.5-turbo");
-  const [apiKey, setApiKey] = reactExports.useState("");
-  const [baseUrl, setBaseUrl] = reactExports.useState("https://api.openai.com/v1");
+  const [llmConfigs, setLlmConfigs] = reactExports.useState([]);
+  const [editingConfig, setEditingConfig] = reactExports.useState(null);
+  const [newConfig, setNewConfig] = reactExports.useState({
+    name: "",
+    provider: "openai",
+    model: "gpt-3.5-turbo",
+    apiKey: "",
+    baseUrl: "https://api.openai.com/v1"
+  });
   const [vpnUrl, setVpnUrl] = reactExports.useState("");
   const [proxyAutoStart, setProxyAutoStart] = reactExports.useState(false);
+  const [dataCollection, setDataCollection] = reactExports.useState(true);
+  const [analyticsEnabled, setAnalyticsEnabled] = reactExports.useState(false);
+  const [crashReports, setCrashReports] = reactExports.useState(true);
+  const [emailNotifications, setEmailNotifications] = reactExports.useState(true);
+  const [pushNotifications, setPushNotifications] = reactExports.useState(true);
+  const [soundEnabled, setSoundEnabled] = reactExports.useState(true);
+  const [saveStatus, setSaveStatus] = reactExports.useState("idle");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = reactExports.useState(false);
   const [toasts, setToasts] = reactExports.useState([]);
   const [toastId, setToastId] = reactExports.useState(0);
   reactExports.useEffect(() => {
@@ -26193,31 +29478,105 @@ const SettingsPage = () => {
       const result = await window.electronAPI.config.getAll();
       if (result.success && result.data) {
         const config = result.data;
-        setUserName(config.user.name || "");
         setUserEmail(config.user.email || "");
         setUserNickname(config.user.nickname || "");
-        setUserBio(config.user.bio || "");
-        setTheme(config.app.theme || "auto");
+        setThemeMode(config.app.theme || "auto");
         setLanguage(config.app.language || "zh-CN");
         setStartup(config.app.startup || false);
         setMinimizeToTray(config.app.minimizeToTray || false);
         setNotifications(config.app.notifications || true);
-        setLlmProvider(config.llm.provider || "openai");
-        setLlmModel(config.llm.model || "gpt-3.5-turbo");
-        const savedBaseUrl = localStorage.getItem("llmBaseUrl");
-        if (savedBaseUrl) {
-          setBaseUrl(savedBaseUrl);
+        const savedConfigs = localStorage.getItem("llmConfigs");
+        let configs = [];
+        if (savedConfigs) {
+          try {
+            const parsedConfigs = JSON.parse(savedConfigs);
+            if (Array.isArray(parsedConfigs) && parsedConfigs.length > 0) {
+              configs = parsedConfigs;
+            }
+          } catch (error) {
+            console.error("解析LLM配置失败:", error);
+          }
+        }
+        if (configs.length === 0) {
+          const defaultConfig = {
+            id: generateId(),
+            name: "默认配置",
+            provider: config.llm.provider || "openai",
+            model: config.llm.model || "gpt-3.5-turbo",
+            apiKey: "",
+            baseUrl: localStorage.getItem("llmBaseUrl") || "https://api.openai.com/v1",
+            isActive: true
+          };
+          configs = [defaultConfig];
+        }
+        setLlmConfigs(configs);
+        const activeConfig = configs.find((config2) => config2.isActive) || configs[0];
+        if (activeConfig) {
+          const apiKeyResult = await window.electronAPI.llm.getApiKey(activeConfig.provider);
+          if (apiKeyResult.success && apiKeyResult.data) {
+            setLlmConfigs((prev) => prev.map(
+              (config2) => config2.isActive ? { ...config2, apiKey: apiKeyResult.data } : config2
+            ));
+          }
         }
         setVpnUrl(config.proxy.vpnProviderUrl || "");
         setProxyAutoStart(config.proxy.autoStart || false);
-        const apiKeyResult = await window.electronAPI.llm.getApiKey(llmProvider);
-        if (apiKeyResult.success && apiKeyResult.data) {
-          setApiKey(apiKeyResult.data);
-        }
+        setDataCollection(config.privacy?.dataCollection ?? true);
+        setAnalyticsEnabled(config.privacy?.analyticsEnabled ?? false);
+        setCrashReports(config.privacy?.crashReports ?? true);
+        setEmailNotifications(config.notifications?.email ?? true);
+        setPushNotifications(config.notifications?.push ?? true);
+        setSoundEnabled(config.notifications?.sound ?? true);
       }
-    } catch {
+    } catch (error) {
+      console.error("加载设置失败:", error);
       showToast("加载设置失败", "error");
     }
+  };
+  const generateId = () => Math.random().toString(36).substr(2, 9);
+  const addLlmConfig = () => {
+    if (!newConfig.name.trim()) {
+      showToast("请输入配置名称", "error");
+      return;
+    }
+    const config = {
+      ...newConfig,
+      id: generateId(),
+      isActive: llmConfigs.length === 0
+      // 第一个配置默认激活
+    };
+    setLlmConfigs((prev) => [...prev, config]);
+    setNewConfig({
+      name: "",
+      provider: "openai",
+      model: "gpt-3.5-turbo",
+      apiKey: "",
+      baseUrl: "https://api.openai.com/v1"
+    });
+    showToast("配置已添加", "success");
+  };
+  const updateLlmConfig = (id2, updates) => {
+    setLlmConfigs((prev) => prev.map(
+      (config) => config.id === id2 ? { ...config, ...updates } : config
+    ));
+  };
+  const deleteLlmConfig = (id2) => {
+    const configToDelete = llmConfigs.find((c) => c.id === id2);
+    if (configToDelete?.isActive && llmConfigs.length > 1) {
+      const nextConfig = llmConfigs.find((c) => c.id !== id2);
+      if (nextConfig) {
+        updateLlmConfig(nextConfig.id, { isActive: true });
+      }
+    }
+    setLlmConfigs((prev) => prev.filter((config) => config.id !== id2));
+    showToast("配置已删除", "success");
+  };
+  const setActiveConfig = (id2) => {
+    setLlmConfigs((prev) => prev.map((config) => ({
+      ...config,
+      isActive: config.id === id2
+    })));
+    showToast("已切换配置", "success");
   };
   const showToast = (message, type) => {
     const id2 = toastId;
@@ -26252,64 +29611,66 @@ const SettingsPage = () => {
       reader.readAsDataURL(file);
     }
   };
-  const saveUserSettings = async () => {
-    setLoading(true);
+  const saveAllSettings = async () => {
+    setSaveStatus("saving");
     try {
-      await window.electronAPI.config.setUserName(userName);
       await window.electronAPI.config.setUserEmail(userEmail);
-      localStorage.setItem("userBio", userBio);
       setProfile({ nickname: userNickname, avatar: userAvatar });
-      showToast("用户设置已保存", "success");
-    } catch {
-      showToast("保存用户设置失败", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-  const saveGeneralSettings = async () => {
-    setLoading(true);
-    try {
-      await window.electronAPI.config.setTheme(theme);
+      await window.electronAPI.config.setTheme(themeMode);
       await window.electronAPI.config.setLanguage(language);
       await window.electronAPI.config.setStartup(startup);
       await window.electronAPI.config.setMinimizeToTray(minimizeToTray);
       await window.electronAPI.config.setNotifications(notifications);
-      showToast("通用设置已保存", "success");
-    } catch {
-      showToast("保存通用设置失败", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-  const saveLLMSettings = async () => {
-    setLoading(true);
-    try {
-      await window.electronAPI.llm.setApiKey(llmProvider, apiKey);
-      await window.electronAPI.llm.setProviderConfig({
-        provider: llmProvider,
-        baseUrl,
-        apiKey
-      });
-      localStorage.setItem("llmBaseUrl", baseUrl);
-      showToast("LLM设置已保存", "success");
-    } catch {
-      showToast("保存LLM设置失败", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-  const saveProxySettings = async () => {
-    setLoading(true);
-    try {
       await window.electronAPI.config.setVpnUrl(vpnUrl);
       await window.electronAPI.config.setProxyAutoStart(proxyAutoStart);
-      showToast("代理设置已保存", "success");
-    } catch {
-      showToast("保存代理设置失败", "error");
-    } finally {
-      setLoading(false);
+      const activeConfig = llmConfigs.find((config) => config.isActive);
+      if (activeConfig) {
+        await window.electronAPI.llm.setApiKey(activeConfig.provider, activeConfig.apiKey);
+        await window.electronAPI.llm.setProviderConfig({
+          provider: activeConfig.provider,
+          baseUrl: activeConfig.baseUrl,
+          apiKey: activeConfig.apiKey
+        });
+        localStorage.setItem("llmBaseUrl", activeConfig.baseUrl);
+      }
+      localStorage.setItem("llmConfigs", JSON.stringify(llmConfigs));
+      setHasUnsavedChanges(false);
+      setSaveStatus("saved");
+      showToast("所有设置已保存", "success");
+      setTimeout(() => {
+        setSaveStatus("idle");
+      }, 3e3);
+    } catch (error) {
+      console.error("保存设置失败:", error);
+      setSaveStatus("error");
+      showToast("保存设置失败", "error");
+      setTimeout(() => {
+        setSaveStatus("idle");
+      }, 3e3);
     }
   };
+  reactExports.useEffect(() => {
+    setHasUnsavedChanges(true);
+  }, [
+    userEmail,
+    userNickname,
+    userAvatar,
+    themeMode,
+    language,
+    startup,
+    minimizeToTray,
+    notifications,
+    vpnUrl,
+    proxyAutoStart,
+    dataCollection,
+    analyticsEnabled,
+    crashReports,
+    emailNotifications,
+    pushNotifications,
+    soundEnabled,
+    llmConfigs,
+    newConfig
+  ]);
   const exportConfig = async () => {
     try {
       const result = await window.electronAPI.config.export();
@@ -26318,7 +29679,8 @@ const SettingsPage = () => {
       } else {
         showToast("导出配置失败", "error");
       }
-    } catch {
+    } catch (error) {
+      console.error("导出配置失败:", error);
       showToast("导出配置失败", "error");
     }
   };
@@ -26331,7 +29693,8 @@ const SettingsPage = () => {
       } else {
         showToast("导入配置失败", "error");
       }
-    } catch {
+    } catch (error) {
+      console.error("导入配置失败:", error);
       showToast("导入配置失败", "error");
     }
   };
@@ -26345,344 +29708,771 @@ const SettingsPage = () => {
         } else {
           showToast("重置设置失败", "error");
         }
-      } catch {
+      } catch (error) {
+        console.error("重置设置失败:", error);
         showToast("重置设置失败", "error");
       }
     }
   };
   const tabs = [
     { id: "user", label: "用户", icon: User },
-    { id: "general", label: "通用", icon: Settings },
+    { id: "appearance", label: "外观", icon: Palette },
+    { id: "system", label: "系统", icon: Monitor },
+    { id: "network", label: "网络", icon: Globe },
+    { id: "privacy", label: "隐私", icon: Shield },
+    { id: "notifications", label: "通知", icon: Bell },
     { id: "llm", label: "LLM", icon: MessageSquare },
-    { id: "proxy", label: "代理", icon: Shield },
     { id: "backup", label: "备份", icon: Database }
   ];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(PageHeader$1, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(PageTitle$1, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 28 }),
-        "设置"
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(PageSubtitle$1, { children: "管理应用程序的各项设置和个性化配置" })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(TabsContainer, { children: tabs.map((tab) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      TabButton,
-      {
-        $active: activeTab === tab.id,
-        onClick: () => setActiveTab(tab.id),
-        icon: /* @__PURE__ */ jsxRuntimeExports.jsx(tab.icon, { size: 16 }),
-        children: tab.label
-      },
-      tab.id
-    )) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(TabContent, { children: [
-      activeTab === "user" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 20 }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "个性化设置" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置您的个人信息和偏好" })
-          ] })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(SettingsContentContainer, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        SettingsSidebar,
+        {
+          activeSection,
+          onSectionChange: setActiveSection
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(MainContent, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(ContentHeader, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(PageTitle$1, { children: "设置" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(PageSubtitle$1, { children: "管理应用程序的各项设置和个性化配置" })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGrid, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "头像" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(AvatarContainer, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Avatar, { children: userAvatar ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: userAvatar, alt: "User avatar" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 48, color: "#999" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(UploadButton, { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { size: 16 }),
-                "上传头像",
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  HiddenInput,
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TabsContainer, { children: tabs.map((tab) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          TabButton,
+          {
+            $active: activeSection === tab.id,
+            onClick: () => setActiveSection(tab.id),
+            icon: /* @__PURE__ */ jsxRuntimeExports.jsx(tab.icon, { size: 16 }),
+            variant: "segment",
+            children: tab.label
+          },
+          tab.id
+        )) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          TabContent,
+          {
+            initial: { opacity: 0, y: 20 },
+            animate: { opacity: 1, y: 0 },
+            transition: { duration: 0.6 },
+            children: [
+              activeSection === "user" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                SettingsSection,
+                {
+                  $variant: "primary",
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { delay: 0.1, duration: 0.5 },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 20 }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "个人信息" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置您的个人资料和头像" })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(CompactFormGrid, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "头像" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(AvatarContainer, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Avatar, { children: userAvatar ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: userAvatar, alt: "User avatar" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 48, color: (props) => props.theme.iconColor.default }) }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(UploadButton, { children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { size: 16 }),
+                            "上传头像",
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              HiddenInput,
+                              {
+                                type: "file",
+                                accept: "image/*",
+                                onChange: handleAvatarUpload
+                              }
+                            )
+                          ] })
+                        ] })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "昵称" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Input,
+                          {
+                            value: userNickname,
+                            onChange: (e) => setUserNickname(e.target.value),
+                            placeholder: "输入您的昵称"
+                          }
+                        )
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "邮箱" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Input,
+                          {
+                            type: "email",
+                            value: userEmail,
+                            onChange: (e) => setUserEmail(e.target.value),
+                            placeholder: "输入您的邮箱地址"
+                          }
+                        )
+                      ] })
+                    ] })
+                  ]
+                }
+              ),
+              activeSection === "appearance" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                SettingsSection,
+                {
+                  $variant: "primary",
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { delay: 0.1, duration: 0.5 },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { size: 20 }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "外观设置" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置应用程序的界面语言和主题" })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(CompactFormGrid, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "主题模式" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: themeMode, onChange: (e) => setThemeMode(e.target.value), children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "light", children: "浅色" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "dark", children: "深色" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "auto", children: "跟随系统" })
+                        ] }) })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "语言" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: language, onChange: (e) => setLanguage(e.target.value), children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh-CN", children: "简体中文" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en", children: "English" })
+                        ] }) })
+                      ] })
+                    ] })
+                  ]
+                }
+              ),
+              activeSection === "system" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                SettingsSection,
+                {
+                  $variant: "important",
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { delay: 0.1, duration: 0.5 },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Monitor, { size: 20 }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "系统行为" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置应用程序的启动和关闭行为" })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "开机启动" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "应用程序将在系统启动时自动运行" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: startup,
+                          onChange: setStartup
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "最小化到托盘" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "关闭窗口时将应用程序最小化到系统托盘" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: minimizeToTray,
+                          onChange: setMinimizeToTray
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "通知" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "启用应用程序的通知功能" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: notifications,
+                          onChange: setNotifications
+                        }
+                      )
+                    ] })
+                  ]
+                }
+              ),
+              activeSection === "network" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                SettingsSection,
+                {
+                  $variant: "primary",
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { delay: 0.1, duration: 0.5 },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Globe, { size: 20 }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "网络代理" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置VPN和网络代理设置" })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "VPN 提供商 URL" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Input,
+                        {
+                          value: vpnUrl,
+                          onChange: (e) => setVpnUrl(e.target.value),
+                          placeholder: "输入 VPN 提供商的配置 URL"
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "代理自动启动" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "应用程序启动时自动开启代理服务" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: proxyAutoStart,
+                          onChange: setProxyAutoStart
+                        }
+                      )
+                    ] })
+                  ]
+                }
+              ),
+              activeSection === "privacy" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                SettingsSection,
+                {
+                  $variant: "important",
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { delay: 0.1, duration: 0.5 },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 20 }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "隐私设置" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "管理您的数据隐私和安全设置" })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "数据收集" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "允许收集匿名使用数据以改善产品" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: dataCollection,
+                          onChange: setDataCollection
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "使用分析" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "启用功能使用分析以帮助我们了解用户需求" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: analyticsEnabled,
+                          onChange: setAnalyticsEnabled
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "崩溃报告" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "自动发送崩溃报告以帮助修复问题" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: crashReports,
+                          onChange: setCrashReports
+                        }
+                      )
+                    ] })
+                  ]
+                }
+              ),
+              activeSection === "notifications" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                SettingsSection,
+                {
+                  $variant: "primary",
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { delay: 0.1, duration: 0.5 },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Bell, { size: 20 }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "通知设置" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置各种通知和提醒的偏好设置" })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "邮件通知" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "接收重要的邮件通知" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: emailNotifications,
+                          onChange: setEmailNotifications
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "推送通知" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "接收实时推送通知" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: pushNotifications,
+                          onChange: setPushNotifications
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "通知声音" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "启用通知提示音" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Switch,
+                        {
+                          checked: soundEnabled,
+                          onChange: setSoundEnabled
+                        }
+                      )
+                    ] })
+                  ]
+                }
+              ),
+              activeSection === "llm" && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  SettingsSection,
                   {
-                    type: "file",
-                    accept: "image/*",
-                    onChange: handleAvatarUpload
+                    $variant: "primary",
+                    initial: { opacity: 0, y: 20 },
+                    animate: { opacity: 1, y: 0 },
+                    transition: { delay: 0.1, duration: 0.5 },
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "外观与语言" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置应用程序的界面语言和主题" })
+                        ] })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(CompactFormGrid, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "主题" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: themeMode, onChange: (e) => setThemeMode(e.target.value), children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "light", children: "浅色" }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "dark", children: "深色" }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "auto", children: "跟随系统" })
+                          ] }) })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "语言" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: language, onChange: (e) => setLanguage(e.target.value), children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh-CN", children: "简体中文" }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en", children: "English" })
+                          ] }) })
+                        ] })
+                      ] })
+                    ]
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  SettingsSection,
+                  {
+                    $variant: "accent",
+                    initial: { opacity: 0, y: 20 },
+                    animate: { opacity: 1, y: 0 },
+                    transition: { delay: 0.2, duration: 0.5 },
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "accent", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "系统行为" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置应用程序的启动和关闭行为" })
+                        ] })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "开机启动" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "应用程序将在系统启动时自动运行" })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Switch,
+                          {
+                            checked: startup,
+                            onChange: setStartup
+                          }
+                        )
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "最小化到托盘" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "关闭窗口时将应用程序最小化到系统托盘" })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Switch,
+                          {
+                            checked: minimizeToTray,
+                            onChange: setMinimizeToTray
+                          }
+                        )
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "通知" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "启用应用程序的通知功能" })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Switch,
+                          {
+                            checked: notifications,
+                            onChange: setNotifications
+                          }
+                        )
+                      ] })
+                    ]
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  SettingsSection,
+                  {
+                    $variant: "primary",
+                    initial: { opacity: 0, y: 20 },
+                    animate: { opacity: 1, y: 0 },
+                    transition: { delay: 0.3, duration: 0.5 },
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 20 }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "网络代理" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置VPN和网络代理设置" })
+                        ] })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "VPN 提供商 URL" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Input,
+                          {
+                            value: vpnUrl,
+                            onChange: (e) => setVpnUrl(e.target.value),
+                            placeholder: "输入 VPN 提供商的配置 URL"
+                          }
+                        )
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "代理自动启动" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "应用程序启动时自动开启代理服务" })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Switch,
+                          {
+                            checked: proxyAutoStart,
+                            onChange: setProxyAutoStart
+                          }
+                        )
+                      ] })
+                    ]
                   }
                 )
-              ] })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "昵称" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Input,
+              ] }),
+              activeSection === "llm" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                SettingsSection,
                 {
-                  value: userNickname,
-                  onChange: (e) => setUserNickname(e.target.value),
-                  placeholder: "输入您的昵称"
+                  $variant: "accent",
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { delay: 0.4, duration: 0.5 },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "accent", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 20 }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "语言模型配置" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "管理多个语言模型配置，可添加、编辑和删除不同的配置" })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(NewConfigForm, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigName, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 16 }),
+                        "添加新配置"
+                      ] }) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(LlmConfigForm, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "配置名称" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Input,
+                            {
+                              value: newConfig.name,
+                              onChange: (e) => setNewConfig((prev) => ({ ...prev, name: e.target.value })),
+                              placeholder: "例如：OpenAI GPT-4"
+                            }
+                          )
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "提供商" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                            Select,
+                            {
+                              value: newConfig.provider,
+                              onChange: (e) => setNewConfig((prev) => ({ ...prev, provider: e.target.value })),
+                              children: [
+                                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai", children: "OpenAI" }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "gemini", children: "Gemini" }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openrouter", children: "OpenRouter" }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "custom", children: "自定义" })
+                              ]
+                            }
+                          ) })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "模型" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Input,
+                            {
+                              value: newConfig.model,
+                              onChange: (e) => setNewConfig((prev) => ({ ...prev, model: e.target.value })),
+                              placeholder: "gpt-4, gemini-pro 等"
+                            }
+                          )
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Base URL" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Input,
+                            {
+                              value: newConfig.baseUrl,
+                              onChange: (e) => setNewConfig((prev) => ({ ...prev, baseUrl: e.target.value })),
+                              placeholder: "API 地址"
+                            }
+                          )
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "API 密钥" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Input,
+                            {
+                              type: "password",
+                              value: newConfig.apiKey,
+                              onChange: (e) => setNewConfig((prev) => ({ ...prev, apiKey: e.target.value })),
+                              placeholder: "输入 API 密钥"
+                            }
+                          )
+                        ] })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: addLlmConfig, variant: "primary", startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 16 }), children: "添加配置" })
+                    ] }),
+                    llmConfigs.map((config) => /* @__PURE__ */ jsxRuntimeExports.jsxs(LlmConfigItem, { $isActive: config.isActive, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigHeader, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigName, { children: [
+                          config.isActive && /* @__PURE__ */ jsxRuntimeExports.jsx(Radio, { size: 16, fill: "currentColor" }),
+                          config.name,
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: "normal" }, children: [
+                            "(",
+                            config.provider,
+                            " - ",
+                            config.model,
+                            ")"
+                          ] })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigActions, { children: [
+                          !config.isActive && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Button,
+                            {
+                              onClick: () => setActiveConfig(config.id),
+                              variant: "outline",
+                              size: "small",
+                              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Radio, { size: 14 }),
+                              children: "设为激活"
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Button,
+                            {
+                              onClick: () => setEditingConfig(editingConfig === config.id ? null : config.id),
+                              variant: "outline",
+                              size: "small",
+                              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(SquarePen, { size: 14 }),
+                              children: editingConfig === config.id ? "取消" : "编辑"
+                            }
+                          ),
+                          llmConfigs.length > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Button,
+                            {
+                              onClick: () => deleteLlmConfig(config.id),
+                              variant: "danger",
+                              size: "small",
+                              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 14 }),
+                              children: "删除"
+                            }
+                          )
+                        ] })
+                      ] }),
+                      editingConfig === config.id && /* @__PURE__ */ jsxRuntimeExports.jsxs(LlmConfigForm, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "配置名称" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Input,
+                            {
+                              value: config.name,
+                              onChange: (e) => updateLlmConfig(config.id, { name: e.target.value }),
+                              placeholder: "配置名称"
+                            }
+                          )
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "提供商" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                            Select,
+                            {
+                              value: config.provider,
+                              onChange: (e) => updateLlmConfig(config.id, { provider: e.target.value }),
+                              children: [
+                                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai", children: "OpenAI" }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "gemini", children: "Gemini" }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openrouter", children: "OpenRouter" }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "custom", children: "自定义" })
+                              ]
+                            }
+                          ) })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "模型" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Input,
+                            {
+                              value: config.model,
+                              onChange: (e) => updateLlmConfig(config.id, { model: e.target.value }),
+                              placeholder: "模型名称"
+                            }
+                          )
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Base URL" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Input,
+                            {
+                              value: config.baseUrl,
+                              onChange: (e) => updateLlmConfig(config.id, { baseUrl: e.target.value }),
+                              placeholder: "API 地址"
+                            }
+                          )
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "API 密钥" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Input,
+                            {
+                              type: "password",
+                              value: config.apiKey,
+                              onChange: (e) => updateLlmConfig(config.id, { apiKey: e.target.value }),
+                              placeholder: "API 密钥"
+                            }
+                          )
+                        ] })
+                      ] })
+                    ] }, config.id)),
+                    llmConfigs.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { textAlign: "center", padding: "2rem", color: "var(--text-secondary)" }, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 48, style: { marginBottom: "1rem", opacity: 0.5 } }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "暂无 LLM 配置，请添加一个配置开始使用" })
+                    ] })
+                  ]
+                }
+              ),
+              activeSection === "backup" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                SettingsSection,
+                {
+                  $variant: "primary",
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { delay: 0.1, duration: 0.5 },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Database, { size: 20 }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "配置管理" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "导入、导出和重置应用程序配置" })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(ButtonGroup, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Button,
+                        {
+                          onClick: exportConfig,
+                          variant: "outline",
+                          startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { size: 16 }),
+                          children: "导出配置"
+                        }
+                      ),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Button,
+                        {
+                          onClick: importConfig,
+                          variant: "outline",
+                          startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { size: 16 }),
+                          children: "导入配置"
+                        }
+                      ),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Button,
+                        {
+                          onClick: resetConfig,
+                          variant: "danger",
+                          startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { size: 16 }),
+                          children: "重置配置"
+                        }
+                      )
+                    ] })
+                  ]
                 }
               )
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "姓名" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Input,
-                {
-                  value: userName,
-                  onChange: (e) => setUserName(e.target.value),
-                  placeholder: "输入您的姓名"
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "邮箱" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Input,
-                {
-                  type: "email",
-                  value: userEmail,
-                  onChange: (e) => setUserEmail(e.target.value),
-                  placeholder: "输入您的邮箱地址"
-                }
-              )
-            ] })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "个人简介" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Textarea,
-            {
-              value: userBio,
-              onChange: (e) => setUserBio(e.target.value),
-              placeholder: "简单介绍一下自己",
-              rows: 4
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ButtonGroup, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Button,
-          {
-            onClick: saveUserSettings,
-            disabled: loading,
-            variant: "primary",
-            children: loading ? "保存中..." : "保存设置"
+            ]
           }
-        ) })
-      ] }),
-      activeTab === "general" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "通用设置" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置应用程序的基本行为和外观" })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGrid, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "主题" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: theme, onChange: (e) => setTheme(e.target.value), children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "light", children: "浅色" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "dark", children: "深色" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "auto", children: "跟随系统" })
-            ] }) })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "语言" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: language, onChange: (e) => setLanguage(e.target.value), children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh-CN", children: "简体中文" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en", children: "English" })
-            ] }) })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "开机启动" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "应用程序将在系统启动时自动运行" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Switch,
-            {
-              checked: startup,
-              onChange: setStartup
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "最小化到托盘" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "关闭窗口时将应用程序最小化到系统托盘" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Switch,
-            {
-              checked: minimizeToTray,
-              onChange: setMinimizeToTray
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "通知" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "启用应用程序的通知功能" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Switch,
-            {
-              checked: notifications,
-              onChange: setNotifications
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ButtonGroup, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Button,
-          {
-            onClick: saveGeneralSettings,
-            disabled: loading,
-            variant: "primary",
-            children: loading ? "保存中..." : "保存设置"
-          }
-        ) })
-      ] }),
-      activeTab === "llm" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 20 }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "LLM 设置" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置大型语言模型的相关设置" })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGrid, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "提供商" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SelectWrapper, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: llmProvider, onChange: (e) => setLlmProvider(e.target.value), children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai", children: "OpenAI" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "gemini", children: "Gemini" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openrouter", children: "OpenRouter" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "custom", children: "自定义" })
-            ] }) })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "Base URL" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                type: "text",
-                value: baseUrl,
-                onChange: (e) => setBaseUrl(e.target.value),
-                placeholder: "输入 API Base URL"
-              }
-            )
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGrid, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "模型" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                type: "text",
-                value: llmModel,
-                onChange: (e) => setLlmModel(e.target.value),
-                placeholder: "输入模型名称"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "API 密钥" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                type: "password",
-                value: apiKey,
-                onChange: (e) => setApiKey(e.target.value),
-                placeholder: "输入您的 API 密钥"
-              }
-            )
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ButtonGroup, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Button,
-          {
-            onClick: saveLLMSettings,
-            disabled: loading || !apiKey.trim() || !baseUrl.trim() || !llmModel.trim(),
-            variant: "primary",
-            children: loading ? "保存中..." : "保存设置"
-          }
-        ) })
-      ] }),
-      activeTab === "proxy" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 20 }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "代理设置" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "配置系统代理的相关设置" })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup$1, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "VPN 提供商 URL" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              value: vpnUrl,
-              onChange: (e) => setVpnUrl(e.target.value),
-              placeholder: "输入 VPN 提供商的配置 URL"
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchContainer, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label$1, { children: "代理自动启动" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "应用程序启动时自动开启代理服务" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Switch,
-            {
-              checked: proxyAutoStart,
-              onChange: setProxyAutoStart
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ButtonGroup, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Button,
-          {
-            onClick: saveProxySettings,
-            disabled: loading,
-            variant: "primary",
-            children: loading ? "保存中..." : "保存设置"
-          }
-        ) })
-      ] }),
-      activeTab === "backup" && /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $variant: "elevated", $padding: "large", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Database, { size: 20 }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle$1, { children: "配置管理" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "导入、导出和重置应用程序配置" })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(ButtonGroup, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: exportConfig,
-              variant: "outline",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { size: 16 }),
-              children: "导出配置"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: importConfig,
-              variant: "outline",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { size: 16 }),
-              children: "导入配置"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Button,
-            {
-              onClick: resetConfig,
-              variant: "danger",
-              startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { size: 16 }),
-              children: "重置配置"
-            }
-          )
-        ] })
-      ] }) })
+        )
+      ] })
+    ] }),
+    activeSection !== "backup" && /* @__PURE__ */ jsxRuntimeExports.jsxs(SaveBar, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(SaveStatusContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        StatusIndicator$1,
+        {
+          status: saveStatus === "saving" ? "saving" : saveStatus === "error" ? "error" : saveStatus === "saved" ? "saved" : hasUnsavedChanges ? "changed" : "idle",
+          size: "small"
+        }
+      ) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Button,
+        {
+          onClick: saveAllSettings,
+          disabled: saveStatus === "saving" || !hasUnsavedChanges,
+          variant: "primary",
+          startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { size: 16 }),
+          children: saveStatus === "saving" ? "保存中..." : "保存"
+        }
+      )
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(ToastContainer, { children: toasts.map((toast) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       Toast,
@@ -27032,20 +30822,328 @@ const InfoPage = () => {
     )
   ] }) });
 };
+const slideIn = mt`
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+`;
+const slideOut = mt`
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+`;
+const NotificationContainer = dt.div`
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10000;
+  pointer-events: none;
+`;
+const NotificationWrapper = dt(motion.div)`
+  margin-bottom: 0.5rem;
+  pointer-events: all;
+`;
+const NotificationCard = dt.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: ${(props) => props.theme.surface};
+  border: 1px solid ${(props) => {
+  switch (props.$variant) {
+    case "success":
+      return props.theme.success.main;
+    case "error":
+      return props.theme.error.main;
+    case "warning":
+      return props.theme.warning.main;
+    case "info":
+      return props.theme.primary.main;
+    default:
+      return props.theme.border;
+  }
+}};
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 300px;
+  max-width: 400px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: ${slideIn} 0.3s ease-out;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  &.closing {
+    animation: ${slideOut} 0.3s ease-in;
+  }
+`;
+const NotificationIcon = dt.div`
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${(props) => {
+  switch (props.$variant) {
+    case "success":
+      return props.theme.success.main;
+    case "error":
+      return props.theme.error.main;
+    case "warning":
+      return props.theme.warning.main;
+    case "info":
+      return props.theme.primary.main;
+    default:
+      return props.theme.textSecondary;
+  }
+}};
+`;
+const NotificationContent = dt.div`
+  flex: 1;
+`;
+const NotificationTitle = dt.div`
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.textPrimary};
+  margin-bottom: 0.25rem;
+`;
+const NotificationMessage = dt.div`
+  font-size: 0.85rem;
+  color: ${(props) => props.theme.textSecondary};
+  line-height: 1.4;
+`;
+const CloseButton = dt.button`
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: ${(props) => props.theme.textSecondary};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${(props) => props.theme.surfaceVariant};
+    color: ${(props) => props.theme.textPrimary};
+  }
+`;
+const ProgressBar = dt.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: ${(props) => props.theme.surfaceVariant};
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: ${(props) => {
+  switch (props.$variant) {
+    case "success":
+      return props.theme.success.main;
+    case "error":
+      return props.theme.error.main;
+    case "warning":
+      return props.theme.warning.main;
+    case "info":
+      return props.theme.primary.main;
+    default:
+      return props.theme.primary.main;
+  }
+}};
+    animation: progressShrink var(--duration, 5000ms) linear forwards;
+  }
+
+  @keyframes progressShrink {
+    from { width: 100%; }
+    to { width: 0%; }
+  }
+`;
+class NotificationManager {
+  static instance;
+  notifications = [];
+  listeners = /* @__PURE__ */ new Set();
+  static getInstance() {
+    if (!NotificationManager.instance) {
+      NotificationManager.instance = new NotificationManager();
+    }
+    return NotificationManager.instance;
+  }
+  generateId() {
+    return `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  notify() {
+    this.listeners.forEach((listener) => listener([...this.notifications]));
+  }
+  show(options) {
+    const notification = {
+      id: options.id || this.generateId(),
+      title: options.title || this.getDefaultTitle(options.variant || "info"),
+      message: options.message,
+      variant: options.variant || "info",
+      duration: options.duration || 5e3,
+      persistent: options.persistent || false,
+      onClick: options.onClick || (() => {
+      }),
+      timestamp: Date.now()
+    };
+    this.notifications = this.notifications.filter((n) => n.id !== notification.id);
+    this.notifications.push(notification);
+    if (!notification.persistent) {
+      setTimeout(() => {
+        this.remove(notification.id);
+      }, notification.duration);
+    }
+    this.notify();
+    return notification.id;
+  }
+  remove(id2) {
+    this.notifications = this.notifications.filter((n) => n.id !== id2);
+    this.notify();
+  }
+  clear() {
+    this.notifications = [];
+    this.notify();
+  }
+  subscribe(listener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+  getDefaultTitle(variant) {
+    switch (variant) {
+      case "success":
+        return "成功";
+      case "error":
+        return "错误";
+      case "warning":
+        return "警告";
+      case "info":
+        return "信息";
+      default:
+        return "通知";
+    }
+  }
+  // 便捷方法
+  success(message, options) {
+    return this.show({ ...options, message, variant: "success" });
+  }
+  error(message, options) {
+    return this.show({ ...options, message, variant: "error" });
+  }
+  warning(message, options) {
+    return this.show({ ...options, message, variant: "warning" });
+  }
+  info(message, options) {
+    return this.show({ ...options, message, variant: "info" });
+  }
+}
+const notificationManager = NotificationManager.getInstance();
+const NotificationSystem = () => {
+  const [notifications, setNotifications] = reactExports.useState([]);
+  reactExports.useEffect(() => {
+    return notificationManager.subscribe(setNotifications);
+  }, []);
+  const getIcon = (variant) => {
+    switch (variant) {
+      case "success":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheckBig, { size: 20 });
+      case "error":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: 20 });
+      case "warning":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(TriangleAlert, { size: 20 });
+      case "info":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Info, { size: 20 });
+      default:
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Info, { size: 20 });
+    }
+  };
+  const handleNotificationClick = (notification) => {
+    if (notification.onClick) {
+      notification.onClick();
+    }
+    if (!notification.persistent) {
+      notificationManager.remove(notification.id);
+    }
+  };
+  const handleCloseClick = (e, id2) => {
+    e.stopPropagation();
+    notificationManager.remove(id2);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(NotificationContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(AnimatePresence, { children: notifications.map((notification) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    NotificationWrapper,
+    {
+      initial: { opacity: 0, x: 100 },
+      animate: { opacity: 1, x: 0 },
+      exit: { opacity: 0, x: 100 },
+      transition: { duration: 0.3 },
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        NotificationCard,
+        {
+          $variant: notification.variant,
+          onClick: () => handleNotificationClick(notification),
+          style: {
+            "--duration": `${notification.duration}ms`
+          },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(NotificationIcon, { $variant: notification.variant, children: getIcon(notification.variant) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(NotificationContent, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(NotificationTitle, { children: notification.title }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(NotificationMessage, { children: notification.message })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              CloseButton,
+              {
+                onClick: (e) => handleCloseClick(e, notification.id),
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 16 })
+              }
+            ),
+            !notification.persistent && /* @__PURE__ */ jsxRuntimeExports.jsx(ProgressBar, { $variant: notification.variant })
+          ]
+        }
+      )
+    },
+    notification.id
+  )) }) });
+};
 function App() {
   const themeContext = reactExports.useContext(ThemeContext);
   if (!themeContext) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "Error: Theme context is not available." });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(MainLayout$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(HomePage, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/proxy-management", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ProxyPage, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/chat", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ModernChatPage, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/modern-chat", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ModernChatPage, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/dev-environment", element: /* @__PURE__ */ jsxRuntimeExports.jsx(DevEnvironmentPage, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsPage, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/info", element: /* @__PURE__ */ jsxRuntimeExports.jsx(InfoPage, {}) })
-  ] }) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(UserProvider, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MainLayout$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(HomePage, {}) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/proxy-management", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ProxyPage, {}) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/chat", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ModernChatPage, {}) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/modern-chat", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ModernChatPage, {}) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/dev-environment", element: /* @__PURE__ */ jsxRuntimeExports.jsx(DevEnvironmentPage, {}) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsPage, {}) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/info", element: /* @__PURE__ */ jsxRuntimeExports.jsx(InfoPage, {}) })
+    ] }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(NotificationSystem, {})
+  ] }) });
 }
 const GlobalStyles = ft`
   *, *::before, *::after {

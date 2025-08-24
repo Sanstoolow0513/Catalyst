@@ -3,7 +3,6 @@ import { MessageSquare } from 'lucide-react';
 import styled, { keyframes, css } from 'styled-components';
 import { Bot, User, Copy, AlertCircle } from 'lucide-react';
 import { ILLMMessage } from '../types/electron';
-import { useTheme } from '../contexts/ThemeContext';
 
 // 动画定义
 const fadeInUp = keyframes`

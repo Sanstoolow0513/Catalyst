@@ -6,7 +6,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { 
   Home as HomeIcon,
   Shield as ShieldIcon,
-  MessageSquare as MessageIcon,
   Bot as BotIcon,
   Settings as SettingsIcon,
   Code as CodeIcon,
@@ -16,17 +15,26 @@ import {
 } from 'lucide-react';
 
 const SidebarContainer = styled(motion.aside)<{ $collapsed: boolean }>`
-  width: ${props => props.$collapsed ? '80px' : '260px'};
+  width: ${props => props.$collapsed ? '80px' : '220px'};
+  max-width: ${props => props.$collapsed ? '80px' : '18vw'};
+  min-width: ${props => props.$collapsed ? '80px' : '200px'};
   position: relative;
   background-color: ${props => props.theme.sidebar.background};
-  border-right: 1px solid ${props => props.theme.border};
+  border: none;
+  border-radius: 16px;
+  margin: 8px;
   display: flex;
   flex-direction: column;
   padding: 16px 0;
   overflow-y: auto;
   transition: width 0.3s ease;
   flex-shrink: 0;
-  z-index: 100; /* Ensure sidebar and its children are on top */
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
   
   /* 自定义滚动条 */
   &::-webkit-scrollbar {
@@ -45,27 +53,38 @@ const SidebarContainer = styled(motion.aside)<{ $collapsed: boolean }>`
       background: ${props => props.theme.textTertiary};
     }
   }
+  
+  @media (min-width: 1920px) {
+    width: ${props => props.$collapsed ? '80px' : '240px'};
+  }
+  
+  @media (max-width: 1200px) {
+    width: ${props => props.$collapsed ? '80px' : '200px'};
+  }
 `;
 
-const SidebarHeader = styled.div<{ $collapsed: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px 20px;
-  border-bottom: 1px solid ${props => props.theme.sidebar.border};
-  margin-bottom: 16px;
-  ${props => props.$collapsed && `
-    padding: 0 10px 20px;
-    justify-content: center;
-  `}
-`;
-
-const LogoSection = styled(motion.div)<{ $collapsed: boolean }>`
+const LogoButton = styled(motion.button)<{ $collapsed: boolean }>`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  margin-bottom: 16px;
+  transition: all ${props => props.theme.transition.fast} ease;
+  color: ${props => props.theme.sidebar.text};
+  
+  &:hover {
+    background-color: ${props => props.theme.sidebar.itemHover};
+    color: ${props => props.theme.sidebar.textActive};
+  }
+  
   ${props => props.$collapsed && `
     justify-content: center;
+    padding: 12px 16px;
     gap: 0;
   `}
 `;
@@ -73,7 +92,9 @@ const LogoSection = styled(motion.div)<{ $collapsed: boolean }>`
 const Logo = styled.div`
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, ${props => props.theme.primary.main}, ${props => props.theme.accent.main});
+  background: ${props => props.theme.name === 'light' 
+    ? 'linear-gradient(135deg, #2563EB, #7C3AED)' 
+    : 'linear-gradient(135deg, #60A5FA, #A78BFA)'};
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -82,25 +103,31 @@ const Logo = styled.div`
   font-weight: bold;
   font-size: 18px;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 `;
 
-const AppName = styled.h1<{ $collapsed: boolean }>`
-  font-size: 20px;
-  font-weight: 600;
-  color: ${props => props.theme.sidebar.text};
-  margin: 0;
+const LogoText = styled.div<{ $collapsed: boolean }>`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
   ${props => props.$collapsed && `
     display: none;
   `}
 `;
 
-const AppVersion = styled.p<{ $collapsed: boolean }>`
+const AppName = styled.h1`
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+`;
+
+const AppVersion = styled.p`
   font-size: 12px;
   color: ${props => props.theme.textTertiary};
   margin: 0;
-  ${props => props.$collapsed && `
-    display: none;
-  `}
+  line-height: 1;
 `;
 
 const CollapseButton = styled.button`
@@ -130,33 +157,22 @@ const NavSection = styled.nav<{ $collapsed: boolean }>`
 `;
 
 const NavGroup = styled.div<{ $collapsed: boolean }>`
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   ${props => props.$collapsed && `
-    margin-bottom: 16px;
+    margin-bottom: 8px;
   `}
 `;
 
-const NavGroupTitle = styled.h3<{ $collapsed: boolean }>`
-  font-size: 12px;
-  font-weight: 600;
-  color: ${props => props.theme.textTertiary};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 0 8px 12px;
-  ${props => props.$collapsed && `
-    display: none;
-  `}
-`;
 
 const NavItemContainer = styled(motion.div)`
   display: block;
-  margin-bottom: 8px; /* 增加功能项之间的间距 */
+  margin-bottom: 8px;
 `;
 
 const NavItem = styled(Link)<{ $isActive: boolean; $collapsed: boolean }>`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding: 12px 16px;
   border-radius: 8px;
   text-decoration: none;
@@ -164,18 +180,22 @@ const NavItem = styled(Link)<{ $isActive: boolean; $collapsed: boolean }>`
   background-color: ${props => props.$isActive ? props.theme.sidebar.itemActive : 'transparent'};
   transition: all ${props => props.theme.transition.fast} ease;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 15px;
   overflow: hidden;
+  border: 1px solid transparent;
+  position: relative;
   
   &:hover {
     background-color: ${props => props.$isActive ? props.theme.sidebar.itemActive : props.theme.sidebar.itemHover};
     color: ${props => props.$isActive ? props.theme.sidebar.textActive : props.theme.sidebar.textActive};
-    transform: translateX(2px);
+    border-color: ${props => props.theme.border};
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   & .nav-icon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     color: ${props => props.$isActive ? props.theme.primary.main : props.theme.textTertiary};
     transition: color ${props => props.theme.transition.fast} ease;
     flex-shrink: 0;
@@ -212,28 +232,12 @@ const Tooltip = styled.div`
 
 const navigationItems = [
   {
-    group: '主要功能',
     items: [
       { path: '/', label: '首页', icon: HomeIcon },
       { path: '/proxy-management', label: '代理管理', icon: ShieldIcon },
       { path: '/chat', label: 'AI 对话', icon: BotIcon },
-    ]
-  },
-  {
-    group: '高级设置',
-    items: [
       { path: '/dev-environment', label: '开发环境', icon: CodeIcon },
-    ]
-  },
-  {
-    group: '设置',
-    items: [
       { path: '/settings', label: '设置', icon: SettingsIcon },
-    ]
-  },
-  {
-    group: '关于',
-    items: [
       { path: '/info', label: '关于', icon: InfoIcon },
     ]
   }
@@ -267,31 +271,26 @@ const Sidebar = () => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.2, duration: 0.4 }}
       >
-        <SidebarHeader $collapsed={isSidebarCollapsed}>
-          <LogoSection
+        <NavSection $collapsed={isSidebarCollapsed}>
+          <LogoButton
             $collapsed={isSidebarCollapsed}
-            whileHover={{ scale: 1.05, zIndex: 1 }}
-            whileTap={{ scale: 0.95, zIndex: 1 }}
+            onClick={toggleSidebar}
+            whileHover={{ scale: 1.02, zIndex: 1 }}
+            whileTap={{ scale: 0.98, zIndex: 1 }}
           >
             <Logo>C</Logo>
             {!isSidebarCollapsed && (
-              <div>
-                <AppName $collapsed={isSidebarCollapsed}>Catalyst</AppName>
-                <AppVersion $collapsed={isSidebarCollapsed}>v1.0.0</AppVersion>
-              </div>
+              <LogoText $collapsed={isSidebarCollapsed}>
+                <AppName>Catalyst</AppName>
+                <AppVersion>v1.0.0</AppVersion>
+              </LogoText>
             )}
-          </LogoSection>
-          {!isSidebarCollapsed && (
-            <CollapseButton onClick={toggleSidebar}>
-              <ChevronLeftIcon size={16} />
-            </CollapseButton>
-          )}
-        </SidebarHeader>
-        
-        <NavSection $collapsed={isSidebarCollapsed}>
+            {!isSidebarCollapsed && (
+              <ChevronLeftIcon size={16} style={{ marginLeft: 'auto' }} />
+            )}
+          </LogoButton>
           {navigationItems.map((group, groupIndex) => (
             <NavGroup key={groupIndex} $collapsed={isSidebarCollapsed}>
-              {!isSidebarCollapsed && <NavGroupTitle $collapsed={isSidebarCollapsed}>{group.group}</NavGroupTitle>}
               {group.items.map((item, itemIndex) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -310,7 +309,7 @@ const Sidebar = () => {
                       onMouseEnter={(e) => handleMouseEnter(e, item.label)}
                       onMouseLeave={handleMouseLeave}
                     >
-                      <item.icon className="nav-icon" size={20} />
+                      <item.icon className="nav-icon" size={22} />
                       <span>{item.label}</span>
                     </NavItem>
                   </NavItemContainer>

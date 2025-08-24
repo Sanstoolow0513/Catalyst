@@ -5,6 +5,22 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import axios, { AxiosInstance } from 'axios';
 
+interface MihomoConfig {
+  port: number;
+  'socks-port': number;
+  'redir-port': number;
+  'mixed-port': number;
+  'allow-lan': boolean;
+  mode: string;
+  'log-level': string;
+  ipv6: boolean;
+  'external-controller': string;
+  proxies: unknown[];
+  'proxy-groups': unknown[];
+  rules: unknown[];
+  [key: string]: unknown;
+}
+
 /**
  * MihomoService 类负责管理 Mihomo 核心进程的启动、停止和配置管理。
  * 它提供了与 Mihomo 进程交互的方法，包括加载和保存配置文件。
@@ -126,7 +142,7 @@ class MihomoService {
    * 从文件系统加载 Mihomo 配置。
    * @returns 一个 Promise，解析为配置对象。
    */
-  public loadConfig(): Promise<any> {
+  public loadConfig(): Promise<MihomoConfig> {
     return new Promise((resolve, reject) => {
       // 检查配置文件是否存在
       if (!fs.existsSync(this.configPath)) {
@@ -156,7 +172,7 @@ class MihomoService {
    * @param config 要保存的配置对象。
    * @returns 一个 Promise，在保存成功时解析。
    */
-  public saveConfig(config: any): Promise<void> {
+  public saveConfig(config: MihomoConfig): Promise<void> {
     return new Promise((resolve, reject) => {
       // 确保配置目录存在
       if (!fs.existsSync(this.configDir)) {
@@ -180,7 +196,7 @@ class MihomoService {
    * @param config 配置对象
    * @returns 如果配置有效返回 true，否则返回 false
    */
-  public isConfigValid(config: any): boolean {
+  public isConfigValid(config: MihomoConfig): boolean {
     // 检查配置是否为对象且不为空
     if (!config || typeof config !== 'object' || Object.keys(config).length === 0) {
       return false;

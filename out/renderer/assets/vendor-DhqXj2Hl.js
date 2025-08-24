@@ -1409,7 +1409,7 @@ function he(t2) {
   for (var n2 = [], o2 = 1; o2 < arguments.length; o2++) n2[o2 - 1] = arguments[o2];
   return new Error("An error occurred. See https://github.com/styled-components/styled-components/blob/main/packages/styled-components/src/utils/errors.md#".concat(t2, " for more information.").concat(n2.length > 0 ? " Args: ".concat(n2.join(", ")) : ""));
 }
-var fe = function() {
+var fe = (function() {
   function e2(e3) {
     this.groupSizes = new Uint32Array(512), this.length = 512, this.tag = e3;
   }
@@ -1435,7 +1435,7 @@ var fe = function() {
     for (var n2 = this.groupSizes[e3], o2 = this.indexOfGroup(e3), r2 = o2 + n2, s2 = o2; s2 < r2; s2++) t2 += "".concat(this.tag.getRule(s2)).concat(g);
     return t2;
   }, e2;
-}(), ye = /* @__PURE__ */ new Map(), ve = /* @__PURE__ */ new Map(), ge = 1, Se = function(e2) {
+})(), ye = /* @__PURE__ */ new Map(), ve = /* @__PURE__ */ new Map(), ge = 1, Se = function(e2) {
   if (ye.has(e2)) return ye.get(e2);
   for (; ve.has(ge); ) ge++;
   var t2 = ge++;
@@ -1465,23 +1465,23 @@ function Ce() {
   return "undefined" != typeof __webpack_nonce__ ? __webpack_nonce__ : null;
 }
 var Ie = function(e2) {
-  var t2 = document.head, n2 = e2 || t2, o2 = document.createElement("style"), r2 = function(e3) {
+  var t2 = document.head, n2 = e2 || t2, o2 = document.createElement("style"), r2 = (function(e3) {
     var t3 = Array.from(e3.querySelectorAll("style[".concat(f, "]")));
     return t3[t3.length - 1];
-  }(n2), s2 = void 0 !== r2 ? r2.nextSibling : null;
+  })(n2), s2 = void 0 !== r2 ? r2.nextSibling : null;
   o2.setAttribute(f, m), o2.setAttribute(y, v);
   var i2 = Ce();
   return i2 && o2.setAttribute("nonce", i2), n2.insertBefore(o2, s2), o2;
-}, Ae = function() {
+}, Ae = (function() {
   function e2(e3) {
-    this.element = Ie(e3), this.element.appendChild(document.createTextNode("")), this.sheet = function(e4) {
+    this.element = Ie(e3), this.element.appendChild(document.createTextNode("")), this.sheet = (function(e4) {
       if (e4.sheet) return e4.sheet;
       for (var t2 = document.styleSheets, n2 = 0, o2 = t2.length; n2 < o2; n2++) {
         var r2 = t2[n2];
         if (r2.ownerNode === e4) return r2;
       }
       throw he(17);
-    }(this.element), this.length = 0;
+    })(this.element), this.length = 0;
   }
   return e2.prototype.insertRule = function(e3, t2) {
     try {
@@ -1495,7 +1495,7 @@ var Ie = function(e2) {
     var t2 = this.sheet.cssRules[e3];
     return t2 && t2.cssText ? t2.cssText : "";
   }, e2;
-}(), Oe = function() {
+})(), Oe = (function() {
   function e2(e3) {
     this.element = Ie(e3), this.nodes = this.element.childNodes, this.length = 0;
   }
@@ -1510,7 +1510,7 @@ var Ie = function(e2) {
   }, e2.prototype.getRule = function(e3) {
     return e3 < this.length ? this.nodes[e3].textContent : "";
   }, e2;
-}(), De = function() {
+})(), De = (function() {
   function e2(e3) {
     this.rules = [], this.length = 0;
   }
@@ -1521,16 +1521,16 @@ var Ie = function(e2) {
   }, e2.prototype.getRule = function(e3) {
     return e3 < this.length ? this.rules[e3] : "";
   }, e2;
-}(), Re = S, Te = { isServer: !S, useCSSOMInjection: !w }, ke = function() {
+})(), Re = S, Te = { isServer: !S, useCSSOMInjection: !w }, ke = (function() {
   function e2(e3, n2, o2) {
     void 0 === e3 && (e3 = C), void 0 === n2 && (n2 = {});
     var r2 = this;
     this.options = __assign(__assign({}, Te), e3), this.gs = n2, this.names = new Map(o2), this.server = !!e3.isServer, !this.server && S && Re && (Re = false, _e(this)), ue(this, function() {
-      return function(e4) {
+      return (function(e4) {
         for (var t2 = e4.getTag(), n3 = t2.length, o3 = "", r3 = function(n4) {
-          var r4 = function(e5) {
+          var r4 = (function(e5) {
             return ve.get(e5);
-          }(n4);
+          })(n4);
           if (void 0 === r4) return "continue";
           var s3 = e4.names.get(r4), i2 = t2.getGroup(n4);
           if (void 0 === s3 || !s3.size || 0 === i2.length) return "continue";
@@ -1540,7 +1540,7 @@ var Ie = function(e2) {
           }), o3 += "".concat(i2).concat(a2, '{content:"').concat(c2, '"}').concat(g);
         }, s2 = 0; s2 < n3; s2++) r3(s2);
         return o3;
-      }(r2);
+      })(r2);
     });
   }
   return e2.registerId = function(e3) {
@@ -1552,10 +1552,10 @@ var Ie = function(e2) {
   }, e2.prototype.allocateGSInstance = function(e3) {
     return this.gs[e3] = (this.gs[e3] || 0) + 1;
   }, e2.prototype.getTag = function() {
-    return this.tag || (this.tag = (e3 = function(e4) {
+    return this.tag || (this.tag = (e3 = (function(e4) {
       var t2 = e4.useCSSOMInjection, n2 = e4.target;
       return e4.isServer ? new De(n2) : t2 ? new Ae(n2) : new Oe(n2);
-    }(this.options), new fe(e3)));
+    })(this.options), new fe(e3)));
     var e3;
   }, e2.prototype.hasNameForId = function(e3, t2) {
     return this.names.has(e3) && this.names.get(e3).has(t2);
@@ -1574,7 +1574,7 @@ var Ie = function(e2) {
   }, e2.prototype.clearTag = function() {
     this.tag = void 0;
   }, e2;
-}(), je = /&/g, xe = /^\s*\/\/.*$/gm;
+})(), je = /&/g, xe = /^\s*\/\/.*$/gm;
 function Ve(e2, t2) {
   return e2.map(function(e3) {
     return "rule" === e3.type && (e3.value = "".concat(t2, " ").concat(e3.value), e3.value = e3.value.replaceAll(",", ",".concat(t2, " ")), e3.props = e3.props.map(function(e4) {
@@ -1608,7 +1608,7 @@ React.createContext(void 0);
 function Ge() {
   return reactExports.useContext($e);
 }
-var We = function() {
+var We = (function() {
   function e2(e3, t2) {
     var n2 = this;
     this.inject = function(e4, t3) {
@@ -1622,7 +1622,7 @@ var We = function() {
   return e2.prototype.getName = function(e3) {
     return void 0 === e3 && (e3 = ze), this.name + e3.hash;
   }, e2;
-}(), qe = function(e2) {
+})(), qe = function(e2) {
   return e2 >= "A" && e2 <= "Z";
 };
 function He(e2) {
@@ -1663,7 +1663,7 @@ function Ze(e2) {
   }
   return true;
 }
-var Ke = z(v), Qe = function() {
+var Ke = z(v), Qe = (function() {
   function e2(e3, t2, n2) {
     this.rules = e3, this.staticRulesId = "", this.isStatic = (void 0 === n2 || n2.isStatic) && Ze(e3), this.componentId = t2, this.baseHash = M(Ke, t2), this.baseStyle = n2, ke.registerId(t2);
   }
@@ -1694,11 +1694,11 @@ var Ke = z(v), Qe = function() {
     }
     return o2;
   }, e2;
-}(), et = React.createContext(void 0);
+})(), et = React.createContext(void 0);
 et.Consumer;
 function ot(e2) {
   var n2 = React.useContext(et), r2 = reactExports.useMemo(function() {
-    return function(e3, n3) {
+    return (function(e3, n3) {
       if (!e3) throw he(14);
       if (re(e3)) {
         var o2 = e3(n3);
@@ -1706,20 +1706,20 @@ function ot(e2) {
       }
       if (Array.isArray(e3) || "object" != typeof e3) throw he(8);
       return n3 ? __assign(__assign({}, n3), e3) : e3;
-    }(e2.theme, n2);
+    })(e2.theme, n2);
   }, [e2.theme, n2]);
   return e2.children ? React.createElement(et.Provider, { value: r2 }, e2.children) : null;
 }
 var rt = {};
 function it(e2, r2, s2) {
-  var i2 = se(e2), a2 = e2, c2 = !L(e2), p2 = r2.attrs, d2 = void 0 === p2 ? _ : p2, h2 = r2.componentId, f2 = void 0 === h2 ? function(e3, t2) {
+  var i2 = se(e2), a2 = e2, c2 = !L(e2), p2 = r2.attrs, d2 = void 0 === p2 ? _ : p2, h2 = r2.componentId, f2 = void 0 === h2 ? (function(e3, t2) {
     var n2 = "string" != typeof e3 ? "sc" : R(e3);
     rt[n2] = (rt[n2] || 0) + 1;
     var o2 = "".concat(n2, "-").concat($(v + n2 + rt[n2]));
     return t2 ? "".concat(t2, "-").concat(o2) : o2;
-  }(r2.displayName, r2.parentComponentId) : h2, m2 = r2.displayName, y2 = void 0 === m2 ? function(e3) {
+  })(r2.displayName, r2.parentComponentId) : h2, m2 = r2.displayName, y2 = void 0 === m2 ? (function(e3) {
     return L(e3) ? "styled.".concat(e3) : "Styled(".concat(B(e3), ")");
-  }(e2) : m2, g2 = r2.displayName && r2.componentId ? "".concat(R(r2.displayName), "-").concat(r2.componentId) : r2.componentId || f2, S2 = i2 && a2.attrs ? a2.attrs.concat(d2).filter(Boolean) : d2, w2 = r2.shouldForwardProp;
+  })(e2) : m2, g2 = r2.displayName && r2.componentId ? "".concat(R(r2.displayName), "-").concat(r2.componentId) : r2.componentId || f2, S2 = i2 && a2.attrs ? a2.attrs.concat(d2).filter(Boolean) : d2, w2 = r2.shouldForwardProp;
   if (i2 && a2.shouldForwardProp) {
     var b2 = a2.shouldForwardProp;
     if (r2.shouldForwardProp) {
@@ -1731,34 +1731,34 @@ function it(e2, r2, s2) {
   }
   var N2 = new Qe(s2, g2, i2 ? a2.componentStyle : void 0);
   function O2(e3, r3) {
-    return function(e4, r4, s3) {
+    return (function(e4, r4, s3) {
       var i3 = e4.attrs, a3 = e4.componentStyle, c3 = e4.defaultProps, p3 = e4.foldedComponentIds, d3 = e4.styledComponentId, h3 = e4.target, f3 = React.useContext(et), m3 = Ge(), y3 = e4.shouldForwardProp || m3.shouldForwardProp;
-      var v2 = I(r4, f3, c3) || C, g3 = function(e5, n2, o2) {
+      var v2 = I(r4, f3, c3) || C, g3 = (function(e5, n2, o2) {
         for (var r5, s4 = __assign(__assign({}, n2), { className: void 0, theme: o2 }), i4 = 0; i4 < e5.length; i4 += 1) {
           var a4 = re(r5 = e5[i4]) ? r5(s4) : r5;
           for (var c4 in a4) s4[c4] = "className" === c4 ? ie(s4[c4], a4[c4]) : "style" === c4 ? __assign(__assign({}, s4[c4]), a4[c4]) : a4[c4];
         }
         return n2.className && (s4.className = ie(s4.className, n2.className)), s4;
-      }(i3, r4, v2), S3 = g3.as || h3, w3 = {};
+      })(i3, r4, v2), S3 = g3.as || h3, w3 = {};
       for (var b3 in g3) void 0 === g3[b3] || "$" === b3[0] || "as" === b3 || "theme" === b3 && g3.theme === v2 || ("forwardedAs" === b3 ? w3.as = g3.forwardedAs : y3 && !y3(b3, S3) || (w3[b3] = g3[b3], y3 || true));
-      var E3 = function(e5, t2) {
+      var E3 = (function(e5, t2) {
         var n2 = Ge(), o2 = e5.generateAndInjectStyles(t2, n2.styleSheet, n2.stylis);
         return o2;
-      }(a3, g3);
+      })(a3, g3);
       var N3 = ie(p3, d3);
       return E3 && (N3 += " " + E3), g3.className && (N3 += " " + g3.className), w3[L(S3) && !A.has(S3) ? "class" : "className"] = N3, s3 && (w3.ref = s3), reactExports.createElement(S3, w3);
-    }(D2, e3, r3);
+    })(D2, e3, r3);
   }
   O2.displayName = y2;
   var D2 = React.forwardRef(O2);
   return D2.attrs = S2, D2.componentStyle = N2, D2.displayName = y2, D2.shouldForwardProp = w2, D2.foldedComponentIds = i2 ? ie(a2.foldedComponentIds, a2.styledComponentId) : "", D2.styledComponentId = g2, D2.target = i2 ? a2.target : e2, Object.defineProperty(D2, "defaultProps", { get: function() {
     return this._foldedDefaultProps;
   }, set: function(e3) {
-    this._foldedDefaultProps = i2 ? function(e4) {
+    this._foldedDefaultProps = i2 ? (function(e4) {
       for (var t2 = [], n2 = 1; n2 < arguments.length; n2++) t2[n2 - 1] = arguments[n2];
       for (var o2 = 0, r3 = t2; o2 < r3.length; o2++) le(e4, r3[o2], true);
       return e4;
-    }({}, a2.defaultProps, e3) : e3;
+    })({}, a2.defaultProps, e3) : e3;
   } }), ue(D2, function() {
     return ".".concat(D2.styledComponentId);
   }), c2 && oe(D2, e2, { attrs: true, componentStyle: true, displayName: true, foldedComponentIds: true, shouldForwardProp: true, styledComponentId: true, target: true }), D2;
@@ -1794,7 +1794,7 @@ var pt = function(e2) {
 A.forEach(function(e2) {
   dt[e2] = pt(e2);
 });
-var ht = function() {
+var ht = (function() {
   function e2(e3, t2) {
     this.rules = e3, this.componentId = t2, this.isStatic = Ze(e3), ke.registerId(this.componentId + 1);
   }
@@ -1806,7 +1806,7 @@ var ht = function() {
   }, e2.prototype.renderStyles = function(e3, t2, n2, o2) {
     e3 > 2 && ke.registerId(this.componentId + e3), this.removeStyles(e3, n2), this.createStyles(e3, t2, n2, o2);
   }, e2;
-}();
+})();
 function ft(n2) {
   for (var r2 = [], s2 = 1; s2 < arguments.length; s2++) r2[s2 - 1] = arguments[s2];
   var i2 = lt.apply(void 0, __spreadArray([n2], r2, false)), a2 = "sc-global-".concat($(JSON.stringify(i2))), c2 = new ht(i2, a2);

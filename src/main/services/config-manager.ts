@@ -335,7 +335,7 @@ class ConfigManager {
   }
 
   // 配置验证
-  public validateConfig(config: any): { valid: boolean; errors: string[] } {
+  public validateConfig(config: AppConfig): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // 验证必需字段

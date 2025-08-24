@@ -1,4 +1,4 @@
-import { R as React, r as reactExports } from "./vendor-BX9Ry-Sa.js";
+import { R as React, r as reactExports } from "./vendor-DhqXj2Hl.js";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production = {};
 /**
@@ -84,7 +84,7 @@ function createStyleElement(options) {
   tag.setAttribute("data-s", "");
   return tag;
 }
-var StyleSheet = /* @__PURE__ */ function() {
+var StyleSheet = /* @__PURE__ */ (function() {
   function StyleSheet2(options) {
     var _this = this;
     this._insertTag = function(tag) {
@@ -142,7 +142,7 @@ var StyleSheet = /* @__PURE__ */ function() {
     this.ctr = 0;
   };
   return StyleSheet2;
-}();
+})();
 var MS = "-ms-";
 var MOZ = "-moz-";
 var WEBKIT = "-webkit-";
