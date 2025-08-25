@@ -57,7 +57,7 @@ const Slider = styled.span`
   }
 `;
 
-const Switch: React.FC<SwitchProps> = ({ 
+const Switch = React.memo<SwitchProps>(({ 
   checked, 
   onChange, 
   disabled = false 
@@ -77,6 +77,6 @@ const Switch: React.FC<SwitchProps> = ({
       <Slider className="slider" />
     </SwitchContainer>
   );
-};
+});
 
 export default Switch;

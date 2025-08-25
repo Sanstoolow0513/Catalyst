@@ -16,7 +16,9 @@ export default defineConfig({
   preload: {
     build: {
       lib: {
-        entry: 'src/main/preload.ts'
+        entry: 'src/main/preload.ts',
+        fileName: 'preload.js',
+        formats: ['cjs']
       }
     }
   },
@@ -39,9 +41,13 @@ export default defineConfig({
       rollupOptions: {
         output: {
           manualChunks: {
-            'vendor': ['react', 'react-dom', 'styled-components'],
-            'ui': ['@mui/material', '@emotion/react', '@emotion/styled'],
-            'utils': ['axios', 'js-yaml']
+            'react-vendor': ['react', 'react-dom'],
+            'styled-components': ['styled-components'],
+            'mui-vendor': ['@mui/material', '@emotion/react', '@emotion/styled'],
+            'icons': ['lucide-react', 'react-icons'],
+            'utils': ['axios', 'js-yaml'],
+            'animation': ['framer-motion'],
+            'routing': ['react-router-dom']
           }
         }
       }

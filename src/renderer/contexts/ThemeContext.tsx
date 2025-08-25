@@ -116,7 +116,7 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
 
         // 监听系统主题变化
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+        const handleSystemThemeChange = (e: { matches: boolean }) => {
           const newSystemPrefersDark = e.matches;
           setSystemPrefersDark(newSystemPrefersDark);
           systemPrefersDarkRef.current = newSystemPrefersDark;

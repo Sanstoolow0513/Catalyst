@@ -3,7 +3,6 @@ import { proxyService, ProxyConnectionInfo, ProxyMetrics } from '../services/Pro
 import { 
   ProxyState as IProxyState, 
   ProxyAction as IProxyAction,
-  MihomoConfig,
   ProxyGroup
 } from '../types';
 
@@ -36,7 +35,7 @@ interface EnhancedProxyState extends IProxyState {
 
 // 增强的 Action 类型
 type EnhancedProxyAction = IProxyAction | 
-  | { type: 'SET_CONNECTION_INFO'; payload: ProxyConnectionInfo | null }
+  { type: 'SET_CONNECTION_INFO'; payload: ProxyConnectionInfo | null }
   | { type: 'SET_PROXY_GROUPS'; payload: ProxyGroup[] }
   | { type: 'SET_LATENCY_DATA'; payload: Record<string, number> }
   | { type: 'SET_METRICS'; payload: ProxyMetrics | null }
@@ -184,7 +183,7 @@ function enhancedProxyReducer(state: EnhancedProxyState, action: EnhancedProxyAc
 // 增强的 Hook
 export function useEnhancedProxyState() {
   const [state, dispatch] = useReducer(enhancedProxyReducer, initialEnhancedState);
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshIntervalRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
 
   // 安全的 dispatch 包装器

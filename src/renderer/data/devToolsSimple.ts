@@ -1,30 +1,13 @@
 import { 
   SiIntellijidea,
-  SiPycharm,
-  SiWebstorm,
   SiNodedotjs,
   SiPython,
-  SiDotnet,
-  SiMysql,
-  SiPostgresql,
-  SiMongodb,
-  SiDocker,
-  SiGit,
-  SiNpm,
-  SiReact,
-  SiVuedotjs,
-  SiAngular,
-  SiGithub,
-  SiStackoverflow,
-  SiJuejin,
-  SiMedium,
-  SiMicrosoftazure,
   SiTencentqq,
   SiObsidian,
   SiBrave
 } from 'react-icons/si';
 import { VscCode } from 'react-icons/vsc';
-import { FaJava, FaTerminal, FaTools } from 'react-icons/fa';
+import { FaTerminal, FaTools } from 'react-icons/fa';
 
 export const devToolsSimple = [
   // 开发环境

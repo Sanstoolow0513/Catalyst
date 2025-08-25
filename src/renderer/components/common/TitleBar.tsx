@@ -30,7 +30,6 @@ const TitleBarContainer = styled(motion.div)`
   border-bottom: 1px solid transparent;
   transition: all ${props => props.theme.transition.normal} ease;
   backdrop-filter: blur(10px);
-  background-color: ${props => props.theme.titleBar.background}cc;
   z-index: 1000;
 `;
 

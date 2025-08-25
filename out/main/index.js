@@ -1,44 +1,31 @@
-"use strict";
-const electron = require("electron");
-const path = require("path");
-const child_process = require("child_process");
-const fs = require("fs");
-const require$$1$1 = require("util");
-const stream = require("stream");
-const require$$3$2 = require("http");
-const https = require("https");
-const require$$0$2 = require("url");
-const require$$8 = require("crypto");
-const require$$4$1 = require("assert");
-const require$$1$2 = require("tty");
-const os = require("os");
-const zlib = require("zlib");
-const events = require("events");
-const process$1 = require("node:process");
-const path$1 = require("node:path");
-const node_util = require("node:util");
-const fs$1 = require("node:fs");
-const crypto = require("node:crypto");
-const assert = require("node:assert");
-const os$1 = require("node:os");
-function _interopNamespaceDefault(e) {
-  const n = Object.create(null, { [Symbol.toStringTag]: { value: "Module" } });
-  if (e) {
-    for (const k in e) {
-      if (k !== "default") {
-        const d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: () => e[k]
-        });
-      }
-    }
-  }
-  n.default = e;
-  return Object.freeze(n);
-}
-const path__namespace = /* @__PURE__ */ _interopNamespaceDefault(path);
-const fs__namespace = /* @__PURE__ */ _interopNamespaceDefault(fs);
+import electron, { app as app$1, ipcMain as ipcMain$1, shell as shell$1, dialog, BrowserWindow } from "electron";
+import * as path from "path";
+import path__default from "path";
+import { spawn, exec } from "child_process";
+import * as fs from "fs";
+import fs__default from "fs";
+import require$$1$1, { promisify as promisify$1 } from "util";
+import stream, { Readable } from "stream";
+import require$$3$2 from "http";
+import https from "https";
+import require$$0$2 from "url";
+import require$$8 from "crypto";
+import require$$4$1 from "assert";
+import require$$1$2 from "tty";
+import os from "os";
+import zlib from "zlib";
+import { EventEmitter } from "events";
+import process$1 from "node:process";
+import path$1 from "node:path";
+import { promisify, isDeepStrictEqual } from "node:util";
+import fs$1 from "node:fs";
+import crypto from "node:crypto";
+import assert from "node:assert";
+import os$1 from "node:os";
+import __cjs_mod__ from "node:module";
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
+const require2 = __cjs_mod__.createRequire(import.meta.url);
 const IPC_EVENTS = {
   MIHOMO_START: "mihomo:start",
   MIHOMO_STOP: "mihomo:stop",
@@ -5747,7 +5734,7 @@ function requireMimeTypes() {
   hasRequiredMimeTypes = 1;
   (function(exports) {
     var db = requireMimeDb();
-    var extname = path.extname;
+    var extname = path__default.extname;
     var EXTRACT_TYPE_REGEXP = /^\s*([^;\s]*)(?:;|\s|$)/;
     var TEXT_TYPE_REGEXP = /^text\//i;
     exports.charset = charset;
@@ -6910,11 +6897,11 @@ function requireForm_data() {
   hasRequiredForm_data = 1;
   var CombinedStream = requireCombined_stream();
   var util2 = require$$1$1;
-  var path$12 = path;
+  var path2 = path__default;
   var http = require$$3$2;
   var https$1 = https;
   var parseUrl = require$$0$2.parse;
-  var fs$12 = fs;
+  var fs2 = fs__default;
   var Stream = stream.Stream;
   var crypto2 = require$$8;
   var mime = requireMimeTypes();
@@ -6981,7 +6968,7 @@ function requireForm_data() {
       if (value.end != void 0 && value.end != Infinity && value.start != void 0) {
         callback(null, value.end + 1 - (value.start ? value.start : 0));
       } else {
-        fs$12.stat(value.path, function(err, stat) {
+        fs2.stat(value.path, function(err, stat) {
           if (err) {
             callback(err);
             return;
@@ -7038,11 +7025,11 @@ function requireForm_data() {
   FormData2.prototype._getContentDisposition = function(value, options) {
     var filename;
     if (typeof options.filepath === "string") {
-      filename = path$12.normalize(options.filepath).replace(/\\/g, "/");
+      filename = path2.normalize(options.filepath).replace(/\\/g, "/");
     } else if (options.filename || value && (value.name || value.path)) {
-      filename = path$12.basename(options.filename || value && (value.name || value.path));
+      filename = path2.basename(options.filename || value && (value.name || value.path));
     } else if (value && value.readable && hasOwn(value, "httpVersion")) {
-      filename = path$12.basename(value.client._httpMessage.path || "");
+      filename = path2.basename(value.client._httpMessage.path || "");
     }
     if (filename) {
       return 'filename="' + filename + '"';
@@ -8899,9 +8886,9 @@ function requireFollowRedirects() {
     "search",
     "hash"
   ];
-  var events2 = ["abort", "aborted", "connect", "error", "socket", "timeout"];
+  var events = ["abort", "aborted", "connect", "error", "socket", "timeout"];
   var eventHandlers = /* @__PURE__ */ Object.create(null);
-  events2.forEach(function(event) {
+  events.forEach(function(event) {
     eventHandlers[event] = function(arg1, arg2, arg3) {
       this._redirectable.emit(event, arg1, arg2, arg3);
     };
@@ -9115,7 +9102,7 @@ function requireFollowRedirects() {
     }
     var request = this._currentRequest = nativeProtocol.request(this._options, this._onNativeResponse);
     request._redirectable = this;
-    for (var event of events2) {
+    for (var event of events) {
       request.on(event, eventHandlers[event]);
     }
     this._currentUrl = /^\//.test(this._options.path) ? url.format(this._options) : (
@@ -9330,7 +9317,7 @@ function requireFollowRedirects() {
     return CustomError;
   }
   function destroyRequest(request, error) {
-    for (var event of events2) {
+    for (var event of events) {
       request.removeListener(event, eventHandlers[event]);
     }
     request.on("error", noop2);
@@ -9582,7 +9569,7 @@ const formDataToStream = (form, headersHandler, options) => {
     computedHeaders["Content-Length"] = contentLength;
   }
   headersHandler && headersHandler(computedHeaders);
-  return stream.Readable.from((async function* () {
+  return Readable.from((async function* () {
     for (const part of parts) {
       yield boundaryBytes;
       yield* part.encode();
@@ -9828,7 +9815,7 @@ const httpAdapter = isHttpAdapterSupported && function httpAdapter2(config) {
         });
       };
     }
-    const emitter = new events.EventEmitter();
+    const emitter = new EventEmitter();
     const onFinished = () => {
       if (config.cancelToken) {
         config.cancelToken.unsubscribe(abort);
@@ -11316,12 +11303,12 @@ class MihomoService {
    * 初始化配置文件路径，并在文件不存在时创建默认配置。
    */
   constructor() {
-    this.configDir = path.join(electron.app.getPath("userData"), "mihomo_config");
-    this.configPath = path.join(this.configDir, "config.yaml");
-    if (!fs.existsSync(this.configDir)) {
-      fs.mkdirSync(this.configDir, { recursive: true });
+    this.configDir = path__default.join(app$1.getPath("userData"), "mihomo_config");
+    this.configPath = path__default.join(this.configDir, "config.yaml");
+    if (!fs__default.existsSync(this.configDir)) {
+      fs__default.mkdirSync(this.configDir, { recursive: true });
     }
-    if (!fs.existsSync(this.configPath)) {
+    if (!fs__default.existsSync(this.configPath)) {
       this.createDefaultConfig();
     }
     this.apiClient = axios.create({
@@ -11347,14 +11334,14 @@ class MihomoService {
    */
   getMihomoPath() {
     const appName = "mihomo.exe";
-    if (!electron.app.isPackaged) {
-      console.log(`[MihomoService] Running in development mode. App path: ${electron.app.getAppPath()}`);
-      const devPath = path.resolve(electron.app.getAppPath(), "..", "resources", appName);
+    if (!app$1.isPackaged) {
+      console.log(`[MihomoService] Running in development mode. App path: ${app$1.getAppPath()}`);
+      const devPath = path__default.resolve(app$1.getAppPath(), "..", "resources", appName);
       console.log(`[MihomoService] Looking for mihomo in development path: ${devPath}`);
       return devPath;
     }
-    console.log(`[MihomoService] Running in production mode. App path: ${electron.app.getAppPath()}`);
-    const prodPath = path.resolve(path.dirname(electron.app.getAppPath()), "resources", appName);
+    console.log(`[MihomoService] Running in production mode. App path: ${app$1.getAppPath()}`);
+    const prodPath = path__default.resolve(path__default.dirname(app$1.getAppPath()), "resources", appName);
     console.log(`[MihomoService] Looking for mihomo in production path: ${prodPath}`);
     return prodPath;
   }
@@ -11378,7 +11365,7 @@ class MihomoService {
       rules: []
     };
     try {
-      fs.writeFileSync(this.configPath, jsYaml.dump(defaultConfig), "utf8");
+      fs__default.writeFileSync(this.configPath, jsYaml.dump(defaultConfig), "utf8");
       console.log(`[MihomoService] Default config created at: ${this.configPath}`);
     } catch (error) {
       console.error(`[MihomoService] Failed to create default config: ${error}`);
@@ -11404,10 +11391,10 @@ class MihomoService {
    */
   loadConfig() {
     return new Promise((resolve2, reject) => {
-      if (!fs.existsSync(this.configPath)) {
+      if (!fs__default.existsSync(this.configPath)) {
         this.createDefaultConfig();
       }
-      fs.readFile(this.configPath, "utf8", (err, data) => {
+      fs__default.readFile(this.configPath, "utf8", (err, data) => {
         if (err) {
           console.error(`[MihomoService] Failed to read config file: ${err}`);
           return reject(err);
@@ -11429,11 +11416,11 @@ class MihomoService {
    */
   saveConfig(config) {
     return new Promise((resolve2, reject) => {
-      if (!fs.existsSync(this.configDir)) {
-        fs.mkdirSync(this.configDir, { recursive: true });
+      if (!fs__default.existsSync(this.configDir)) {
+        fs__default.mkdirSync(this.configDir, { recursive: true });
       }
       const yamlStr = jsYaml.dump(config);
-      fs.writeFile(this.configPath, yamlStr, "utf8", (err) => {
+      fs__default.writeFile(this.configPath, yamlStr, "utf8", (err) => {
         if (err) {
           console.error(`[MihomoService] Failed to write config file: ${err}`);
           return reject(err);
@@ -11470,17 +11457,17 @@ class MihomoService {
       return;
     }
     const mihomoPath = this.getMihomoPath();
-    if (!fs.existsSync(mihomoPath)) {
+    if (!fs__default.existsSync(mihomoPath)) {
       const errorMsg = `Mihomo executable not found at: ${mihomoPath}`;
       console.error(`[MihomoService] ${errorMsg}`);
       throw new Error(errorMsg);
     }
-    if (!fs.existsSync(this.configPath)) {
+    if (!fs__default.existsSync(this.configPath)) {
       const errorMsg = `Config file not found at: ${this.configPath}`;
       console.error(`[MihomoService] ${errorMsg}`);
       throw new Error(errorMsg);
     }
-    const configStat = fs.statSync(this.configPath);
+    const configStat = fs__default.statSync(this.configPath);
     if (configStat.size === 0) {
       const errorMsg = `Config file is empty: ${this.configPath}`;
       console.error(`[MihomoService] ${errorMsg}`);
@@ -11501,7 +11488,7 @@ class MihomoService {
     return new Promise((resolve2, reject) => {
       console.log(`[MihomoService] Starting mihomo from: ${mihomoPath}`);
       console.log(`[MihomoService] Using config directory: ${this.configDir}`);
-      this.mihomoProcess = child_process.spawn(mihomoPath, [
+      this.mihomoProcess = spawn(mihomoPath, [
         "-d",
         this.configDir
       ]);
@@ -11653,7 +11640,7 @@ class MihomoService {
 }
 const mihomoService = MihomoService.getInstance();
 function registerMihomoIpcHandlers() {
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_START, async () => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_START, async () => {
     try {
       await mihomoService.start();
       return { success: true };
@@ -11662,7 +11649,7 @@ function registerMihomoIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_STOP, async () => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_STOP, async () => {
     try {
       await mihomoService.stop();
       return { success: true };
@@ -11671,10 +11658,10 @@ function registerMihomoIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_STATUS, () => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_STATUS, () => {
     return { isRunning: mihomoService.isRunning() };
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_LOAD_CONFIG, async () => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_LOAD_CONFIG, async () => {
     try {
       const config = await mihomoService.loadConfig();
       return { success: true, data: config };
@@ -11683,7 +11670,7 @@ function registerMihomoIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_SAVE_CONFIG, async (_event, config) => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_SAVE_CONFIG, async (_event, config) => {
     try {
       await mihomoService.saveConfig(config);
       return { success: true };
@@ -11692,7 +11679,7 @@ function registerMihomoIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_GET_CONFIG_PATH, () => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_GET_CONFIG_PATH, () => {
     try {
       const configPath = mihomoService.getConfigPath();
       return { success: true, data: configPath };
@@ -11701,18 +11688,18 @@ function registerMihomoIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_OPEN_CONFIG_DIR, async () => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_OPEN_CONFIG_DIR, async () => {
     try {
       const configPath = mihomoService.getConfigPath();
-      const configDir = path.dirname(configPath);
-      await electron.shell.openPath(configDir);
+      const configDir = path__default.dirname(configPath);
+      await shell$1.openPath(configDir);
       return { success: true };
     } catch (error) {
       console.error("Failed to open Mihomo config directory:", error);
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_GET_PROXIES, async () => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_GET_PROXIES, async () => {
     try {
       const proxies = await mihomoService.getProxies();
       return { success: true, data: proxies };
@@ -11721,7 +11708,7 @@ function registerMihomoIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_SELECT_PROXY, async (_event, groupName, proxyName) => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_SELECT_PROXY, async (_event, groupName, proxyName) => {
     try {
       await mihomoService.selectProxy(groupName, proxyName);
       return { success: true };
@@ -11730,7 +11717,7 @@ function registerMihomoIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_FETCH_CONFIG_FROM_URL, async (_event, url) => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_FETCH_CONFIG_FROM_URL, async (_event, url) => {
     try {
       const config = await mihomoService.fetchConfigFromURL(url);
       return { success: true, data: config };
@@ -11739,7 +11726,7 @@ function registerMihomoIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.MIHOMO_TEST_PROXY_DELAY, async (_event, proxyName) => {
+  ipcMain$1.handle(IPC_EVENTS.MIHOMO_TEST_PROXY_DELAY, async (_event, proxyName) => {
     try {
       const delay = await mihomoService.testProxyDelay(proxyName);
       return { success: true, data: delay };
@@ -12156,14 +12143,14 @@ const retryifySync = (fn, isRetriableError) => {
 const FS = {
   attempt: {
     /* ASYNC */
-    chmod: attemptifyAsync(node_util.promisify(fs$1.chmod), Handlers.onChangeError),
-    chown: attemptifyAsync(node_util.promisify(fs$1.chown), Handlers.onChangeError),
-    close: attemptifyAsync(node_util.promisify(fs$1.close), NOOP),
-    fsync: attemptifyAsync(node_util.promisify(fs$1.fsync), NOOP),
-    mkdir: attemptifyAsync(node_util.promisify(fs$1.mkdir), NOOP),
-    realpath: attemptifyAsync(node_util.promisify(fs$1.realpath), NOOP),
-    stat: attemptifyAsync(node_util.promisify(fs$1.stat), NOOP),
-    unlink: attemptifyAsync(node_util.promisify(fs$1.unlink), NOOP),
+    chmod: attemptifyAsync(promisify(fs$1.chmod), Handlers.onChangeError),
+    chown: attemptifyAsync(promisify(fs$1.chown), Handlers.onChangeError),
+    close: attemptifyAsync(promisify(fs$1.close), NOOP),
+    fsync: attemptifyAsync(promisify(fs$1.fsync), NOOP),
+    mkdir: attemptifyAsync(promisify(fs$1.mkdir), NOOP),
+    realpath: attemptifyAsync(promisify(fs$1.realpath), NOOP),
+    stat: attemptifyAsync(promisify(fs$1.stat), NOOP),
+    unlink: attemptifyAsync(promisify(fs$1.unlink), NOOP),
     /* SYNC */
     chmodSync: attemptifySync(fs$1.chmodSync, Handlers.onChangeError),
     chownSync: attemptifySync(fs$1.chownSync, Handlers.onChangeError),
@@ -12177,14 +12164,14 @@ const FS = {
   },
   retry: {
     /* ASYNC */
-    close: retryifyAsync(node_util.promisify(fs$1.close), Handlers.isRetriableError),
-    fsync: retryifyAsync(node_util.promisify(fs$1.fsync), Handlers.isRetriableError),
-    open: retryifyAsync(node_util.promisify(fs$1.open), Handlers.isRetriableError),
-    readFile: retryifyAsync(node_util.promisify(fs$1.readFile), Handlers.isRetriableError),
-    rename: retryifyAsync(node_util.promisify(fs$1.rename), Handlers.isRetriableError),
-    stat: retryifyAsync(node_util.promisify(fs$1.stat), Handlers.isRetriableError),
-    write: retryifyAsync(node_util.promisify(fs$1.write), Handlers.isRetriableError),
-    writeFile: retryifyAsync(node_util.promisify(fs$1.writeFile), Handlers.isRetriableError),
+    close: retryifyAsync(promisify(fs$1.close), Handlers.isRetriableError),
+    fsync: retryifyAsync(promisify(fs$1.fsync), Handlers.isRetriableError),
+    open: retryifyAsync(promisify(fs$1.open), Handlers.isRetriableError),
+    readFile: retryifyAsync(promisify(fs$1.readFile), Handlers.isRetriableError),
+    rename: retryifyAsync(promisify(fs$1.rename), Handlers.isRetriableError),
+    stat: retryifyAsync(promisify(fs$1.stat), Handlers.isRetriableError),
+    write: retryifyAsync(promisify(fs$1.write), Handlers.isRetriableError),
+    writeFile: retryifyAsync(promisify(fs$1.writeFile), Handlers.isRetriableError),
     /* SYNC */
     closeSync: retryifySync(fs$1.closeSync, Handlers.isRetriableError),
     fsyncSync: retryifySync(fs$1.fsyncSync, Handlers.isRetriableError),
@@ -21914,7 +21901,7 @@ class Conf {
     const onChange = () => {
       const oldValue = currentValue;
       const newValue = getter();
-      if (node_util.isDeepStrictEqual(newValue, oldValue)) {
+      if (isDeepStrictEqual(newValue, oldValue)) {
         return;
       }
       currentValue = newValue;
@@ -22112,9 +22099,9 @@ class ConfigManager {
   store;
   configDir;
   constructor() {
-    this.configDir = path__namespace.join(electron.app.getPath("userData"), "config");
-    if (!fs__namespace.existsSync(this.configDir)) {
-      fs__namespace.mkdirSync(this.configDir, { recursive: true });
+    this.configDir = path.join(app$1.getPath("userData"), "config");
+    if (!fs.existsSync(this.configDir)) {
+      fs.mkdirSync(this.configDir, { recursive: true });
     }
     this.store = new ElectronStore({
       name: "app-config",
@@ -22227,12 +22214,12 @@ class ConfigManager {
   // 导出配置到文件
   exportConfig(filePath) {
     const config = this.getAllConfig();
-    fs__namespace.writeFileSync(filePath, JSON.stringify(config, null, 2));
+    fs.writeFileSync(filePath, JSON.stringify(config, null, 2));
   }
   // 从文件导入配置
   importConfig(filePath) {
     try {
-      const configContent = fs__namespace.readFileSync(filePath, "utf8");
+      const configContent = fs.readFileSync(filePath, "utf8");
       const config = JSON.parse(configContent);
       if (config.llm && config.proxy && config.app) {
         this.store.set(config);
@@ -22253,7 +22240,7 @@ class ConfigManager {
   }
   // 获取配置文件路径
   getConfigFilePath() {
-    return path__namespace.join(this.configDir, "app-config.json");
+    return path.join(this.configDir, "app-config.json");
   }
   // 用户偏好设置方法
   setUserName(name) {
@@ -22318,13 +22305,13 @@ class ConfigManager {
   createBackup() {
     const config = this.getAllConfig();
     const timestamp2 = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
-    const backupPath = path__namespace.join(this.configDir, `backup-${timestamp2}.json`);
-    fs__namespace.writeFileSync(backupPath, JSON.stringify(config, null, 2));
+    const backupPath = path.join(this.configDir, `backup-${timestamp2}.json`);
+    fs.writeFileSync(backupPath, JSON.stringify(config, null, 2));
     return backupPath;
   }
   restoreFromBackup(backupPath) {
     try {
-      const backupContent = fs__namespace.readFileSync(backupPath, "utf8");
+      const backupContent = fs.readFileSync(backupPath, "utf8");
       const config = JSON.parse(backupContent);
       if (config.llm && config.proxy && config.app && config.user) {
         this.store.set(config);
@@ -22337,8 +22324,8 @@ class ConfigManager {
   }
   getBackupFiles() {
     try {
-      const files = fs__namespace.readdirSync(this.configDir);
-      return files.filter((file) => file.startsWith("backup-") && file.endsWith(".json")).map((file) => path__namespace.join(this.configDir, file)).sort((a, b) => fs__namespace.statSync(b).mtime.getTime() - fs__namespace.statSync(a).mtime.getTime());
+      const files = fs.readdirSync(this.configDir);
+      return files.filter((file) => file.startsWith("backup-") && file.endsWith(".json")).map((file) => path.join(this.configDir, file)).sort((a, b) => fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime());
     } catch {
       return [];
     }
@@ -22542,7 +22529,7 @@ class LLMService {
 }
 const llmService = LLMService.getInstance();
 function registerLlmIpcHandlers() {
-  electron.ipcMain.handle(IPC_EVENTS.LLM_GENERATE_COMPLETION, async (_event, request) => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_GENERATE_COMPLETION, async (_event, request) => {
     try {
       const { provider, model, messages, params = {} } = request;
       const result = await llmService.generateCompletion(provider, model, messages, params);
@@ -22552,7 +22539,7 @@ function registerLlmIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.LLM_SET_API_KEY, async (_event, request) => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_SET_API_KEY, async (_event, request) => {
     try {
       const { provider, apiKey } = request;
       apiKeyManager.setApiKey(provider, apiKey);
@@ -22562,7 +22549,7 @@ function registerLlmIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.LLM_GET_API_KEY, async (_event, provider) => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_GET_API_KEY, async (_event, provider) => {
     try {
       const apiKey = apiKeyManager.getApiKey(provider);
       return { success: true, data: apiKey };
@@ -22571,7 +22558,7 @@ function registerLlmIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.LLM_GET_ALL_API_KEYS, async () => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_GET_ALL_API_KEYS, async () => {
     try {
       const apiKeys = apiKeyManager.getAllApiKeys();
       return { success: true, data: apiKeys };
@@ -22580,7 +22567,7 @@ function registerLlmIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.LLM_DELETE_API_KEY, async (_event, provider) => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_DELETE_API_KEY, async (_event, provider) => {
     try {
       apiKeyManager.deleteApiKey(provider);
       return { success: true };
@@ -22589,7 +22576,7 @@ function registerLlmIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.LLM_SET_PROVIDER_CONFIG, async (_event, request) => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_SET_PROVIDER_CONFIG, async (_event, request) => {
     try {
       const { provider, baseUrl, apiKey, defaultHeaders } = request;
       llmService.setProviderConfig(provider, { baseUrl, apiKey, defaultHeaders });
@@ -22602,7 +22589,7 @@ function registerLlmIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.LLM_GET_PROVIDER_CONFIG, async (_event, provider) => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_GET_PROVIDER_CONFIG, async (_event, provider) => {
     try {
       const config = llmService.getProviderConfig(provider);
       return { success: true, data: config };
@@ -22611,7 +22598,7 @@ function registerLlmIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.LLM_GET_PROVIDERS, async () => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_GET_PROVIDERS, async () => {
     try {
       const providers = llmService.getProviders();
       return { success: true, data: providers };
@@ -22620,7 +22607,7 @@ function registerLlmIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.LLM_GET_MODELS, async (_event, provider) => {
+  ipcMain$1.handle(IPC_EVENTS.LLM_GET_MODELS, async (_event, provider) => {
     try {
       const models = llmService.getModels(provider);
       return { success: true, data: models };
@@ -22630,14 +22617,14 @@ function registerLlmIpcHandlers() {
     }
   });
 }
-const execPromise = require$$1$1.promisify(child_process.exec);
+const execPromise = promisify$1(exec);
 class DevEnvironmentService {
   static instance;
   downloadDir;
   constructor() {
-    this.downloadDir = path.join(electron.app.getPath("userData"), "downloads");
-    if (!fs.existsSync(this.downloadDir)) {
-      fs.mkdirSync(this.downloadDir, { recursive: true });
+    this.downloadDir = path__default.join(app$1.getPath("userData"), "downloads");
+    if (!fs__default.existsSync(this.downloadDir)) {
+      fs__default.mkdirSync(this.downloadDir, { recursive: true });
     }
   }
   static getInstance() {
@@ -22651,7 +22638,7 @@ class DevEnvironmentService {
    */
   async downloadFile(url, dest) {
     return new Promise((resolve2, reject) => {
-      const file = fs.createWriteStream(dest);
+      const file = fs__default.createWriteStream(dest);
       https.get(url, (response) => {
         response.pipe(file);
         file.on("finish", () => {
@@ -22659,7 +22646,7 @@ class DevEnvironmentService {
           resolve2();
         });
       }).on("error", (err) => {
-        fs.unlink(dest, () => {
+        fs__default.unlink(dest, () => {
         });
         reject(err);
       });
@@ -22675,13 +22662,13 @@ class DevEnvironmentService {
       let installerPath;
       if (os.platform() === "win32") {
         downloadUrl = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64";
-        installerPath = path.join(this.downloadDir, "vscode-installer.exe");
+        installerPath = path__default.join(this.downloadDir, "vscode-installer.exe");
       } else if (os.platform() === "darwin") {
         downloadUrl = "https://code.visualstudio.com/sha/download?build=stable&os=darwin";
-        installerPath = path.join(this.downloadDir, "vscode-installer.zip");
+        installerPath = path__default.join(this.downloadDir, "vscode-installer.zip");
       } else {
         downloadUrl = "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64";
-        installerPath = path.join(this.downloadDir, "vscode-installer.deb");
+        installerPath = path__default.join(this.downloadDir, "vscode-installer.deb");
       }
       console.log(`[DevEnvironmentService] Downloading VSCode from ${downloadUrl}`);
       await this.downloadFile(downloadUrl, installerPath);
@@ -22708,7 +22695,7 @@ class DevEnvironmentService {
           console.error("[DevEnvironmentService] VSCode installation stderr:", stderr);
         }
       }
-      fs.unlinkSync(installerPath);
+      fs__default.unlinkSync(installerPath);
       console.log("[DevEnvironmentService] VSCode installed successfully");
       return { success: true };
     } catch (error) {
@@ -22726,13 +22713,13 @@ class DevEnvironmentService {
       let installerPath;
       if (os.platform() === "win32") {
         downloadUrl = "https://nodejs.org/dist/latest/node-v20.10.0-win-x64.msi";
-        installerPath = path.join(this.downloadDir, "nodejs-installer.msi");
+        installerPath = path__default.join(this.downloadDir, "nodejs-installer.msi");
       } else if (os.platform() === "darwin") {
         downloadUrl = "https://nodejs.org/dist/latest/node-v20.10.0.pkg";
-        installerPath = path.join(this.downloadDir, "nodejs-installer.pkg");
+        installerPath = path__default.join(this.downloadDir, "nodejs-installer.pkg");
       } else {
         downloadUrl = "https://nodejs.org/dist/latest/node-v20.10.0-linux-x64.tar.xz";
-        installerPath = path.join(this.downloadDir, "nodejs-installer.tar.xz");
+        installerPath = path__default.join(this.downloadDir, "nodejs-installer.tar.xz");
       }
       console.log(`[DevEnvironmentService] Downloading Node.js from ${downloadUrl}`);
       await this.downloadFile(downloadUrl, installerPath);
@@ -22753,14 +22740,14 @@ class DevEnvironmentService {
         }
       } else {
         console.log("[DevEnvironmentService] Installing Node.js on Linux");
-        const extractDir = path.join(this.downloadDir, "nodejs");
+        const extractDir = path__default.join(this.downloadDir, "nodejs");
         const { stdout, stderr } = await execPromise(`tar -xf "${installerPath}" -C ${extractDir}`);
         console.log("[DevEnvironmentService] Node.js extraction stdout:", stdout);
         if (stderr) {
           console.error("[DevEnvironmentService] Node.js extraction stderr:", stderr);
         }
       }
-      fs.unlinkSync(installerPath);
+      fs__default.unlinkSync(installerPath);
       console.log("[DevEnvironmentService] Node.js installed successfully");
       return { success: true };
     } catch (error) {
@@ -22778,10 +22765,10 @@ class DevEnvironmentService {
       let installerPath;
       if (os.platform() === "win32") {
         downloadUrl = "https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe";
-        installerPath = path.join(this.downloadDir, "python-installer.exe");
+        installerPath = path__default.join(this.downloadDir, "python-installer.exe");
       } else if (os.platform() === "darwin") {
         downloadUrl = "https://www.python.org/ftp/python/3.12.0/python-3.12.0-macos11.pkg";
-        installerPath = path.join(this.downloadDir, "python-installer.pkg");
+        installerPath = path__default.join(this.downloadDir, "python-installer.pkg");
       } else {
         console.log("[DevEnvironmentService] Installing Python on Linux via package manager");
         const { stdout, stderr } = await execPromise("sudo apt update && sudo apt install -y python3 python3-pip");
@@ -22810,7 +22797,7 @@ class DevEnvironmentService {
           console.error("[DevEnvironmentService] Python installation stderr:", stderr);
         }
       }
-      fs.unlinkSync(installerPath);
+      fs__default.unlinkSync(installerPath);
       console.log("[DevEnvironmentService] Python installed successfully");
       return { success: true };
     } catch (error) {
@@ -22822,7 +22809,7 @@ class DevEnvironmentService {
 }
 const devEnvironmentService = DevEnvironmentService.getInstance();
 function registerDevEnvironmentIpcHandlers() {
-  electron.ipcMain.handle(IPC_EVENTS.DEV_ENV_INSTALL_VSCODE, async () => {
+  ipcMain$1.handle(IPC_EVENTS.DEV_ENV_INSTALL_VSCODE, async () => {
     try {
       const result = await devEnvironmentService.installVSCode();
       return result;
@@ -22831,7 +22818,7 @@ function registerDevEnvironmentIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.DEV_ENV_INSTALL_NODEJS, async () => {
+  ipcMain$1.handle(IPC_EVENTS.DEV_ENV_INSTALL_NODEJS, async () => {
     try {
       const result = await devEnvironmentService.installNodeJS();
       return result;
@@ -22840,7 +22827,7 @@ function registerDevEnvironmentIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.DEV_ENV_INSTALL_PYTHON, async () => {
+  ipcMain$1.handle(IPC_EVENTS.DEV_ENV_INSTALL_PYTHON, async () => {
     try {
       const result = await devEnvironmentService.installPython();
       return result;
@@ -22851,7 +22838,7 @@ function registerDevEnvironmentIpcHandlers() {
   });
 }
 function registerConfigIpcHandlers() {
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_ALL, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_ALL, async () => {
     try {
       const config = configManager.getAllConfig();
       return { success: true, data: config };
@@ -22860,7 +22847,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_VPN_URL, async (_event, url) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_VPN_URL, async (_event, url) => {
     try {
       configManager.setVpnProviderUrl(url);
       return { success: true };
@@ -22869,7 +22856,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_VPN_URL, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_VPN_URL, async () => {
     try {
       const url = configManager.getVpnProviderUrl();
       return { success: true, data: url };
@@ -22878,7 +22865,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_PROXY_AUTO_START, async (_event, autoStart) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_PROXY_AUTO_START, async (_event, autoStart) => {
     try {
       configManager.setProxyAutoStart(autoStart);
       return { success: true };
@@ -22887,7 +22874,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_PROXY_AUTO_START, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_PROXY_AUTO_START, async () => {
     try {
       const autoStart = configManager.getProxyAutoStart();
       return { success: true, data: autoStart };
@@ -22896,11 +22883,11 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_EXPORT, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_EXPORT, async () => {
     try {
-      const result = await electron.dialog.showSaveDialog({
+      const result = await dialog.showSaveDialog({
         title: "Export Configuration",
-        defaultPath: path__namespace.join(configManager.getConfigDir(), "catalyst-config.json"),
+        defaultPath: path.join(configManager.getConfigDir(), "catalyst-config.json"),
         filters: [
           { name: "JSON Files", extensions: ["json"] },
           { name: "All Files", extensions: ["*"] }
@@ -22917,9 +22904,9 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_IMPORT, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_IMPORT, async () => {
     try {
-      const result = await electron.dialog.showOpenDialog({
+      const result = await dialog.showOpenDialog({
         title: "Import Configuration",
         filters: [
           { name: "JSON Files", extensions: ["json"] },
@@ -22938,7 +22925,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_RESET, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_RESET, async () => {
     try {
       configManager.resetConfig();
       return { success: true };
@@ -22947,7 +22934,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_USER_NAME, async (_event, name) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_USER_NAME, async (_event, name) => {
     try {
       configManager.setUserName(name);
       return { success: true };
@@ -22956,7 +22943,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_USER_NAME, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_USER_NAME, async () => {
     try {
       const name = configManager.getUserName();
       return { success: true, data: name };
@@ -22965,7 +22952,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_USER_EMAIL, async (_event, email) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_USER_EMAIL, async (_event, email) => {
     try {
       configManager.setUserEmail(email);
       return { success: true };
@@ -22974,7 +22961,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_USER_EMAIL, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_USER_EMAIL, async () => {
     try {
       const email = configManager.getUserEmail();
       return { success: true, data: email };
@@ -22983,7 +22970,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_THEME, async (_event, theme) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_THEME, async (_event, theme) => {
     try {
       configManager.setTheme(theme);
       return { success: true };
@@ -22992,7 +22979,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_THEME, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_THEME, async () => {
     try {
       const theme = configManager.getTheme();
       return { success: true, data: theme };
@@ -23001,7 +22988,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_LANGUAGE, async (_event, language) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_LANGUAGE, async (_event, language) => {
     try {
       configManager.setLanguage(language);
       return { success: true };
@@ -23010,7 +22997,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_LANGUAGE, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_LANGUAGE, async () => {
     try {
       const language = configManager.getLanguage();
       return { success: true, data: language };
@@ -23019,7 +23006,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_STARTUP, async (_event, startup) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_STARTUP, async (_event, startup) => {
     try {
       configManager.setStartup(startup);
       return { success: true };
@@ -23028,7 +23015,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_STARTUP, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_STARTUP, async () => {
     try {
       const startup = configManager.getStartup();
       return { success: true, data: startup };
@@ -23037,7 +23024,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_MINIMIZE_TO_TRAY, async (_event, minimize) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_MINIMIZE_TO_TRAY, async (_event, minimize) => {
     try {
       configManager.setMinimizeToTray(minimize);
       return { success: true };
@@ -23046,7 +23033,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_MINIMIZE_TO_TRAY, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_MINIMIZE_TO_TRAY, async () => {
     try {
       const minimize = configManager.getMinimizeToTray();
       return { success: true, data: minimize };
@@ -23055,7 +23042,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_SET_NOTIFICATIONS, async (_event, enabled) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_SET_NOTIFICATIONS, async (_event, enabled) => {
     try {
       configManager.setNotifications(enabled);
       return { success: true };
@@ -23064,7 +23051,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_NOTIFICATIONS, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_NOTIFICATIONS, async () => {
     try {
       const notifications = configManager.getNotifications();
       return { success: true, data: notifications };
@@ -23073,7 +23060,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_USAGE_STATS, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_USAGE_STATS, async () => {
     try {
       const stats = configManager.getUsageStats();
       return { success: true, data: stats };
@@ -23082,7 +23069,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_CREATE_BACKUP, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_CREATE_BACKUP, async () => {
     try {
       const backupPath = configManager.createBackup();
       return { success: true, data: backupPath };
@@ -23091,7 +23078,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_RESTORE_FROM_BACKUP, async (_event, backupPath) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_RESTORE_FROM_BACKUP, async (_event, backupPath) => {
     try {
       configManager.restoreFromBackup(backupPath);
       return { success: true, data: backupPath };
@@ -23100,7 +23087,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_GET_BACKUP_FILES, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_GET_BACKUP_FILES, async () => {
     try {
       const backupFiles = configManager.getBackupFiles();
       return { success: true, data: backupFiles };
@@ -23109,7 +23096,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_VALIDATE_CONFIG, async (_event, config) => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_VALIDATE_CONFIG, async (_event, config) => {
     try {
       const validation2 = configManager.validateConfig(config);
       return { success: true, data: validation2 };
@@ -23118,7 +23105,7 @@ function registerConfigIpcHandlers() {
       return { success: false, error: error.message };
     }
   });
-  electron.ipcMain.handle(IPC_EVENTS.CONFIG_MIGRATE_CONFIG, async () => {
+  ipcMain$1.handle(IPC_EVENTS.CONFIG_MIGRATE_CONFIG, async () => {
     try {
       configManager.migrateConfig();
       return { success: true };
@@ -23130,22 +23117,22 @@ function registerConfigIpcHandlers() {
 }
 let mainWindow = null;
 function createWindow() {
-  const mainScreen = require("electron").screen.getPrimaryDisplay();
+  const mainScreen = require2("electron").screen.getPrimaryDisplay();
   const dimensions = mainScreen.workAreaSize;
-  mainWindow = new electron.BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: dimensions.width,
     height: dimensions.height,
     frame: false,
     // 禁用默认标题栏
     webPreferences: {
-      preload: path.join(__dirname, "../preload/preload.js"),
+      preload: path__default.join(__dirname, "../preload/preload.cjs"),
       // 修正为正确的 preload 文件名
       contextIsolation: true
     }
   });
   mainWindow.loadURL("http://localhost:5173");
   mainWindow.webContents.openDevTools();
-  electron.ipcMain.on(IPC_EVENTS.WINDOW_MINIMIZE, () => {
+  ipcMain$1.on(IPC_EVENTS.WINDOW_MINIMIZE, () => {
     console.log("Received WINDOW_MINIMIZE event");
     if (mainWindow) {
       console.log("Minimizing window");
@@ -23154,7 +23141,7 @@ function createWindow() {
       console.error("Main window is null, cannot minimize");
     }
   });
-  electron.ipcMain.on(IPC_EVENTS.WINDOW_MAXIMIZE, () => {
+  ipcMain$1.on(IPC_EVENTS.WINDOW_MAXIMIZE, () => {
     console.log("Received WINDOW_MAXIMIZE event");
     if (mainWindow) {
       if (mainWindow.isMaximized()) {
@@ -23168,7 +23155,7 @@ function createWindow() {
       console.error("Main window is null, cannot maximize/unmaximize");
     }
   });
-  electron.ipcMain.on(IPC_EVENTS.WINDOW_CLOSE, () => {
+  ipcMain$1.on(IPC_EVENTS.WINDOW_CLOSE, () => {
     console.log("Received WINDOW_CLOSE event");
     if (mainWindow) {
       console.log("Closing window");
@@ -23178,18 +23165,18 @@ function createWindow() {
     }
   });
 }
-electron.app.whenReady().then(() => {
+app$1.whenReady().then(() => {
   createWindow();
   registerMihomoIpcHandlers();
   registerLlmIpcHandlers();
   registerDevEnvironmentIpcHandlers();
   registerConfigIpcHandlers();
-  electron.app.on("activate", function() {
-    if (electron.BrowserWindow.getAllWindows().length === 0) createWindow();
+  app$1.on("activate", function() {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
-electron.app.on("window-all-closed", () => {
+app$1.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    electron.app.quit();
+    app$1.quit();
   }
 });

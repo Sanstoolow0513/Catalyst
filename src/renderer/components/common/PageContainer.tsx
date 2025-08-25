@@ -4,7 +4,7 @@ export const PageContainer = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
   height: 100%;
   width: 100%;
   background-color: ${(props) => props.theme?.background || '#F9FAFB'};
@@ -12,9 +12,19 @@ export const PageContainer = styled.div`
   padding: ${(props) => props.theme?.spacing?.xl || '32px'};
   
   &::-webkit-scrollbar {
-    display: none;
+    width: 8px;
   }
   
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: ${(props) => props.theme?.border || '#E5E7EB'};
+    border-radius: 4px;
+    
+    &:hover {
+      background: ${(props) => props.theme?.textTertiary || '#9CA3AF'};
+    }
+  }
 `;

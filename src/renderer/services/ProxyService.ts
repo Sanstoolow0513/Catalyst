@@ -4,17 +4,21 @@
  */
 
 import { ApiResponse, MihomoStatus, MihomoConfig, ProxyGroup } from '../types';
-import * as yaml from 'js-yaml';
 
 // 导入通知系统（可选）
-let notificationManager: any = null;
-try {
-  const { notificationManager: nm } = require('../components/common/NotificationSystem');
-  notificationManager = nm;
-} catch (e) {
-  // 通知系统不可用时的静默处理
-  console.warn('NotificationSystem not available');
-}
+// 保留为未来可能的通知功能扩展
+// let notificationManager: any = null;
+// try {
+//   // 动态导入通知系统
+//   import('../components/common/NotificationSystem').then(module => {
+//     notificationManager = module.notificationManager;
+//   }).catch(() => {
+//     console.warn('NotificationSystem not available');
+//   });
+// } catch {
+//   // 通知系统不可用时的静默处理
+//   console.warn('NotificationSystem not available');
+// }
 
 export interface ProxyConnectionInfo {
   httpPort: number;
@@ -33,7 +37,7 @@ export interface ProxyMetrics {
 
 class ProxyService {
   private static instance: ProxyService;
-  private statusCheckInterval: NodeJS.Timeout | null = null;
+  private statusCheckInterval: number | null = null;
   private metricsCache: ProxyMetrics | null = null;
   private lastStatusCheck = 0;
 

@@ -17,7 +17,7 @@ function createWindow() {
     height: dimensions.height,
     frame: false, // 禁用默认标题栏
     webPreferences: {
-      preload: path.join(__dirname, '../preload/preload.js'), // 修正为正确的 preload 文件名
+      preload: path.join(__dirname, '../preload/preload.cjs'), // 修正为正确的 preload 文件名
       contextIsolation: true,
     },
   })

@@ -12,7 +12,16 @@
       "Bash(dir:*)",
       "Bash(npm start:*)",
       "Bash(npm run dev:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(pkill:*)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm build:*)",
+      "Bash(find:*)",
+      "Bash(npm audit:*)",
+      "Bash(pnpm audit)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm run build:*)"
     ],
     "deny": [],
     "ask": []

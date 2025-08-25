@@ -1,243 +1,237 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { motion } from 'framer-motion';
 import { 
-  Button, 
-  Input, 
-  Label, 
-  Select, 
-  SelectWrapper, 
-  FormGroup,
-  PageContainer,
-  TabButton,
-  Switch,
-  ToastContainer,
-  ToastComponent,
-} from '../components/common';
-import SettingsSidebar from '../components/common/SettingsSidebar';
-import StatusIndicator from '../components/common/StatusIndicator';
-import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { 
   User as UserIcon,
-  Settings as SettingsIcon,
-  MessageSquare as MessageIcon,
   Database as DatabaseIcon,
   Upload as UploadIcon,
   Save as SaveIcon,
   RefreshCw as RefreshIcon,
-  Plus as PlusIcon,
-  Trash2 as DeleteIcon,
-  Edit as EditIcon,
-  Radio as RadioIcon,
-  Palette as PaletteIcon,
   Monitor as MonitorIcon,
-  Globe as GlobeIcon,
-  Shield as ShieldIcon,
-  Bell as BellIcon
+  Settings as SettingsIcon
 } from 'lucide-react';
+import ModernCard from '../components/common/ModernCard';
+import SettingsSidebar from '../components/common/SettingsSidebar';
+import StatusIndicator from '../components/common/StatusIndicator';
+import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useConfig } from '../contexts/ConfigContext';
 
-const PageTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: ${props => props.theme.spacing.sm};
+// Toast 组件 - 现代化设计
+const ToastContainer = styled.div`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
   display: flex;
-  align-items: center;
-  gap: ${props => props.theme.spacing.sm};
-  text-shadow: ${props => props.theme.textShadow.light};
+  flex-direction: column;
+  gap: 8px;
 `;
 
-const PageSubtitle = styled.p`
-  color: ${props => props.theme.textSecondary};
-  margin: 0;
-  font-size: 1.1rem;
+const ToastComponent = styled(motion.div)<{ 
+  type: 'success' | 'error' | 'info'; 
+  exiting?: boolean 
+}>`
+  padding: 12px 20px;
+  border-radius: ${props => props.theme.borderRadius.medium};
+  font-size: 0.9rem;
   font-weight: 500;
+  backdrop-filter: blur(10px);
+  border: 1px solid;
+  min-width: 200px;
+  max-width: 400px;
+  
+  ${props => {
+    switch(props.type) {
+      case 'success':
+        return css`
+          background: ${props.theme.name === 'dark' 
+            ? 'rgba(16, 185, 129, 0.2)' 
+            : 'rgba(16, 185, 129, 0.1)'};
+          color: ${props.theme.success.main};
+          border-color: ${props.theme.name === 'dark' 
+            ? 'rgba(16, 185, 129, 0.3)' 
+            : 'rgba(16, 185, 129, 0.2)'};
+        `;
+      case 'error':
+        return css`
+          background: ${props.theme.name === 'dark' 
+            ? 'rgba(239, 68, 68, 0.2)' 
+            : 'rgba(239, 68, 68, 0.1)'};
+          color: ${props.theme.error.main};
+          border-color: ${props.theme.name === 'dark' 
+            ? 'rgba(239, 68, 68, 0.3)' 
+            : 'rgba(239, 68, 68, 0.2)'};
+        `;
+      default:
+        return css`
+          background: ${props.theme.name === 'dark' 
+            ? 'rgba(59, 130, 246, 0.2)' 
+            : 'rgba(37, 99, 235, 0.1)'};
+          color: ${props.theme.primary.main};
+          border-color: ${props.theme.name === 'dark' 
+            ? 'rgba(59, 130, 246, 0.3)' 
+            : 'rgba(37, 99, 235, 0.2)'};
+        `;
+    }
+  }}
+  
+  opacity: ${props => props.exiting ? 0 : 1};
+  transform: translateY(${props => props.exiting ? '-20px' : '0'});
+  transition: all 0.3s ease;
 `;
 
-// 设置页面内容容器
-const SettingsContentContainer = styled.div`
-  flex: 1;
-  display: flex;
+// 简洁设置页面容器
+const ModernSettingsContainer = styled.div`
+  height: 100%;
+  background: ${props => props.theme.background};
+  position: relative;
+  font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
   overflow: hidden;
 `;
 
-// 主内容区域
+// 主布局容器
+const MainLayout = styled.div`
+  display: flex;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 24px;
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
+`;
+
+
+// 主内容区域 - 简洁设计
 const MainContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: ${props => props.theme.background};
-  min-height: 0;
-`;
-
-// 页面头部
-const ContentHeader = styled.div`
-  padding: 24px;
-  border-bottom: 1px solid ${props => props.theme.border};
-  background: ${props => props.theme.surface};
-`;
-
-// 标签页容器（用于移动端）
-const TabsContainer = styled.div`
-  display: none;
-  gap: 8px;
-  margin-bottom: 32px;
-  padding: 16px;
   background: ${props => props.theme.surface};
   border: 1px solid ${props => props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.medium};
+  border-radius: ${props => props.theme.borderRadius.large};
+  box-shadow: ${props => props.theme.card.shadow};
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
 `;
 
-// 标签页内容
-const TabContent = styled(motion.div)`
+// 页面头部 - 简洁设计
+const ContentHeader = styled.div`
+  padding: ${props => props.theme.spacing.lg};
+  background: ${props => props.theme.surface};
+  border-bottom: 1px solid ${props => props.theme.border};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+// 页面标题 - 简洁设计
+const PageTitle = styled.h1`
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0;
+  color: ${props => props.theme.textPrimary};
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+// 标签页内容 - 现代化设计
+const TabContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   overflow-y: auto;
   padding: 24px;
   min-height: 0;
   
-  /* 隐藏滚动条 */
   &::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
+    width: 6px;
     background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.border};
-    border-radius: 4px;
+    background: ${props => props.theme.name === 'dark' 
+      ? 'rgba(59, 130, 246, 0.3)' 
+      : 'rgba(37, 99, 235, 0.3)'};
+    border-radius: 3px;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: ${props => props.theme.borderLight};
+    background: ${props => props.theme.name === 'dark' 
+      ? 'rgba(59, 130, 246, 0.5)' 
+      : 'rgba(37, 99, 235, 0.5)'};
   }
 `;
 
-// 区块标题
+// 区块标题 - 简洁设计
 const SectionTitle = styled.h3`
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.3rem;
+  font-weight: 600;
   margin: 0;
-  text-shadow: ${props => props.theme.textShadow.medium};
-`;
-
-const SectionDescription = styled.p`
-  color: ${props => props.theme.textSecondary};
-  margin: 0;
-  line-height: 1.6;
-  font-size: 0.95rem;
-  font-weight: 500;
-`;
-
-const SectionHeader = styled.div<{ $variant?: 'default' | 'primary' | 'accent' }>`
+  color: ${props => props.theme.textPrimary};
   display: flex;
   align-items: center;
-  gap: ${props => props.theme.spacing.sm};
-  margin-bottom: ${props => props.theme.spacing.md};
-  padding-bottom: ${props => props.theme.spacing.sm};
-  border-bottom: 1px solid ${props => props.theme.borderLight};
-  
-  & > div > ${SectionTitle} {
-    background: ${props => {
-      switch (props.$variant) {
-        case 'primary': return props.theme.gradient.primary;
-        case 'accent': return props.theme.gradient.warning;
-        default: return 'none';
-      }
-    }};
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: ${props => props.$variant ? 'transparent' : props.theme.textPrimary};
-  }
+  gap: 8px;
 `;
 
-// 表单网格 - 优化布局
-// 紧凑表单网格
-const CompactFormGrid = styled.div`
+// 设置项卡片
+const SettingsCard = styled(ModernCard)`
+  margin-bottom: 16px;
+`;
+
+// 表单网格
+const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 8px;
-`;
-
-// 设置区块
-const SettingsSection = styled(motion.div)<{ $variant?: 'default' | 'primary' | 'accent' | 'important' }>`
-  background: ${props => {
-    switch (props.$variant) {
-      case 'primary': return props.theme.cardLayer.primary;
-      case 'accent': return props.theme.cardLayer.accent;
-      case 'important': return props.theme.primary.light + '10';
-      default: return props.theme.surface;
-    }
-  }};
-  border: ${props => {
-    switch (props.$variant) {
-      case 'primary': return `1px solid ${props.theme.primary.light}`;
-      case 'accent': return `1px solid ${props.theme.warning.light}`;
-      case 'important': return `2px solid ${props.theme.primary.main}`;
-      default: return `1px solid ${props.theme.border}`;
-    }
-  }};
-  border-radius: ${props => props.theme.borderRadius.medium};
-  padding: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
   margin-bottom: 24px;
-  box-shadow: ${props => {
-    switch (props.$variant) {
-      case 'important': return props.theme.cardShadow.important;
-      default: return props.theme.cardShadow.default;
-    }
-  }};
-  position: relative;
-  z-index: 1;
-  transition: all ${props => props.theme.transition.normal} ease;
-  
-  &:hover {
-    box-shadow: ${props => {
-      switch (props.$variant) {
-        case 'important': return props.theme.cardShadow.importantHover;
-        default: return props.theme.cardShadow.hover;
-      }
-    }};
-  }
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
 `;
 
-// 统一保存栏
-const SaveBar = styled.div`
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: ${props => props.theme.surface};
-  backdrop-filter: blur(10px);
-  border: 1px solid ${props => props.theme.border};
-  padding: 8px 24px;
+// 表单组
+const FormGroup = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  border-radius: ${props => props.theme.borderRadius.large};
-  box-shadow: ${props => props.theme.cardShadow.hover};
-  z-index: 1000;
-  transition: all ${props => props.theme.transition.normal} ease;
-  min-width: 280px;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${props => props.theme.cardShadow.importantHover};
-  }
 `;
 
-// 保存状态指示器容器
-const SaveStatusContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${props => props.theme.spacing.sm};
+// 表单标签
+const FormLabel = styled.label`
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: ${props => props.theme.textSecondary};
+  margin-bottom: 4px;
+`;
+
+// 表单输入 - 简洁设计
+const FormInput = styled.input`
+  padding: 12px 16px;
+  border: 1px solid ${props => props.theme.border};
+  border-radius: ${props => props.theme.borderRadius.medium};
+  background: ${props => props.theme.input.background};
+  color: ${props => props.theme.input.text};
+  font-size: 0.9rem;
+  transition: all ${props => props.theme.transition.normal} ease;
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => props.theme.input.borderFocus};
+    box-shadow: ${props => props.theme.button.shadowHover};
+  }
+  
+  &::placeholder {
+    color: ${props => props.theme.input.placeholder};
+  }
+  
+  &:read-only {
+    background: ${props => props.theme.surfaceVariant};
+    cursor: not-allowed;
+  }
 `;
 
 // 头像容器
@@ -245,20 +239,21 @@ const AvatarContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${props => props.theme.spacing.lg};
+  gap: 16px;
+  padding: 20px;
 `;
 
 const Avatar = styled.div`
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: ${props => props.theme.gradient.primary};
+  background: ${props => props.theme.primary.main};
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
-  box-shadow: ${props => props.theme.cardShadow.hover};
+  box-shadow: ${props => props.theme.button.shadow};
   
   img {
     width: 100%;
@@ -267,91 +262,229 @@ const Avatar = styled.div`
   }
 `;
 
-const UploadButton = styled.label`
-  display: flex;
-  align-items: center;
-  gap: ${props => props.theme.spacing.sm};
-  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
-  background: ${props => props.theme.gradient.primary};
-  color: white;
-  border-radius: ${props => props.theme.borderRadius.small};
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  box-shadow: ${props => props.theme.cardShadow.default};
-`;
-
-const HiddenInput = styled.input`
-  display: none;
-`;
-
-// 开关容器
+// 开关容器 - 简洁设计
 const SwitchContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: ${props => props.theme.spacing.md} 0;
-  border-radius: ${props => props.theme.borderRadius.small};
+  padding: 16px 20px;
+  background: ${props => props.theme.surfaceVariant};
+  border: 1px solid ${props => props.theme.border};
+  border-radius: ${props => props.theme.borderRadius.medium};
+  margin-bottom: 12px;
+  transition: all ${props => props.theme.transition.normal} ease;
+  
+  &:hover {
+    background: ${props => props.theme.surface};
+    border-color: ${props => props.theme.primary.main};
+  }
+`;
+
+// 开关信息
+const SwitchInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const SwitchLabel = styled.div`
+  font-weight: 500;
+  color: ${props => props.theme.textPrimary};
+  font-size: 0.95rem;
+`;
+
+const SwitchDescription = styled.div`
+  font-size: 0.85rem;
+  color: ${props => props.theme.textSecondary};
+  line-height: 1.4;
+`;
+
+// 开关组件 - 简洁设计
+const Switch = styled.div<{ $checked: boolean }>`
+  width: 48px;
+  height: 24px;
+  background: ${props => props.$checked 
+    ? props.theme.primary.main 
+    : props.theme.borderLight};
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: all ${props => props.theme.transition.normal} ease;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: ${props => props.$checked ? '26px' : '2px'};
+    transition: all ${props => props.theme.transition.normal} ease;
+    box-shadow: ${props => props.theme.button.shadow};
+  }
+  
+  &:hover {
+    transform: scale(1.02);
+  }
 `;
 
 // 按钮组
 const ButtonGroup = styled.div`
   display: flex;
-  gap: ${props => props.theme.spacing.sm};
+  gap: 12px;
   flex-wrap: wrap;
 `;
 
-// LLM配置项
-const LlmConfigItem = styled.div<{ $isActive: boolean }>`
-  background: ${props => props.$isActive ? props.theme.primary.light + '10' : props.theme.surface};
-  border: 2px solid ${props => props.$isActive ? props.theme.primary.main : props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.medium};
-  padding: ${props => props.theme.spacing.md};
-  margin-bottom: ${props => props.theme.spacing.sm};
-  transition: background-color ${props => props.theme.transition.normal} ease, border-color ${props => props.theme.transition.normal} ease;
+// 简洁按钮设计
+const ModernButton = styled(motion.button)<{ $variant?: 'primary' | 'secondary' | 'outline' | 'danger' }>`
+  padding: 12px 24px;
+  border-radius: ${props => props.theme.borderRadius.small};
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all ${props => props.theme.transition.normal} ease;
+  cursor: pointer;
+  border: 1px solid ${props => props.theme.border};
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  
+  ${props => {
+    switch(props.$variant) {
+      case 'primary':
+        return css`
+          background: ${props => props.theme.primary.main};
+          color: ${props => props.theme.primary.contrastText};
+          border-color: ${props => props.theme.primary.main};
+          box-shadow: ${props => props.theme.button.shadow};
+          
+          &:hover {
+            background: ${props => props.theme.primary.dark};
+            border-color: ${props => props.theme.primary.dark};
+            box-shadow: ${props => props.theme.button.shadowHover};
+          }
+        `;
+      case 'secondary':
+        return css`
+          background: ${props => props.theme.secondary.main};
+          color: ${props => props.theme.secondary.contrastText};
+          border-color: ${props => props.theme.secondary.main};
+          box-shadow: ${props => props.theme.button.shadow};
+          
+          &:hover {
+            background: ${props => props.theme.secondary.dark};
+            border-color: ${props => props.theme.secondary.dark};
+            box-shadow: ${props => props.theme.button.shadowHover};
+          }
+        `;
+      case 'outline':
+        return css`
+          background: ${props => props.theme.surface};
+          color: ${props => props.theme.primary.main};
+          border-color: ${props => props.theme.primary.main};
+          box-shadow: ${props => props.theme.button.shadow};
+          
+          &:hover {
+            background: ${props => props.theme.primary.main};
+            color: ${props => props.theme.primary.contrastText};
+            box-shadow: ${props => props.theme.button.shadowHover};
+          }
+        `;
+      case 'danger':
+        return css`
+          background: ${props => props.theme.error.main};
+          color: ${props => props.theme.error.contrastText};
+          border-color: ${props => props.theme.error.main};
+          box-shadow: ${props => props.theme.button.shadow};
+          
+          &:hover {
+            background: ${props => props.theme.error.dark};
+            border-color: ${props => props.theme.error.dark};
+            box-shadow: ${props => props.theme.button.shadowHover};
+          }
+        `;
+      default:
+        return css`
+          background: ${props => props.theme.surface};
+          color: ${props => props.theme.textPrimary};
+          border-color: ${props => props.theme.border};
+          box-shadow: ${props => props.theme.button.shadow};
+          
+          &:hover {
+            background: ${props => props.theme.surfaceVariant};
+            border-color: ${props => props.theme.borderLight};
+            box-shadow: ${props => props.theme.button.shadowHover};
+          }
+        `;
+    }
+  }}
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
 `;
 
-// LLM配置表单
-const LlmConfigForm = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: ${props => props.theme.spacing.md};
-  margin-bottom: ${props => props.theme.spacing.md};
-`;
-
-// 配置头部
-const ConfigHeader = styled.div`
+// 保存栏 - 简洁设计
+const SaveBar = styled(motion.div)`
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: ${props => props.theme.surface};
+  border: 1px solid ${props => props.theme.border};
+  padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${props => props.theme.spacing.md};
+  gap: 16px;
+  border-radius: ${props => props.theme.borderRadius.large};
+  box-shadow: ${props => props.theme.card.shadowHover};
+  z-index: 1000;
+  min-width: 280px;
 `;
 
-// 配置名称
-const ConfigName = styled.div`
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
+// 保存状态指示器容器
+const SaveStatusContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: ${props => props.theme.spacing.sm};
+  gap: 8px;
 `;
 
-// 配置操作
-const ConfigActions = styled.div`
-  display: flex;
-  gap: ${props => props.theme.spacing.sm};
-`;
-
-// 新增配置表单
-const NewConfigForm = styled.div`
-  background: ${props => props.theme.surface};
-  border: 2px dashed ${props => props.theme.border};
+// 标签页容器（用于移动端）- 简洁设计
+const TabsContainer = styled.div`
+  display: none;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: ${props => props.theme.surfaceVariant};
+  border: 1px solid ${props => props.theme.border};
   border-radius: ${props => props.theme.borderRadius.medium};
-  padding: ${props => props.theme.spacing.lg};
-  margin-bottom: ${props => props.theme.spacing.lg};
 `;
 
-type TabType = 'user' | 'preferences' | 'llm' | 'backup' | 'appearance' | 'system' | 'network' | 'privacy' | 'notifications' | 'general';
+// 标签页按钮 - 简洁设计
+const TabButton = styled(motion.button)<{ $active: boolean }>`
+  padding: 8px 16px;
+  border-radius: ${props => props.theme.borderRadius.small};
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid ${props => props.theme.border};
+  cursor: pointer;
+  transition: all ${props => props.theme.transition.normal} ease;
+  background: ${props => props.$active 
+    ? props.theme.primary.main 
+    : props.theme.surfaceVariant};
+  color: ${props => props.$active ? props.theme.primary.contrastText : props.theme.textSecondary};
+  
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+`;
+
+
+type TabType = 'user' | 'system' | 'backup';
 
 interface ToastMessage {
   id: number;
@@ -361,8 +494,9 @@ interface ToastMessage {
 }
 
 const SettingsPage: React.FC = () => {
-  const { nickname, avatar, setProfile } = useUser();
-  const { themeMode, setThemeMode } = useTheme();
+  const { nickname, avatar } = useUser();
+  const { theme } = useTheme();
+  const { llmConfigs, activeConfig, refreshConfigs } = useConfig();
   const [activeSection, setActiveSection] = useState<TabType>('user');
   
   // 用户设置
@@ -370,45 +504,10 @@ const SettingsPage: React.FC = () => {
   const [userNickname, setUserNickname] = useState(nickname);
   const [userAvatar, setUserAvatar] = useState<string | null>(avatar);
   
-  // 偏好设置  
-  const [language, setLanguage] = useState('zh-CN');
+  // 系统设置
   const [startup, setStartup] = useState(false);
   const [minimizeToTray, setMinimizeToTray] = useState(false);
   const [notifications, setNotifications] = useState(true);
-  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
-  
-  // LLM设置
-  const [llmConfigs, setLlmConfigs] = useState<Array<{
-    id: string;
-    name: string;
-    provider: string;
-    model: string;
-    apiKey: string;
-    baseUrl: string;
-    isActive: boolean;
-  }>>([]);
-  const [editingConfig, setEditingConfig] = useState<string | null>(null);
-  const [newConfig, setNewConfig] = useState({
-    name: '',
-    provider: 'openai',
-    model: 'gpt-3.5-turbo',
-    apiKey: '',
-    baseUrl: 'https://api.openai.com/v1'
-  });
-  
-  // 代理设置（合并到偏好设置）
-  const [vpnUrl, setVpnUrl] = useState('');
-  const [proxyAutoStart, setProxyAutoStart] = useState(false);
-  
-  // 隐私设置
-  const [dataCollection, setDataCollection] = useState(true);
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
-  const [crashReports, setCrashReports] = useState(true);
-  
-  // 通知设置
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   
   // 统一保存状态
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -434,132 +533,21 @@ const SettingsPage: React.FC = () => {
         setUserEmail(config.user.email || '');
         setUserNickname(config.user.nickname || '');
         
-        // 偏好设置 - 避免覆盖 ThemeContext 的状态
-        if (!isSettingsLoaded) {
-          setThemeMode(config.app.theme || 'auto');
-          setIsSettingsLoaded(true);
-        }
-        setLanguage(config.app.language || 'zh-CN');
+        // 系统设置
         setStartup(config.app.startup || false);
         setMinimizeToTray(config.app.minimizeToTray || false);
         setNotifications(config.app.notifications || true);
-        
-        // LLM设置 - 从localStorage加载多个配置
-        const savedConfigs = localStorage.getItem('llmConfigs');
-        let configs = [];
-        
-        if (savedConfigs) {
-          try {
-            const parsedConfigs = JSON.parse(savedConfigs);
-            if (Array.isArray(parsedConfigs) && parsedConfigs.length > 0) {
-              configs = parsedConfigs;
-            }
-          } catch (error) {
-            console.error('解析LLM配置失败:', error);
-          }
-        }
-        
-        if (configs.length === 0) {
-          // 如果没有保存的配置，创建一个默认配置
-          const defaultConfig = {
-            id: generateId(),
-            name: '默认配置',
-            provider: config.llm.provider || 'openai',
-            model: config.llm.model || 'gpt-3.5-turbo',
-            apiKey: '',
-            baseUrl: localStorage.getItem('llmBaseUrl') || 'https://api.openai.com/v1',
-            isActive: true
-          };
-          configs = [defaultConfig];
-        }
-        
-        setLlmConfigs(configs);
-        
-        // 获取当前激活配置的API密钥
-        const activeConfig = configs.find(config => config.isActive) || configs[0];
-        if (activeConfig) {
-          const apiKeyResult = await window.electronAPI.llm.getApiKey(activeConfig.provider);
-          if (apiKeyResult.success && apiKeyResult.data) {
-            // 更新激活配置的API密钥
-            setLlmConfigs(prev => prev.map(config => 
-              config.isActive ? { ...config, apiKey: apiKeyResult.data } : config
-            ));
-          }
-        }
-        
-        // 代理设置
-        setVpnUrl(config.proxy.vpnProviderUrl || '');
-        setProxyAutoStart(config.proxy.autoStart || false);
-        
-        // 隐私设置
-        setDataCollection(config.privacy?.dataCollection ?? true);
-        setAnalyticsEnabled(config.privacy?.analyticsEnabled ?? false);
-        setCrashReports(config.privacy?.crashReports ?? true);
-        
-        // 通知设置
-        setEmailNotifications(config.notifications?.email ?? true);
-        setPushNotifications(config.notifications?.push ?? true);
-        setSoundEnabled(config.notifications?.sound ?? true);
       }
+      
+      // 刷新LLM配置
+      await refreshConfigs();
     } catch (error) {
       console.error('加载设置失败:', error);
       showToast('加载设置失败', 'error');
     }
   };
 
-  const generateId = () => Math.random().toString(36).substr(2, 9);
-
-  const addLlmConfig = () => {
-    if (!newConfig.name.trim()) {
-      showToast('请输入配置名称', 'error');
-      return;
-    }
-    
-    const config = {
-      ...newConfig,
-      id: generateId(),
-      isActive: llmConfigs.length === 0 // 第一个配置默认激活
-    };
-    
-    setLlmConfigs(prev => [...prev, config]);
-    setNewConfig({
-      name: '',
-      provider: 'openai',
-      model: 'gpt-3.5-turbo',
-      apiKey: '',
-      baseUrl: 'https://api.openai.com/v1'
-    });
-    showToast('配置已添加', 'success');
-  };
-
-  const updateLlmConfig = (id: string, updates: Partial<typeof newConfig>) => {
-    setLlmConfigs(prev => prev.map(config => 
-      config.id === id ? { ...config, ...updates } : config
-    ));
-  };
-
-  const deleteLlmConfig = (id: string) => {
-    const configToDelete = llmConfigs.find(c => c.id === id);
-    if (configToDelete?.isActive && llmConfigs.length > 1) {
-      // 如果删除的是激活的配置，激活另一个配置
-      const nextConfig = llmConfigs.find(c => c.id !== id);
-      if (nextConfig) {
-        updateLlmConfig(nextConfig.id, { isActive: true });
-      }
-    }
-    
-    setLlmConfigs(prev => prev.filter(config => config.id !== id));
-    showToast('配置已删除', 'success');
-  };
-
-  const setActiveConfig = (id: string) => {
-    setLlmConfigs(prev => prev.map(config => ({
-      ...config,
-      isActive: config.id === id
-    })));
-    showToast('已切换配置', 'success');
-  };
-
+  
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     const id = toastId;
     setToastId(prev => prev + 1);
@@ -587,53 +575,21 @@ const SettingsPage: React.FC = () => {
     }, 300);
   };
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setUserAvatar(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
+  
   // 统一保存所有设置
   const saveAllSettings = async () => {
     setSaveStatus('saving');
     try {
-      // 保存用户设置
-      await window.electronAPI.config.setUserEmail(userEmail);
-      setProfile({ nickname: userNickname, avatar: userAvatar });
+      // 用户信息现在是只读的，不需要保存
       
-      // 保存偏好设置
-      await window.electronAPI.config.setTheme(themeMode as 'light' | 'dark' | 'auto');
-      await window.electronAPI.config.setLanguage(language);
+      // 保存系统设置
       await window.electronAPI.config.setStartup(startup);
       await window.electronAPI.config.setMinimizeToTray(minimizeToTray);
       await window.electronAPI.config.setNotifications(notifications);
       
-      // 保存代理设置
-      await window.electronAPI.config.setVpnUrl(vpnUrl);
-      await window.electronAPI.config.setProxyAutoStart(proxyAutoStart);
-      
-      // 保存LLM设置
-      const activeConfig = llmConfigs.find(config => config.isActive);
-      if (activeConfig) {
-        await window.electronAPI.llm.setApiKey(activeConfig.provider, activeConfig.apiKey);
-        await window.electronAPI.llm.setProviderConfig({
-          provider: activeConfig.provider,
-          baseUrl: activeConfig.baseUrl,
-          apiKey: activeConfig.apiKey
-        });
-        localStorage.setItem('llmBaseUrl', activeConfig.baseUrl);
-      }
-      
-      // 保存所有LLM配置到localStorage
-      localStorage.setItem('llmConfigs', JSON.stringify(llmConfigs));
-      
+      // 刷新LLM配置
+      await refreshConfigs();
+        
       setHasUnsavedChanges(false);
       setSaveStatus('saved');
       showToast('所有设置已保存', 'success');
@@ -658,13 +614,8 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     setHasUnsavedChanges(true);
   }, [
-    userEmail, userNickname, userAvatar,
-    themeMode, language, startup, minimizeToTray, notifications,
-    vpnUrl, proxyAutoStart,
-    dataCollection, analyticsEnabled, crashReports,
-    emailNotifications, pushNotifications, soundEnabled,
-    llmConfigs, newConfig
-  ]);
+    startup, minimizeToTray, notifications,
+    ]);
 
   const exportConfig = async () => {
     try {
@@ -714,18 +665,13 @@ const SettingsPage: React.FC = () => {
 
   const tabs = [
     { id: 'user', label: '用户', icon: UserIcon },
-    { id: 'appearance', label: '外观', icon: PaletteIcon },
     { id: 'system', label: '系统', icon: MonitorIcon },
-    { id: 'network', label: '网络', icon: GlobeIcon },
-    { id: 'privacy', label: '隐私', icon: ShieldIcon },
-    { id: 'notifications', label: '通知', icon: BellIcon },
-    { id: 'llm', label: 'LLM', icon: MessageIcon },
     { id: 'backup', label: '备份', icon: DatabaseIcon }
   ] as const;
 
   return (
-    <PageContainer>
-      <SettingsContentContainer>
+    <ModernSettingsContainer>
+      <MainLayout>
         {/* 侧边栏导航 */}
         <SettingsSidebar 
           activeSection={activeSection}
@@ -733,13 +679,15 @@ const SettingsPage: React.FC = () => {
         />
         
         {/* 主内容区域 */}
-        <MainContent>
+        <MainContent
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           {/* 页面头部 */}
           <ContentHeader>
-            <PageTitle>设置</PageTitle>
-            <PageSubtitle>
-              管理应用程序的各项设置和个性化配置
-            </PageSubtitle>
+            <PageTitle>
+            </PageTitle>
           </ContentHeader>
 
           {/* 移动端标签页 */}
@@ -749,724 +697,162 @@ const SettingsPage: React.FC = () => {
                 key={tab.id}
                 $active={activeSection === tab.id}
                 onClick={() => setActiveSection(tab.id as TabType)}
-                icon={<tab.icon size={16} />}
-                variant="segment"
               >
+                <tab.icon size={16} />
                 {tab.label}
               </TabButton>
             ))}
           </TabsContainer>
 
-          <TabContent
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <TabContent>
         {activeSection === 'user' && (
-          <SettingsSection 
-            $variant="primary"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
+          <SettingsCard
+            variant="glass"
+            padding="large"
+            borderRadius="large"
+            hoverable={false}
+            animationDelay={0.4}
           >
-            <SectionHeader $variant="primary">
-              <UserIcon size={20} />
-              <div>
-                <SectionTitle>个人信息</SectionTitle>
-                <SectionDescription>
-                  配置您的个人资料和头像
-                </SectionDescription>
-              </div>
-            </SectionHeader>
-
-            <CompactFormGrid>
+            <SectionTitle>个人信息</SectionTitle>
+            
+            <FormGrid>
               <FormGroup>
-                <Label>头像</Label>
+                <FormLabel>头像</FormLabel>
                 <AvatarContainer>
                   <Avatar>
                     {userAvatar ? (
                       <img src={userAvatar} alt="User avatar" />
                     ) : (
-                      <UserIcon size={48} color={props => props.theme.iconColor.default} />
+                      <UserIcon size={48} color={theme.iconColor.default} />
                     )}
                   </Avatar>
-                  <UploadButton>
-                    <UploadIcon size={16} />
-                    上传头像
-                    <HiddenInput 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleAvatarUpload}
-                    />
-                  </UploadButton>
                 </AvatarContainer>
               </FormGroup>
 
               <FormGroup>
-                <Label>昵称</Label>
-                <Input
+                <FormLabel>昵称</FormLabel>
+                <FormInput
                   value={userNickname}
-                  onChange={(e) => setUserNickname(e.target.value)}
-                  placeholder="输入您的昵称"
+                  readOnly
+                  placeholder="您的昵称"
                 />
               </FormGroup>
 
               <FormGroup>
-                <Label>邮箱</Label>
-                <Input
+                <FormLabel>邮箱</FormLabel>
+                <FormInput
                   type="email"
                   value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  placeholder="输入您的邮箱地址"
+                  readOnly
+                  placeholder="您的邮箱地址"
                 />
               </FormGroup>
-            </CompactFormGrid>
-          </SettingsSection>
+            </FormGrid>
+          </SettingsCard>
         )}
 
-        {activeSection === 'appearance' && (
-          <SettingsSection 
-            $variant="primary"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-          >
-            <SectionHeader $variant="primary">
-              <PaletteIcon size={20} />
-              <div>
-                <SectionTitle>外观设置</SectionTitle>
-                <SectionDescription>
-                  配置应用程序的界面语言和主题
-                </SectionDescription>
-              </div>
-            </SectionHeader>
-
-            <CompactFormGrid>
-              <FormGroup>
-                <Label>主题模式</Label>
-                <SelectWrapper>
-                  <Select value={themeMode} onChange={(e) => setThemeMode(e.target.value as 'light' | 'dark' | 'auto')}>
-                    <option value="light">浅色</option>
-                    <option value="dark">深色</option>
-                    <option value="auto">跟随系统</option>
-                  </Select>
-                </SelectWrapper>
-              </FormGroup>
-
-              <FormGroup>
-                <Label>语言</Label>
-                <SelectWrapper>
-                  <Select value={language} onChange={(e) => setLanguage(e.target.value)}>
-                    <option value="zh-CN">简体中文</option>
-                    <option value="en">English</option>
-                  </Select>
-                </SelectWrapper>
-              </FormGroup>
-            </CompactFormGrid>
-
-            </SettingsSection>
-        )}
-
+        
         {activeSection === 'system' && (
-          <SettingsSection 
-            $variant="important"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
+          <SettingsCard
+            variant="glass"
+            padding="large"
+            borderRadius="large"
+            hoverable={false}
+            animationDelay={0.4}
           >
-            <SectionHeader $variant="primary">
-              <MonitorIcon size={20} />
-              <div>
-                <SectionTitle>系统行为</SectionTitle>
-                <SectionDescription>
-                  配置应用程序的启动和关闭行为
-                </SectionDescription>
-              </div>
-            </SectionHeader>
+            <SectionTitle>系统行为</SectionTitle>
 
             <SwitchContainer>
-              <div>
-                <Label>开机启动</Label>
-                <SectionDescription>
+              <SwitchInfo>
+                <SwitchLabel>开机启动</SwitchLabel>
+                <SwitchDescription>
                   应用程序将在系统启动时自动运行
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={startup}
-                onChange={setStartup}
+                </SwitchDescription>
+              </SwitchInfo>
+              <Switch 
+                $checked={startup}
+                onClick={() => setStartup(!startup)}
               />
             </SwitchContainer>
 
             <SwitchContainer>
-              <div>
-                <Label>最小化到托盘</Label>
-                <SectionDescription>
+              <SwitchInfo>
+                <SwitchLabel>最小化到托盘</SwitchLabel>
+                <SwitchDescription>
                   关闭窗口时将应用程序最小化到系统托盘
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={minimizeToTray}
-                onChange={setMinimizeToTray}
+                </SwitchDescription>
+              </SwitchInfo>
+              <Switch 
+                $checked={minimizeToTray}
+                onClick={() => setMinimizeToTray(!minimizeToTray)}
               />
             </SwitchContainer>
 
             <SwitchContainer>
-              <div>
-                <Label>通知</Label>
-                <SectionDescription>
+              <SwitchInfo>
+                <SwitchLabel>通知</SwitchLabel>
+                <SwitchDescription>
                   启用应用程序的通知功能
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={notifications}
-                onChange={setNotifications}
+                </SwitchDescription>
+              </SwitchInfo>
+              <Switch 
+                $checked={notifications}
+                onClick={() => setNotifications(!notifications)}
               />
             </SwitchContainer>
-          </SettingsSection>
+          </SettingsCard>
         )}
 
-        {activeSection === 'network' && (
-          <SettingsSection 
-            $variant="primary"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-          >
-            <SectionHeader $variant="primary">
-              <GlobeIcon size={20} />
-              <div>
-                <SectionTitle>网络代理</SectionTitle>
-                <SectionDescription>
-                  配置VPN和网络代理设置
-                </SectionDescription>
-              </div>
-            </SectionHeader>
-
-            <FormGroup>
-              <Label>VPN 提供商 URL</Label>
-              <Input
-                value={vpnUrl}
-                onChange={(e) => setVpnUrl(e.target.value)}
-                placeholder="输入 VPN 提供商的配置 URL"
-              />
-            </FormGroup>
-
-            <SwitchContainer>
-              <div>
-                <Label>代理自动启动</Label>
-                <SectionDescription>
-                  应用程序启动时自动开启代理服务
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={proxyAutoStart}
-                onChange={setProxyAutoStart}
-              />
-            </SwitchContainer>
-          </SettingsSection>
-        )}
-
-        {activeSection === 'privacy' && (
-          <SettingsSection 
-            $variant="important"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-          >
-            <SectionHeader $variant="primary">
-              <ShieldIcon size={20} />
-              <div>
-                <SectionTitle>隐私设置</SectionTitle>
-                <SectionDescription>
-                  管理您的数据隐私和安全设置
-                </SectionDescription>
-              </div>
-            </SectionHeader>
-
-            <SwitchContainer>
-              <div>
-                <Label>数据收集</Label>
-                <SectionDescription>
-                  允许收集匿名使用数据以改善产品
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={dataCollection}
-                onChange={setDataCollection}
-              />
-            </SwitchContainer>
-
-            <SwitchContainer>
-              <div>
-                <Label>使用分析</Label>
-                <SectionDescription>
-                  启用功能使用分析以帮助我们了解用户需求
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={analyticsEnabled}
-                onChange={setAnalyticsEnabled}
-              />
-            </SwitchContainer>
-
-            <SwitchContainer>
-              <div>
-                <Label>崩溃报告</Label>
-                <SectionDescription>
-                  自动发送崩溃报告以帮助修复问题
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={crashReports}
-                onChange={setCrashReports}
-              />
-            </SwitchContainer>
-          </SettingsSection>
-        )}
-
-        {activeSection === 'notifications' && (
-          <SettingsSection 
-            $variant="primary"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-          >
-            <SectionHeader $variant="primary">
-              <BellIcon size={20} />
-              <div>
-                <SectionTitle>通知设置</SectionTitle>
-                <SectionDescription>
-                  配置各种通知和提醒的偏好设置
-                </SectionDescription>
-              </div>
-            </SectionHeader>
-
-            <SwitchContainer>
-              <div>
-                <Label>邮件通知</Label>
-                <SectionDescription>
-                  接收重要的邮件通知
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={emailNotifications}
-                onChange={setEmailNotifications}
-              />
-            </SwitchContainer>
-
-            <SwitchContainer>
-              <div>
-                <Label>推送通知</Label>
-                <SectionDescription>
-                  接收实时推送通知
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={pushNotifications}
-                onChange={setPushNotifications}
-              />
-            </SwitchContainer>
-
-            <SwitchContainer>
-              <div>
-                <Label>通知声音</Label>
-                <SectionDescription>
-                  启用通知提示音
-                </SectionDescription>
-              </div>
-              <Switch
-                checked={soundEnabled}
-                onChange={setSoundEnabled}
-              />
-            </SwitchContainer>
-          </SettingsSection>
-        )}
-
-        {activeSection === 'llm' && (
-          <>
-            <SettingsSection 
-              $variant="primary"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-            >
-              <SectionHeader $variant="primary">
-                <SettingsIcon size={20} />
-                <div>
-                  <SectionTitle>外观与语言</SectionTitle>
-                  <SectionDescription>
-                    配置应用程序的界面语言和主题
-                  </SectionDescription>
-                </div>
-              </SectionHeader>
-
-              <CompactFormGrid>
-                <FormGroup>
-                  <Label>主题</Label>
-                  <SelectWrapper>
-                    <Select value={themeMode} onChange={(e) => setThemeMode(e.target.value as 'light' | 'dark' | 'auto')}>
-                      <option value="light">浅色</option>
-                      <option value="dark">深色</option>
-                      <option value="auto">跟随系统</option>
-                    </Select>
-                  </SelectWrapper>
-                </FormGroup>
-
-                <FormGroup>
-                  <Label>语言</Label>
-                  <SelectWrapper>
-                    <Select value={language} onChange={(e) => setLanguage(e.target.value)}>
-                      <option value="zh-CN">简体中文</option>
-                      <option value="en">English</option>
-                    </Select>
-                  </SelectWrapper>
-                </FormGroup>
-              </CompactFormGrid>
-            </SettingsSection>
-
-            <SettingsSection 
-              $variant="accent"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <SectionHeader $variant="accent">
-                <SettingsIcon size={20} />
-                <div>
-                  <SectionTitle>系统行为</SectionTitle>
-                  <SectionDescription>
-                    配置应用程序的启动和关闭行为
-                  </SectionDescription>
-                </div>
-              </SectionHeader>
-
-              <SwitchContainer>
-                <div>
-                  <Label>开机启动</Label>
-                  <SectionDescription>
-                    应用程序将在系统启动时自动运行
-                  </SectionDescription>
-                </div>
-                <Switch
-                  checked={startup}
-                  onChange={setStartup}
-                />
-              </SwitchContainer>
-
-              <SwitchContainer>
-                <div>
-                  <Label>最小化到托盘</Label>
-                  <SectionDescription>
-                    关闭窗口时将应用程序最小化到系统托盘
-                  </SectionDescription>
-                </div>
-                <Switch
-                  checked={minimizeToTray}
-                  onChange={setMinimizeToTray}
-                />
-              </SwitchContainer>
-
-              <SwitchContainer>
-                <div>
-                  <Label>通知</Label>
-                  <SectionDescription>
-                    启用应用程序的通知功能
-                  </SectionDescription>
-                </div>
-                <Switch
-                  checked={notifications}
-                  onChange={setNotifications}
-                />
-              </SwitchContainer>
-            </SettingsSection>
-
-            <SettingsSection 
-              $variant="primary"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
-              <SectionHeader $variant="primary">
-                <MessageIcon size={20} />
-                <div>
-                  <SectionTitle>网络代理</SectionTitle>
-                  <SectionDescription>
-                    配置VPN和网络代理设置
-                  </SectionDescription>
-                </div>
-              </SectionHeader>
-
-              <FormGroup>
-                <Label>VPN 提供商 URL</Label>
-                <Input
-                  value={vpnUrl}
-                  onChange={(e) => setVpnUrl(e.target.value)}
-                  placeholder="输入 VPN 提供商的配置 URL"
-                />
-              </FormGroup>
-
-              <SwitchContainer>
-                <div>
-                  <Label>代理自动启动</Label>
-                  <SectionDescription>
-                    应用程序启动时自动开启代理服务
-                  </SectionDescription>
-                </div>
-                <Switch
-                  checked={proxyAutoStart}
-                  onChange={setProxyAutoStart}
-                />
-              </SwitchContainer>
-            </SettingsSection>
-          </>
-        )}
-
-        {activeSection === 'llm' && (
-          <SettingsSection 
-            $variant="accent"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            <SectionHeader $variant="accent">
-              <MessageIcon size={20} />
-              <div>
-                <SectionTitle>语言模型配置</SectionTitle>
-                <SectionDescription>
-                  管理多个语言模型配置，可添加、编辑和删除不同的配置
-                </SectionDescription>
-              </div>
-            </SectionHeader>
-
-            {/* 新增配置表单 */}
-            <NewConfigForm>
-              <ConfigHeader>
-                <ConfigName>
-                  <PlusIcon size={16} />
-                  添加新配置
-                </ConfigName>
-              </ConfigHeader>
-              
-              <LlmConfigForm>
-                <FormGroup>
-                  <Label>配置名称</Label>
-                  <Input
-                    value={newConfig.name}
-                    onChange={(e) => setNewConfig(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="例如：OpenAI GPT-4"
-                  />
-                </FormGroup>
-
-                <FormGroup>
-                  <Label>提供商</Label>
-                  <SelectWrapper>
-                    <Select 
-                      value={newConfig.provider} 
-                      onChange={(e) => setNewConfig(prev => ({ ...prev, provider: e.target.value }))}
-                    >
-                      <option value="openai">OpenAI</option>
-                      <option value="gemini">Gemini</option>
-                      <option value="openrouter">OpenRouter</option>
-                      <option value="custom">自定义</option>
-                    </Select>
-                  </SelectWrapper>
-                </FormGroup>
-
-                <FormGroup>
-                  <Label>模型</Label>
-                  <Input
-                    value={newConfig.model}
-                    onChange={(e) => setNewConfig(prev => ({ ...prev, model: e.target.value }))}
-                    placeholder="gpt-4, gemini-pro 等"
-                  />
-                </FormGroup>
-
-                <FormGroup>
-                  <Label>Base URL</Label>
-                  <Input
-                    value={newConfig.baseUrl}
-                    onChange={(e) => setNewConfig(prev => ({ ...prev, baseUrl: e.target.value }))}
-                    placeholder="API 地址"
-                  />
-                </FormGroup>
-
-                <FormGroup>
-                  <Label>API 密钥</Label>
-                  <Input
-                    type="password"
-                    value={newConfig.apiKey}
-                    onChange={(e) => setNewConfig(prev => ({ ...prev, apiKey: e.target.value }))}
-                    placeholder="输入 API 密钥"
-                  />
-                </FormGroup>
-              </LlmConfigForm>
-
-              <Button onClick={addLlmConfig} variant="primary" startIcon={<PlusIcon size={16} />}>
-                添加配置
-              </Button>
-            </NewConfigForm>
-
-            {/* 现有配置列表 */}
-            {llmConfigs.map((config) => (
-              <LlmConfigItem key={config.id} $isActive={config.isActive}>
-                <ConfigHeader>
-                  <ConfigName>
-                    {config.isActive && <RadioIcon size={16} fill="currentColor" />}
-                    {config.name}
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>
-                      ({config.provider} - {config.model})
-                    </span>
-                  </ConfigName>
-                  
-                  <ConfigActions>
-                    {!config.isActive && (
-                      <Button
-                        onClick={() => setActiveConfig(config.id)}
-                        variant="outline"
-                        size="small"
-                        startIcon={<RadioIcon size={14} />}
-                      >
-                        设为激活
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => setEditingConfig(editingConfig === config.id ? null : config.id)}
-                      variant="outline"
-                      size="small"
-                      startIcon={<EditIcon size={14} />}
-                    >
-                      {editingConfig === config.id ? '取消' : '编辑'}
-                    </Button>
-                    {llmConfigs.length > 1 && (
-                      <Button
-                        onClick={() => deleteLlmConfig(config.id)}
-                        variant="danger"
-                        size="small"
-                        startIcon={<DeleteIcon size={14} />}
-                      >
-                        删除
-                      </Button>
-                    )}
-                  </ConfigActions>
-                </ConfigHeader>
-
-                {/* 编辑表单 */}
-                {editingConfig === config.id && (
-                  <LlmConfigForm>
-                    <FormGroup>
-                      <Label>配置名称</Label>
-                      <Input
-                        value={config.name}
-                        onChange={(e) => updateLlmConfig(config.id, { name: e.target.value })}
-                        placeholder="配置名称"
-                      />
-                    </FormGroup>
-
-                    <FormGroup>
-                      <Label>提供商</Label>
-                      <SelectWrapper>
-                        <Select 
-                          value={config.provider} 
-                          onChange={(e) => updateLlmConfig(config.id, { provider: e.target.value })}
-                        >
-                          <option value="openai">OpenAI</option>
-                          <option value="gemini">Gemini</option>
-                          <option value="openrouter">OpenRouter</option>
-                          <option value="custom">自定义</option>
-                        </Select>
-                      </SelectWrapper>
-                    </FormGroup>
-
-                    <FormGroup>
-                      <Label>模型</Label>
-                      <Input
-                        value={config.model}
-                        onChange={(e) => updateLlmConfig(config.id, { model: e.target.value })}
-                        placeholder="模型名称"
-                      />
-                    </FormGroup>
-
-                    <FormGroup>
-                      <Label>Base URL</Label>
-                      <Input
-                        value={config.baseUrl}
-                        onChange={(e) => updateLlmConfig(config.id, { baseUrl: e.target.value })}
-                        placeholder="API 地址"
-                      />
-                    </FormGroup>
-
-                    <FormGroup>
-                      <Label>API 密钥</Label>
-                      <Input
-                        type="password"
-                        value={config.apiKey}
-                        onChange={(e) => updateLlmConfig(config.id, { apiKey: e.target.value })}
-                        placeholder="API 密钥"
-                      />
-                    </FormGroup>
-                  </LlmConfigForm>
-                )}
-              </LlmConfigItem>
-            ))}
-
-            {llmConfigs.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                <MessageIcon size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                <p>暂无 LLM 配置，请添加一个配置开始使用</p>
-              </div>
-            )}
-          </SettingsSection>
-        )}
-
+        
+        
+        
+        
         {activeSection === 'backup' && (
-          <SettingsSection 
-            $variant="primary"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
+          <SettingsCard
+            variant="glass"
+            padding="large"
+            borderRadius="large"
+            hoverable={false}
+            animationDelay={0.4}
           >
-            <SectionHeader $variant="primary">
-              <DatabaseIcon size={20} />
-              <div>
-                <SectionTitle>配置管理</SectionTitle>
-                <SectionDescription>
-                  导入、导出和重置应用程序配置
-                </SectionDescription>
-              </div>
-            </SectionHeader>
+            <SectionTitle>配置管理</SectionTitle>
 
             <ButtonGroup>
-              <Button
+              <ModernButton
                 onClick={exportConfig}
-                variant="outline"
-                startIcon={<UploadIcon size={16} />}
+                $variant="outline"
               >
+                <UploadIcon size={16} />
                 导出配置
-              </Button>
-              <Button
+              </ModernButton>
+              <ModernButton
                 onClick={importConfig}
-                variant="outline"
-                startIcon={<UploadIcon size={16} />}
+                $variant="outline"
               >
+                <UploadIcon size={16} />
                 导入配置
-              </Button>
-              <Button
+              </ModernButton>
+              <ModernButton
                 onClick={resetConfig}
-                variant="danger"
-                startIcon={<RefreshIcon size={16} />}
+                $variant="danger"
               >
+                <RefreshIcon size={16} />
                 重置配置
-              </Button>
+              </ModernButton>
             </ButtonGroup>
-          </SettingsSection>
+          </SettingsCard>
         )}
       </TabContent>
         </MainContent>
-      </SettingsContentContainer>
+      </MainLayout>
       
       {/* 统一保存栏 */}
       {activeSection !== 'backup' && (
-        <SaveBar>
+        <SaveBar
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
           <SaveStatusContainer>
             <StatusIndicator 
               status={
@@ -1478,14 +864,14 @@ const SettingsPage: React.FC = () => {
               size="small"
             />
           </SaveStatusContainer>
-          <Button
+          <ModernButton
             onClick={saveAllSettings}
             disabled={saveStatus === 'saving' || !hasUnsavedChanges}
-            variant="primary"
-            startIcon={<SaveIcon size={16} />}
+            $variant="primary"
           >
+            <SaveIcon size={16} />
             {saveStatus === 'saving' ? '保存中...' : '保存'}
-          </Button>
+          </ModernButton>
         </SaveBar>
       )}
 
@@ -1502,7 +888,7 @@ const SettingsPage: React.FC = () => {
           />
         ))}
       </ToastContainer>
-    </PageContainer>
+    </ModernSettingsContainer>
   );
 };
 

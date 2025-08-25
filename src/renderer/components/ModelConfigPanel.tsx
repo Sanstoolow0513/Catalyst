@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { 
   Settings, 
-  Zap, 
   ChevronDown, 
   ChevronUp,
   Save,
@@ -302,12 +301,7 @@ const ModelConfigPanel: React.FC<ModelConfigPanelProps> = ({
   onCollapse
 }) => {
   const [validation, setValidation] = useState<ValidationResult>({ isValid: true, errors: [], warnings: [] });
-  const [expandedSections, setExpandedSections] = useState({
-    model: true,
-    parameters: false,
-    advanced: false
-  });
-
+  
   // 验证配置
   useEffect(() => {
     const result = validateConfig(config);
@@ -364,14 +358,7 @@ const ModelConfigPanel: React.FC<ModelConfigPanelProps> = ({
     }
   };
 
-  // 切换章节展开状态
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
+  
   return (
     <ConfigContainer 
       $collapsed={isCollapsed}

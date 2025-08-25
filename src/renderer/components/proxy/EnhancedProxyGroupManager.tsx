@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -7,14 +7,12 @@ import {
   Search, 
   Filter,
   ArrowUpDown,
-  MoreHorizontal,
   Zap,
   RefreshCw,
   ChevronDown,
   ChevronRight,
   Globe,
-  Clock
-} from 'lucide-react';
+  } from 'lucide-react';
 import { ProxyGroup } from '../../types';
 import { Button } from '../common';
 
@@ -384,13 +382,13 @@ const EnhancedProxyGroupManager: React.FC<EnhancedProxyGroupManagerProps> = ({
   onRefreshGroups
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('name');
-  const [filterBy, setFilterBy] = useState<FilterOption>('all');
+  const [sortBy] = useState<SortOption>('name');
+  const [filterBy] = useState<FilterOption>('all');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // 过滤和排序逻辑
   const filteredAndSortedGroups = useMemo(() => {
-    let filtered = groups.filter(group => {
+    const filtered = groups.filter(group => {
       // 搜索过滤
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -441,7 +439,7 @@ const EnhancedProxyGroupManager: React.FC<EnhancedProxyGroupManagerProps> = ({
     return filtered;
   }, [groups, searchQuery, sortBy, filterBy, latencyData]);
 
-  const toggleGroupExpansion = (groupName: string) => {
+  const toggleGroupExpansion = useCallback((groupName: string) => {
     const newExpanded = new Set(expandedGroups);
     if (newExpanded.has(groupName)) {
       newExpanded.delete(groupName);
@@ -449,15 +447,15 @@ const EnhancedProxyGroupManager: React.FC<EnhancedProxyGroupManagerProps> = ({
       newExpanded.add(groupName);
     }
     setExpandedGroups(newExpanded);
-  };
+  }, [expandedGroups]);
 
-  const getProxyHealthStatus = (proxyName: string): boolean | undefined => {
+  const getProxyHealthStatus = useCallback((proxyName: string): boolean | undefined => {
     const delay = latencyData[proxyName];
     if (delay === undefined) return undefined;
     return delay > 0;
-  };
+  }, [latencyData]);
 
-  const getSortLabel = (sort: SortOption): string => {
+  const getSortLabel = useCallback((sort: SortOption): string => {
     switch (sort) {
       case 'name': return '名称';
       case 'type': return '类型';
@@ -465,9 +463,9 @@ const EnhancedProxyGroupManager: React.FC<EnhancedProxyGroupManagerProps> = ({
       case 'current': return '当前选择';
       default: return '名称';
     }
-  };
+  }, []);
 
-  const getFilterLabel = (filter: FilterOption): string => {
+  const getFilterLabel = useCallback((filter: FilterOption): string => {
     switch (filter) {
       case 'all': return '全部';
       case 'active': return '活跃';
@@ -475,7 +473,7 @@ const EnhancedProxyGroupManager: React.FC<EnhancedProxyGroupManagerProps> = ({
       case 'unhealthy': return '异常';
       default: return '全部';
     }
-  };
+  }, []);
 
   return (
     <Container
@@ -630,7 +628,7 @@ const EnhancedProxyGroupManager: React.FC<EnhancedProxyGroupManagerProps> = ({
                       transition={{ duration: 0.3 }}
                     >
                       <ProxiesGrid>
-                        {group.proxies.map((proxyName) => {
+                        {useMemo(() => group.proxies.map((proxyName) => {
                           const delay = latencyData[proxyName];
                           const isSelected = group.now === proxyName;
                           const isHealthy = getProxyHealthStatus(proxyName);
@@ -654,7 +652,7 @@ const EnhancedProxyGroupManager: React.FC<EnhancedProxyGroupManagerProps> = ({
                               </ProxyContent>
                             </ProxyCard>
                           );
-                        })}
+                        }), [group.proxies, latencyData, group.now, getProxyHealthStatus, onSelectProxy])}
                       </ProxiesGrid>
                     </GroupContent>
                   )}
