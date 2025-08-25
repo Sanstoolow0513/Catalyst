@@ -8,6 +8,7 @@ import {
   Edit as EditIcon,
   Radio as RadioIcon
 } from 'lucide-react';
+import { useConfig } from '../../contexts/ConfigContext';
 
 const LlmSectionContainer = styled.div`
   display: flex;

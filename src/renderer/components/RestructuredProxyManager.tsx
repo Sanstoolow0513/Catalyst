@@ -58,14 +58,10 @@ const SectionContainer = styled(motion.div)`
 const RestructuredProxyManager: React.FC = () => {
   const {
     state,
-    isOperating,
-    canStart,
-    canStop,
     startProxy,
     stopProxy,
     selectProxy,
     testAllDelays,
-    refreshAll,
     refreshProxyGroups,
     setConfigURL,
     setConfig,

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
 import { PageContainer, ContentArea } from '../components/common';
 import SimpleToolCard from '../components/common/SimpleToolCard';
 import { devToolsSimple } from '../data/devToolsSimple';

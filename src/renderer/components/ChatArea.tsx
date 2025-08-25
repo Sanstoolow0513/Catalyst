@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -12,8 +12,7 @@ import {
   Bot,
   Loader2
 } from 'lucide-react';
-import { ChatMessage, ChatConfig, ChatSession } from '../types/chat';
-import { ILLMMessage } from '../types/electron';
+import { ChatMessage, ChatConfig } from '../types/chat';
 
 interface ChatAreaProps {
   messages: ChatMessage[];
@@ -342,8 +341,8 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   onExportChat
 }) => {
   const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<null | any>(null);
+  const textareaRef = useRef<null | HTMLTextAreaElement>(null);
 
   // 自动滚动到底部
   useEffect(() => {
@@ -358,32 +357,32 @@ const ChatArea: React.FC<ChatAreaProps> = ({
     }
   }, [inputValue]);
 
-  const handleSend = () => {
+  const handleSend = useCallback(() => {
     if (inputValue.trim() && !isLoading) {
       onSendMessage(inputValue.trim());
       setInputValue('');
     }
-  };
+  }, [inputValue, isLoading, onSendMessage]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  };
+  }, [handleSend]);
 
-  const copyMessage = async (content: string) => {
+  const copyMessage = useCallback(async (content: string) => {
     try {
-      await navigator.clipboard.writeText(content);
+      await window.navigator.clipboard.writeText(content);
       // TODO: 显示复制成功提示
     } catch (error) {
       console.error('Failed to copy message:', error);
     }
-  };
+  }, []);
 
-  const formatTimestamp = (timestamp: number) => {
+  const formatTimestamp = useCallback((timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString();
-  };
+  }, []);
 
   return (
     <ChatContainer>
@@ -421,7 +420,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
         ) : (
           <>
             <AnimatePresence>
-              {messages.map((message) => (
+              {useMemo(() => messages.map((message) => (
                 <MessageWrapper key={message.id}>
                   <MessageContainer
                     $isUser={message.role === 'user'}
@@ -455,7 +454,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
                     </MessageBubble>
                   </MessageContainer>
                 </MessageWrapper>
-              ))}
+              )), [messages, formatTimestamp, copyMessage])}
             </AnimatePresence>
 
             {isLoading && (

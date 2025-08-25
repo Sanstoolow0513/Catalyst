@@ -29,12 +29,51 @@ export interface ThemeBorderRadius {
   medium: string;
   large: string;
   xlarge: string;
+  extraLarge: string;
 }
 
-export interface ThemeComponentStyles {
-  background: string;
-  border: string;
-  [key: string]: any;
+export interface ThemeGradients {
+  primary: string;
+  success: string;
+  warning: string;
+  info: string;
+  modern: string;
+  sunset: string;
+  ocean: string;
+  forest: string;
+  fire: string;
+  luxury: string;
+  sidebar: string;
+  logo: string;
+}
+
+export interface ThemeShadows {
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  card: string;
+  cardHover: string;
+  sidebar: string;
+  sidebarHover: string;
+  input: string;
+  button: string;
+  buttonHover: string;
+}
+
+export interface ThemeTextShadow {
+  light: string;
+  medium: string;
+}
+
+export interface ThemeCardLayer {
+  primary: string;
+  secondary: string;
+  accent: string;
+}
+
+export interface ThemeIconColor {
+  default: string;
 }
 
 export interface Theme {
@@ -69,6 +108,19 @@ export interface Theme {
   error: ThemeColors;
   warning: ThemeColors;
   info: ThemeColors;
+
+  // 渐变色
+  gradient: ThemeGradients;
+
+  // 卡片层次色
+  cardLayer: ThemeCardLayer;
+
+  // 阴影
+  shadow: ThemeShadows;
+  textShadow: ThemeTextShadow;
+
+  // 图标颜色
+  iconColor: ThemeIconColor;
 
   // 组件特定样式
   sidebar: {
@@ -178,6 +230,8 @@ export const lightTheme: Theme = {
     forest: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
     fire: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
     luxury: 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
+    sidebar: 'linear-gradient(135deg, #2563EB, #7C3AED)',
+    logo: 'linear-gradient(135deg, #2563EB, #7C3AED)',
   },
   
   // 卡片层次色
@@ -187,12 +241,19 @@ export const lightTheme: Theme = {
     accent: '#FEF3C7',
   },
 
-  // 卡片阴影
-  cardShadow: {
-    default: '0 2px 8px rgba(0, 0, 0, 0.08)',
-    hover: '0 4px 12px rgba(0, 0, 0, 0.12)',
-    important: '0 4px 16px rgba(37, 99, 235, 0.1)',
-    importantHover: '0 6px 20px rgba(37, 99, 235, 0.15)',
+  // 阴影系统
+  shadow: {
+    sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    md: '0 2px 8px rgba(0, 0, 0, 0.08)',
+    lg: '0 4px 12px rgba(0, 0, 0, 0.12)',
+    xl: '0 8px 25px rgba(0, 0, 0, 0.15)',
+    card: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    cardHover: '0 4px 12px rgba(0, 0, 0, 0.08)',
+    sidebar: '0 4px 12px rgba(0, 0, 0, 0.08)',
+    sidebarHover: '0 6px 16px rgba(0, 0, 0, 0.12)',
+    input: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    button: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    buttonHover: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
 
   // 文本阴影
@@ -223,8 +284,8 @@ export const lightTheme: Theme = {
   },
 
   titleBar: {
-    background: 'rgba(255, 255, 255, 0.8)',
-    border: '#E5E7EB',
+    background: 'rgba(255, 255, 255, 0.85)',
+    border: 'rgba(229, 231, 235, 0.6)',
     text: '#111827',
     icon: '#4B5563',
     iconHover: '#111827',
@@ -330,6 +391,14 @@ export const darkTheme: Theme = {
     success: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
     warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
     info: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    modern: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #EC4899 100%)',
+    sunset: 'linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%)',
+    ocean: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    forest: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+    fire: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+    luxury: 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
+    sidebar: 'linear-gradient(135deg, #60A5FA, #A78BFA)',
+    logo: 'linear-gradient(135deg, #60A5FA, #A78BFA)',
   },
   
   // 卡片层次色
@@ -339,12 +408,19 @@ export const darkTheme: Theme = {
     accent: '#78350F',
   },
 
-  // 卡片阴影
-  cardShadow: {
-    default: '0 2px 8px rgba(0, 0, 0, 0.15)',
-    hover: '0 4px 12px rgba(0, 0, 0, 0.25)',
-    important: '0 4px 16px rgba(59, 130, 246, 0.15)',
-    importantHover: '0 6px 20px rgba(59, 130, 246, 0.25)',
+  // 阴影系统
+  shadow: {
+    sm: '0 1px 2px rgba(0, 0, 0, 0.1)',
+    md: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    lg: '0 4px 12px rgba(0, 0, 0, 0.25)',
+    xl: '0 8px 25px rgba(0, 0, 0, 0.3)',
+    card: '0 1px 2px rgba(0, 0, 0, 0.1)',
+    cardHover: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    sidebar: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    sidebarHover: '0 6px 16px rgba(0, 0, 0, 0.25)',
+    input: '0 1px 2px rgba(0, 0, 0, 0.1)',
+    button: '0 1px 2px rgba(0, 0, 0, 0.1)',
+    buttonHover: '0 2px 4px rgba(0, 0, 0, 0.2)',
   },
 
   // 文本阴影
@@ -375,8 +451,8 @@ export const darkTheme: Theme = {
   },
 
   titleBar: {
-    background: 'rgba(17, 24, 39, 0.8)',
-    border: '#374151',
+    background: 'rgba(17, 24, 39, 0.85)',
+    border: 'rgba(55, 65, 81, 0.6)',
     text: '#F9FAFB',
     icon: '#9CA3AF',
     iconHover: '#F9FAFB',

@@ -21,12 +21,13 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
   position: relative;
   overflow: hidden;
   border-radius: ${props => {
+    const borderRadius = props.theme?.borderRadius || {};
     switch (props.borderRadius) {
-      case 'small': return props.theme.borderRadius.small;
-      case 'medium': return props.theme.borderRadius.medium;
-      case 'large': return props.theme.borderRadius.large;
-      case 'extra-large': return props.theme.borderRadius.extraLarge;
-      default: return props.theme.borderRadius.medium;
+      case 'small': return borderRadius.small || '8px';
+      case 'medium': return borderRadius.medium || '12px';
+      case 'large': return borderRadius.large || '16px';
+      case 'extra-large': return borderRadius.extraLarge || '24px';
+      default: return borderRadius.medium || '12px';
     }
   }};
   
@@ -43,13 +44,18 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
   
   /* 变体样式 */
   ${props => {
+    const theme = props.theme || {};
+    const gradient = theme.gradient || {};
+    const shadow = theme.shadow || {};
+    const isDark = theme.name === 'dark';
+    
     switch (props.variant) {
       case 'gradient':
         return `
-          background: ${props.gradient || props.theme.gradient.primary};
+          background: ${props.gradient || gradient.primary || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
           border: none;
           color: white;
-          box-shadow: ${props.theme.cardShadow.important};
+          box-shadow: ${shadow.xl || '0 8px 25px rgba(0, 0, 0, 0.15)'};
           position: relative;
           
           &::before {
@@ -65,7 +71,7 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
         `;
       case 'glass':
         return `
-          background: ${props.theme.name === 'dark' ? 
+          background: ${isDark ? 
             `rgba(17, 24, 39, ${props.intensity === 'light' ? '0.08' : 
                                  props.intensity === 'medium' ? '0.12' : 
                                  props.intensity === 'heavy' ? '0.18' : '0.12'})` : 
@@ -75,7 +81,7 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
           };
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border: 1px solid ${props.theme.name === 'dark' ? 
+          border: 1px solid ${isDark ? 
             'rgba(255, 255, 255, 0.1)' : 
             'rgba(0, 0, 0, 0.1)'
           };
@@ -83,9 +89,9 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
         `;
       case 'floating':
         return `
-          background: ${props.theme.card.background};
+          background: ${theme.card?.background || '#ffffff'};
           border: none;
-          box-shadow: ${props.theme.cardShadow.important};
+          box-shadow: ${shadow.xl || '0 8px 25px rgba(0, 0, 0, 0.15)'};
           transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
           
           &::before {
@@ -95,7 +101,7 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
             left: -2px;
             right: -2px;
             bottom: -2px;
-            background: linear-gradient(45deg, ${props.theme.primary.main}, ${props.theme.accent}, ${props.theme.primary.main});
+            background: linear-gradient(45deg, ${theme.primary?.main || '#2563EB'}, ${theme.accent || '#7C3AED'}, ${theme.primary?.main || '#2563EB'});
             border-radius: inherit;
             opacity: 0;
             z-index: -1;
@@ -104,9 +110,9 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
         `;
       case 'neumorphic':
         return `
-          background: ${props.theme.background};
+          background: ${theme.background || '#ffffff'};
           border: none;
-          box-shadow: ${props.theme.name === 'dark' ? 
+          box-shadow: ${isDark ? 
             '8px 8px 16px rgba(0, 0, 0, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.05)' :
             '8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.8)'
           };
@@ -114,7 +120,7 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
         `;
       case '3d':
         return `
-          background: ${props.theme.card.background};
+          background: ${theme.card?.background || '#ffffff'};
           border: none;
           box-shadow: 
             0 10px 20px rgba(0, 0, 0, 0.1),
@@ -136,80 +142,94 @@ const StyledModernCard = styled(motion.div)<ModernCardProps & { theme: any }>`
         `;
       default:
         return `
-          background: ${props.theme.card.background};
+          background: ${theme.card?.background || '#ffffff'};
           border: none;
-          box-shadow: ${props.theme.cardShadow.default};
+          box-shadow: ${shadow.card || '0 1px 2px rgba(0, 0, 0, 0.05)'};
         `;
     }
   }}
   
   /* 悬停效果 */
-  ${props => props.hoverable && `
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    cursor: pointer;
+  ${props => {
+    if (!props.hoverable) return '';
     
-    &:hover {
-      transform: translateY(-4px) scale(1.02);
+    const theme = props.theme || {};
+    const isDark = theme.name === 'dark';
+    
+    return `
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
       
-      ${props.variant === 'glass' ? `
-        backdrop-filter: blur(25px);
-        background: ${props.theme.name === 'dark' ? 
-          `rgba(17, 24, 39, ${props.intensity === 'light' ? '0.12' : 
-                                props.intensity === 'medium' ? '0.18' : 
-                                props.intensity === 'heavy' ? '0.24' : '0.18'})` : 
-          `rgba(255, 255, 255, ${props.intensity === 'light' ? '0.12' : 
-                                props.intensity === 'medium' ? '0.18' : 
-                                props.intensity === 'heavy' ? '0.24' : '0.18'})`
-        };
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-      ` : ''}
-      
-      ${props.variant === 'floating' ? `
-        box-shadow: ${props.theme.cardShadow.importantHover};
-        &::before {
-          opacity: 0.3;
-        }
-      ` : ''}
-      
-      ${props.variant === 'neumorphic' ? `
-        box-shadow: ${props.theme.name === 'dark' ? 
-          '12px 12px 24px rgba(0, 0, 0, 0.5), -12px -12px 24px rgba(255, 255, 255, 0.08)' :
-          '12px 12px 24px rgba(0, 0, 0, 0.15), -12px -12px 24px rgba(255, 255, 255, 0.9)'
-        };
-      ` : ''}
-      
-      ${props.variant === '3d' ? `
-        transform: translateY(-6px) scale(1.02) rotateX(2deg);
-        box-shadow: 
-          0 20px 40px rgba(0, 0, 0, 0.15),
-          0 12px 12px rgba(0, 0, 0, 0.12),
-          inset 0 -4px 8px rgba(0, 0, 0, 0.08);
-      ` : ''}
-    }
-  `}
+      &:hover {
+        transform: translateY(-4px) scale(1.02);
+        
+        ${props.variant === 'glass' ? `
+          backdrop-filter: blur(25px);
+          background: ${isDark ? 
+            `rgba(17, 24, 39, ${props.intensity === 'light' ? '0.12' : 
+                                  props.intensity === 'medium' ? '0.18' : 
+                                  props.intensity === 'heavy' ? '0.24' : '0.18'})` : 
+            `rgba(255, 255, 255, ${props.intensity === 'light' ? '0.12' : 
+                                  props.intensity === 'medium' ? '0.18' : 
+                                  props.intensity === 'heavy' ? '0.24' : '0.18'})`
+          };
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        ` : ''}
+        
+        ${props.variant === 'floating' ? `
+          box-shadow: ${isDark ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.2)'};
+          &::before {
+            opacity: 0.3;
+          }
+        ` : ''}
+        
+        ${props.variant === 'neumorphic' ? `
+          box-shadow: ${isDark ? 
+            '12px 12px 24px rgba(0, 0, 0, 0.5), -12px -12px 24px rgba(255, 255, 255, 0.08)' :
+            '12px 12px 24px rgba(0, 0, 0, 0.15), -12px -12px 24px rgba(255, 255, 255, 0.9)'
+          };
+        ` : ''}
+        
+        ${props.variant === '3d' ? `
+          transform: translateY(-6px) scale(1.02) rotateX(2deg);
+          box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.15),
+            0 12px 12px rgba(0, 0, 0, 0.12),
+            inset 0 -4px 8px rgba(0, 0, 0, 0.08);
+        ` : ''}
+      }
+    `;
+  }}
   
   /* 可点击效果 */
-  ${props => props.clickable && `
-    cursor: pointer;
-    transition: all 0.2s ease;
+  ${props => {
+    if (!props.clickable) return '';
     
-    &:active {
-      transform: ${props.variant === 'neumorphic' ? 
-        'translateY(2px) scale(0.98)' : 
-        'translateY(-1px) scale(0.98)'
-      };
+    const theme = props.theme || {};
+    const isDark = theme.name === 'dark';
+    
+    return `
+      cursor: pointer;
+      transition: all 0.2s ease;
       
-      ${props.variant === 'neumorphic' ? `
-        box-shadow: ${props.theme.name === 'dark' ? 
-          '4px 4px 8px rgba(0, 0, 0, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.05)' :
-          '4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.8)'
+      &:active {
+        transform: ${props.variant === 'neumorphic' ? 
+          'translateY(2px) scale(0.98)' : 
+          'translateY(-1px) scale(0.98)'
         };
-      ` : ''}
-    }
-  `}
+        
+        ${props.variant === 'neumorphic' ? `
+          box-shadow: ${isDark ? 
+            '4px 4px 8px rgba(0, 0, 0, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.05)' :
+            '4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.8)'
+          };
+        ` : ''}
+      }
+    `;
+  }}
 `;
 
-const ModernCard: React.FC<ModernCardProps> = ({
+const ModernCard = React.memo<ModernCardProps>(({
   children,
   variant = 'gradient',
   padding = 'medium',
@@ -257,6 +277,6 @@ const ModernCard: React.FC<ModernCardProps> = ({
       {children}
     </StyledModernCard>
   );
-};
+});
 
 export default ModernCard;

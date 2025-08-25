@@ -52,7 +52,7 @@ const StyledCard = styled(motion.div)<CardProps>`
           background: ${props.$gradient || props.theme.gradient.primary};
           border: none;
           color: white;
-          box-shadow: ${props.theme.cardShadow.hover};
+          box-shadow: ${props.theme.shadow.cardHover};
         `;
       case 'glass': {
         const glassOpacity = props.$glassIntensity === 'light' ? '0.1' : 
@@ -68,7 +68,7 @@ const StyledCard = styled(motion.div)<CardProps>`
         return `
           background: ${props.theme.card.background};
           border: none;
-          box-shadow: ${props.theme.cardShadow.important};
+          box-shadow: ${props.theme.shadow.xl};
           transform: translateY(0);
           transition: all 0.3s ease;
         `;
@@ -115,7 +115,7 @@ const StyledCard = styled(motion.div)<CardProps>`
         background: rgba(255, 255, 255, ${props.$glassIntensity === 'light' ? '0.15' : 
                                       props.$glassIntensity === 'medium' ? '0.25' : '0.35'});
       ` : `
-        box-shadow: ${props.theme.cardShadow.importantHover};
+        box-shadow: ${props => props.theme.name === 'dark' ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.2)'};
       `}
     }
   `}
@@ -132,7 +132,7 @@ const StyledCard = styled(motion.div)<CardProps>`
   
 `;
 
-const Card: React.FC<CardProps> = ({
+const Card = React.memo<CardProps>(({
   children,
   $variant = 'elevated',
   $padding = 'medium',
@@ -146,9 +146,11 @@ const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   // 使用更优雅的方式判断是否为具体服务页面
-  const isServicePage = ['/proxy-management', '/chat', '/dev-environment'].some(path => 
-    window.location.pathname.includes(path)
-  );
+  const isServicePage = React.useMemo(() => {
+    return ['/proxy-management', '/chat', '/dev-environment'].some(path => 
+      window.location.pathname.includes(path)
+    );
+  }, []);
   
   return (
     <StyledCard
@@ -175,6 +177,6 @@ const Card: React.FC<CardProps> = ({
       {children}
     </StyledCard>
   );
-};
+});
 
 export default Card;

@@ -98,12 +98,12 @@ const StatusText = styled.span`
   font-weight: 500;
 `;
 
-const StatusIndicator: React.FC<StatusIndicatorProps> = ({ 
+const StatusIndicator = React.memo<StatusIndicatorProps>(({ 
   status, 
   message, 
   size = 'medium' 
 }) => {
-  const getStatusConfig = () => {
+  const getStatusConfig = React.useCallback(() => {
     switch (status) {
       case 'saving':
         return {
@@ -148,10 +148,10 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
           className: 'idle'
         };
     }
-  };
+  }, [status, size]);
 
-  const config = getStatusConfig();
-  const displayMessage = message || config.defaultMessage;
+  const config = React.useMemo(() => getStatusConfig(), [getStatusConfig]);
+  const displayMessage = React.useMemo(() => message || config.defaultMessage, [message, config.defaultMessage]);
 
   return (
     <StatusContainer className={config.className} $size={size}>
@@ -161,6 +161,6 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
       <StatusText>{displayMessage}</StatusText>
     </StatusContainer>
   );
-};
+});
 
 export default StatusIndicator;

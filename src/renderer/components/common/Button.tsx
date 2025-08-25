@@ -186,7 +186,7 @@ const StyledButton = styled(motion.button)<ButtonProps>`
   }
 `;
 
-const Button: React.FC<ButtonProps> = ({ 
+const Button = React.memo<ButtonProps>(({ 
   children, 
   variant = 'primary',
   size = 'medium',
@@ -201,9 +201,11 @@ const Button: React.FC<ButtonProps> = ({
   ...props 
 }) => {
   // 使用更优雅的方式判断是否为具体服务页面
-  const isServicePage = ['/proxy-management', '/chat', '/dev-environment'].some(path => 
-    window.location.pathname.includes(path)
-  );
+  const isServicePage = React.useMemo(() => {
+    return ['/proxy-management', '/chat', '/dev-environment'].some(path => 
+      window.location.pathname.includes(path)
+    );
+  }, []);
   
   return (
     <StyledButton
@@ -225,6 +227,6 @@ const Button: React.FC<ButtonProps> = ({
       {$loading ? null : endIcon}
     </StyledButton>
   );
-};
+});
 
 export default Button;

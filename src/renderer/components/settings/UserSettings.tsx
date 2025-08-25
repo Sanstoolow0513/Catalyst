@@ -26,7 +26,7 @@ const Avatar = styled.div`
   justify-content: center;
   overflow: hidden;
   position: relative;
-  box-shadow: ${props => props.theme.cardShadow.hover};
+  box-shadow: ${props => props.theme.shadow.cardHover};
   
   img {
     width: 100%;
@@ -46,7 +46,7 @@ const UploadButton = styled.label`
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
-  box-shadow: ${props => props.theme.cardShadow.default};
+  box-shadow: ${props => props.theme.shadow.card};
 `;
 
 const HiddenInput = styled.input`

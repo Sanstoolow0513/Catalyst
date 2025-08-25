@@ -30,10 +30,10 @@ const SidebarContainer = styled(motion.aside)<{ $collapsed: boolean }>`
   transition: width 0.3s ease;
   flex-shrink: 0;
   z-index: 100;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: ${props => props.theme.shadow.sidebar};
   
   &:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: ${props => props.theme.shadow.sidebarHover};
   }
   
   /* 自定义滚动条 */
@@ -92,9 +92,7 @@ const LogoButton = styled(motion.button)<{ $collapsed: boolean }>`
 const Logo = styled.div`
   width: 40px;
   height: 40px;
-  background: ${props => props.theme.name === 'light' 
-    ? 'linear-gradient(135deg, #2563EB, #7C3AED)' 
-    : 'linear-gradient(135deg, #60A5FA, #A78BFA)'};
+  background: ${props => props.theme.gradient.logo};
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -236,6 +234,7 @@ const navigationItems = [
       { path: '/', label: '首页', icon: HomeIcon },
       { path: '/proxy-management', label: '代理管理', icon: ShieldIcon },
       { path: '/chat', label: 'AI 对话', icon: BotIcon },
+      { path: '/llm-config', label: 'LLM 配置', icon: SettingsIcon },
       { path: '/dev-environment', label: '开发环境', icon: CodeIcon },
       { path: '/settings', label: '设置', icon: SettingsIcon },
       { path: '/info', label: '关于', icon: InfoIcon },
@@ -269,14 +268,14 @@ const Sidebar = () => {
         $collapsed={isSidebarCollapsed}
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
       >
         <NavSection $collapsed={isSidebarCollapsed}>
           <LogoButton
             $collapsed={isSidebarCollapsed}
             onClick={toggleSidebar}
-            whileHover={{ scale: 1.02, zIndex: 1 }}
-            whileTap={{ scale: 0.98, zIndex: 1 }}
+            whileHover={{ scale: 1.01, zIndex: 1 }}
+            whileTap={{ scale: 0.99, zIndex: 1 }}
           >
             <Logo>C</Logo>
             {!isSidebarCollapsed && (
@@ -298,7 +297,7 @@ const Sidebar = () => {
                     key={item.path}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * itemIndex, duration: 0.3 }}
+                    transition={{ delay: 0.05 * itemIndex, duration: 0.2 }}
                     whileHover={{ scale: 1.02, zIndex: 1 }}
                     whileTap={{ scale: 0.98, zIndex: 1 }}
                   >
