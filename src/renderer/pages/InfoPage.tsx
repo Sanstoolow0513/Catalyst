@@ -15,7 +15,10 @@ import {
   Heart as HeartIcon,
   Activity as ActivityIcon,
   Award as AwardIcon,
-  TrendingUp as TrendingUpIcon
+  TrendingUp as TrendingUpIcon,
+  Terminal as TerminalIcon,
+  Package as PackageIcon,
+  Download as DownloadIcon
 } from 'lucide-react';
 
 const pulseAnimation = keyframes`
@@ -236,6 +239,67 @@ const TimelineDescription = styled.p`
   line-height: 1.5;
 `;
 
+const WingetSection = styled(motion.section)`
+  margin: ${({ theme }) => theme.spacing.xxl} 0;
+`;
+
+const WingetCard = styled(Card)`
+  background: ${props => props.theme.surface};
+  border: 1px solid ${props => props.theme.border};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  padding: ${({ theme }) => theme.spacing.xl};
+`;
+
+const WingetTitle = styled.h3`
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: ${props => props.theme.textPrimary};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const WingetDescription = styled.p`
+  color: ${props => props.theme.textSecondary};
+  line-height: 1.6;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+`;
+
+const WingetCommands = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const WingetCommand = styled.div`
+  background: ${props => props.theme.surfaceVariant};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  padding: ${({ theme }) => theme.spacing.md};
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: ${props => props.theme.textPrimary};
+  border: 1px solid ${props => props.theme.border};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '>';
+    position: absolute;
+    left: ${({ theme }) => theme.spacing.sm};
+    top: 50%;
+    transform: translateY(-50%);
+    color: ${props => props.theme.primary};
+    font-weight: bold;
+  }
+`;
+
+const CommandText = styled.span`
+  margin-left: ${({ theme }) => theme.spacing.lg};
+  display: block;
+  word-break: break-all;
+`;
+
 const PageHeader = styled(motion.div)`
   text-align: center;
   margin-bottom: ${({ theme }) => theme.spacing.xxl};
@@ -401,6 +465,19 @@ const InfoPage: React.FC = () => {
       title: "优化迭代",
       description: "持续优化用户体验，修复bug，添加新功能，提升系统稳定性。"
     }
+  ];
+
+  const wingetCommands = [
+    "winget install Microsoft.WindowsTerminal",
+    "winget install 9N8G5RFZ9XK3", // NanaZip
+    "winget install Microsoft.VisualStudioCode",
+    "winget install Git.Git",
+    "winget install Node.js",
+    "winget install Python.Python.3.11",
+    "winget install Docker.DockerDesktop",
+    "winget install Mozilla.Firefox",
+    "winget install Google.Chrome",
+    "winget install 7zip.7zip"
   ];
 
   return (
@@ -600,6 +677,38 @@ const InfoPage: React.FC = () => {
             ))}
           </TimelineSection>
         </Section>
+
+        <WingetSection
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.5 }}
+        >
+          <SectionTitle>
+            <TerminalIcon size={24} />
+            常用工具安装命令
+          </SectionTitle>
+          <WingetCard>
+            <WingetTitle>
+              <PackageIcon size={24} />
+              Windows Package Manager (winget)
+            </WingetTitle>
+            <WingetDescription>
+              使用 winget 快速安装常用的 Windows 应用程序。复制以下命令到 PowerShell 或命令提示符中执行。
+            </WingetDescription>
+            <WingetCommands>
+              {wingetCommands.map((command, index) => (
+                <WingetCommand
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 * index, duration: 0.3 }}
+                >
+                  <CommandText>{command}</CommandText>
+                </WingetCommand>
+              ))}
+            </WingetCommands>
+          </WingetCard>
+        </WingetSection>
 
       </InfoContainer>
     </PageContainer>

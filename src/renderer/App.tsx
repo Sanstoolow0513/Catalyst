@@ -1,5 +1,5 @@
 import React, { useContext, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import { ThemeContext } from './contexts/ThemeContext';
 import { UserProvider } from './contexts/UserContext';
@@ -50,26 +50,24 @@ function App() {
 
   return (
     <Router>
-      <UserProvider>
-        <ConfigProvider>
-          <MainLayout>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/proxy-management" element={<ProxyPage />} />
-                <Route path="/chat" element={<ModernChatPage />} />
-                <Route path="/modern-chat" element={<ModernChatPage />} />
-                <Route path="/test" element={<TestPage />} />
-                <Route path="/llm-config" element={<LLMConfigPage />} />
-                <Route path="/dev-environment" element={<DevEnvironmentPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/info" element={<InfoPage />} />
-              </Routes>
-            </Suspense>
-          </MainLayout>
-          <NotificationSystem />
-        </ConfigProvider>
-      </UserProvider>
+      <ConfigProvider>
+        <MainLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/proxy-management" element={<ProxyPage />} />
+              <Route path="/chat" element={<ModernChatPage />} />
+              <Route path="/modern-chat" element={<ModernChatPage />} />
+              <Route path="/test" element={<TestPage />} />
+              <Route path="/llm-config" element={<LLMConfigPage />} />
+              <Route path="/dev-environment" element={<DevEnvironmentPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/info" element={<InfoPage />} />
+            </Routes>
+          </Suspense>
+        </MainLayout>
+        <NotificationSystem />
+      </ConfigProvider>
     </Router>
   );
 }

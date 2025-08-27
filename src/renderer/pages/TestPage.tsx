@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Card, CardContent, Typography, Box, Alert } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { IPC_EVENTS } from '../../shared/ipc-events';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(2),
@@ -27,47 +26,66 @@ const TestPage: React.FC = () => {
   const installers = [
     {
       name: 'Node.js v22.16.0',
-      path: 'resources/apps/node-v22.16.0-x64.msi',
+      relativePath: 'apps/node-v22.16.0-x64.msi',
       description: 'Node.js 运行时环境'
     },
     {
       name: 'Clash Verge',
-      path: 'resources/apps/Clash.Verge_2.4.0_x64-setup.exe',
+      relativePath: 'apps/Clash.Verge_2.4.0_x64-setup.exe',
       description: 'Clash 客户端'
     },
     {
       name: 'Zen Browser',
-      path: 'resources/apps/zen.installer.exe',
+      relativePath: 'apps/zen.installer.exe',
       description: 'Zen 浏览器'
     },
     {
       name: 'Visual C++ Redistributable x64',
-      path: 'resources/apps/vclib/VC_redist.x64.exe',
+      relativePath: 'apps/vclib/VC_redist.x64.exe',
       description: 'VC++ 运行库 (64位)'
     },
     {
       name: 'Visual C++ Redistributable x86',
-      path: 'resources/apps/vclib/vcredist_x86.exe',
+      relativePath: 'apps/vclib/vcredist_x86.exe',
       description: 'VC++ 运行库 (32位)'
     }
   ];
 
-  const handleInstall = async (installerPath: string, installerName: string) => {
+  const handleInstall = async (relativePath: string, installerName: string) => {
     try {
       setStatus(`正在启动 ${installerName} 安装程序...`);
       setError('');
-      
+
       // 通过Electron IPC调用主进程执行安装程序
-      const result = await (window as any).electronAPI.test.runInstaller(installerPath);
-      
+      const result = await (window as any).electronAPI.test.runInstaller(relativePath);
+
       if (result.success) {
         setStatus(`${installerName} 安装程序已启动`);
       } else {
         setError(`${installerName} 启动失败: ${result.error}`);
       }
-      
+
     } catch (err) {
-      setError(`启动 ${installerName} 失败: ${err}`);
+      setError(`启动 ${installerName} 失败: ${(err as Error).message}`);
+    }
+  };
+
+  const handleInstallWinget = async () => {
+    try {
+      setStatus('正在检查并安装 Winget...');
+      setError('');
+
+      // 通过Electron IPC调用主进程安装 winget
+      const result = await (window as any).electronAPI.test.installWinget();
+
+      if (result.success) {
+        setStatus(`Winget 安装完成: ${result.message}`);
+      } else {
+        setError(`Winget 安装失败: ${result.error}`);
+      }
+
+    } catch (err) {
+      setError(`安装 Winget 失败: ${(err as Error).message}`);
     }
   };
 
@@ -113,6 +131,24 @@ const TestPage: React.FC = () => {
         </Alert>
       )}
 
+      {/* Winget 安装卡片 */}
+      <StyledCard>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Windows Package Manager (Winget)
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            Windows 包管理器，可用于安装和管理 Windows 应用程序
+          </Typography>
+          <InstallButton
+            variant="contained"
+            onClick={handleInstallWinget}
+          >
+            安装 Winget
+          </InstallButton>
+        </CardContent>
+      </StyledCard>
+
       {installers.map((installer, index) => (
         <StyledCard key={index}>
           <CardContent>
@@ -124,7 +160,7 @@ const TestPage: React.FC = () => {
             </Typography>
             <InstallButton
               variant="contained"
-              onClick={() => handleInstall(installer.path, installer.name)}
+              onClick={() => handleInstall(installer.relativePath, installer.name)}
             >
               启动安装
             </InstallButton>

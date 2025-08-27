@@ -70,6 +70,7 @@ try {
     
     test: {
       runInstaller: (installerPath: string) => ipcRenderer.invoke(IPC_EVENTS.TEST_RUN_INSTALLER, installerPath),
+      installWinget: () => ipcRenderer.invoke(IPC_EVENTS.TEST_INSTALL_WINGET),
     },
     
     windowControl: {

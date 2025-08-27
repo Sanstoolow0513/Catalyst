@@ -59,6 +59,7 @@ const IPC_EVENTS = {
   CONFIG_MIGRATE_CONFIG: "config:migrate-config",
   // 测试页面相关事件
   TEST_RUN_INSTALLER: "test:run-installer",
+  TEST_INSTALL_WINGET: "test:install-winget",
   // 窗口控制事件
   WINDOW_MINIMIZE: "window:minimize",
   WINDOW_MAXIMIZE: "window:maximize",
@@ -126,7 +127,8 @@ try {
       installPython: () => electron.ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_PYTHON)
     },
     test: {
-      runInstaller: (installerPath) => electron.ipcRenderer.invoke(IPC_EVENTS.TEST_RUN_INSTALLER, installerPath)
+      runInstaller: (installerPath) => electron.ipcRenderer.invoke(IPC_EVENTS.TEST_RUN_INSTALLER, installerPath),
+      installWinget: () => electron.ipcRenderer.invoke(IPC_EVENTS.TEST_INSTALL_WINGET)
     },
     windowControl: {
       minimize: () => electron.ipcRenderer.send(IPC_EVENTS.WINDOW_MINIMIZE),

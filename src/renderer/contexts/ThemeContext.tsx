@@ -206,7 +206,17 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
 
   // 避免在初始化完成前渲染，防止主题闪烁
   if (!isInitialized) {
-    return null;
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontFamily: 'Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif'
+      }}>
+        <div>Loading application...</div>
+      </div>
+    );
   }
 
   return (

@@ -84,6 +84,7 @@ const IPC_EVENTS = {
   CONFIG_MIGRATE_CONFIG: "config:migrate-config",
   // 测试页面相关事件
   TEST_RUN_INSTALLER: "test:run-installer",
+  TEST_INSTALL_WINGET: "test:install-winget",
   // 窗口控制事件
   WINDOW_MINIMIZE: "window:minimize",
   WINDOW_MAXIMIZE: "window:maximize",
@@ -23132,8 +23133,13 @@ function createWindow() {
       contextIsolation: true
     }
   });
-  mainWindow.loadURL("http://localhost:5173");
-  mainWindow.webContents.openDevTools();
+  if (process.env.NODE_ENV === "development") {
+    mainWindow.loadURL("http://localhost:5173");
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadFile(path__default.join(__dirname, "../renderer/index.html"));
+    mainWindow.webContents.openDevTools();
+  }
   ipcMain$1.on(IPC_EVENTS.WINDOW_MINIMIZE, () => {
     console.log("Received WINDOW_MINIMIZE event");
     if (mainWindow) {
@@ -23173,21 +23179,108 @@ app$1.whenReady().then(() => {
   registerLlmIpcHandlers();
   registerDevEnvironmentIpcHandlers();
   registerConfigIpcHandlers();
-  ipcMain$1.handle(IPC_EVENTS.TEST_RUN_INSTALLER, async (event, installerPath) => {
+  ipcMain$1.handle(IPC_EVENTS.TEST_RUN_INSTALLER, async (event, relativeInstallerPath) => {
     try {
       const { exec: exec2 } = require2("child_process");
       const path2 = require2("path");
-      const fullPath = path2.join(process.cwd(), installerPath);
+      const isDev = !app$1.isPackaged;
+      let resourcesRoot;
+      if (isDev) {
+        resourcesRoot = path2.join(app$1.getAppPath(), "resources");
+      } else {
+        resourcesRoot = path2.join(app$1.getAppPath(), "resources");
+      }
+      let absoluteInstallerPath;
+      if (isDev) {
+        absoluteInstallerPath = path2.join(resourcesRoot, relativeInstallerPath);
+      } else {
+        absoluteInstallerPath = path2.join(process.resourcesPath, "resources", relativeInstallerPath);
+      }
+      console.log(`[TEST_RUN_INSTALLER] Environment: ${isDev ? "development" : "production"}`);
+      console.log(`[TEST_RUN_INSTALLER] Resources root: ${resourcesRoot}`);
+      console.log(`[TEST_RUN_INSTALLER] Relative path: ${relativeInstallerPath}`);
+      console.log(`[TEST_RUN_INSTALLER] Absolute path: ${absoluteInstallerPath}`);
+      console.log(`[TEST_RUN_INSTALLER] Process resources path: ${process.resourcesPath}`);
+      const fs2 = require2("fs");
+      if (!fs2.existsSync(absoluteInstallerPath)) {
+        console.error(`[TEST_RUN_INSTALLER] File not found: ${absoluteInstallerPath}`);
+        return { success: false, error: `安装程序文件不存在: ${absoluteInstallerPath}` };
+      }
       return new Promise((resolve2, reject) => {
-        exec2(`"${fullPath}"`, (error, stdout, stderr) => {
+        exec2(`"${absoluteInstallerPath}"`, (error, _stdout, _stderr) => {
           if (error) {
+            console.error(`[TEST_RUN_INSTALLER] Exec error:`, error);
             reject(error);
           } else {
+            console.log(`[TEST_RUN_INSTALLER] Installation started successfully`);
             resolve2({ success: true, message: "安装程序已启动" });
           }
         });
       });
     } catch (err) {
+      console.error(`[TEST_RUN_INSTALLER] Error:`, err);
+      return { success: false, error: err };
+    }
+  });
+  ipcMain$1.handle(IPC_EVENTS.TEST_INSTALL_WINGET, async () => {
+    try {
+      const { exec: exec2 } = require2("child_process");
+      const path2 = require2("path");
+      const fs2 = require2("fs");
+      console.log("[TEST_INSTALL_WINGET] Starting winget installation...");
+      const isDev = !app$1.isPackaged;
+      let resourcesRoot;
+      if (isDev) {
+        resourcesRoot = path2.join(app$1.getAppPath(), "resources");
+      } else {
+        resourcesRoot = path2.join(process.resourcesPath, "resources");
+      }
+      const vclibsPath = path2.join(resourcesRoot, "apps", "vclib", "VC_redist.x64.exe");
+      const wingetPath = path2.join(resourcesRoot, "apps", "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle");
+      console.log(`[TEST_INSTALL_WINGET] Environment: ${isDev ? "development" : "production"}`);
+      console.log(`[TEST_INSTALL_WINGET] Resources root: ${resourcesRoot}`);
+      console.log(`[TEST_INSTALL_WINGET] VCLibs path: ${vclibsPath}`);
+      console.log(`[TEST_INSTALL_WINGET] Winget path: ${wingetPath}`);
+      if (!fs2.existsSync(wingetPath)) {
+        console.error(`[TEST_INSTALL_WINGET] Winget file not found: ${wingetPath}`);
+        return { success: false, error: `Winget 安装包不存在: ${wingetPath}` };
+      }
+      return new Promise((resolve2, reject) => {
+        const powershellCommand = `
+          try {
+            # 检查是否已安装 winget
+            $wingetCheck = Get-Command winget -ErrorAction SilentlyContinue
+            if ($wingetCheck) {
+              Write-Output "Winget 已经安装"
+              exit 0
+            }
+            
+            # 直接安装 winget msixbundle
+            Add-AppxPackage -Path "${wingetPath.replace(/\\/g, "\\\\")}"
+            
+            Write-Output "Winget 安装成功"
+            exit 0
+          }
+          catch {
+            Write-Error "安装失败: $($_.Exception.Message)"
+            exit 1
+          }
+        `;
+        exec2(`powershell -Command "${powershellCommand.replace(/"/g, '\\"')}"`, {
+          windowsHide: true,
+          shell: true
+        }, (error, stdout, stderr) => {
+          if (error) {
+            console.error("[TEST_INSTALL_WINGET] Installation error:", error);
+            reject(error);
+          } else {
+            console.log("[TEST_INSTALL_WINGET] Installation output:", stdout);
+            resolve2({ success: true, message: stdout.trim() });
+          }
+        });
+      });
+    } catch (err) {
+      console.error("[TEST_INSTALL_WINGET] Error:", err);
       return { success: false, error: err };
     }
   });

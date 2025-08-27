@@ -62,6 +62,7 @@ export const IPC_EVENTS = {
   
   // 测试页面相关事件
   TEST_RUN_INSTALLER: 'test:run-installer',
+  TEST_INSTALL_WINGET: 'test:install-winget',
   
   // 窗口控制事件
   WINDOW_MINIMIZE: 'window:minimize',

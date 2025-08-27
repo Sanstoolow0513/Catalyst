@@ -24,7 +24,11 @@
       "Bash(pnpm run build:*)",
       "Bash(copy:*)",
       "Bash(cp:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(pnpm run dist:*)",
+      "Bash(\"dist\\win-unpacked\\Catalyst.exe\")",
+      "Bash(.Catalyst.exe)",
+      "Bash(npm run dist:*)"
     ],
     "deny": [],
     "ask": []
