@@ -16,8 +16,8 @@ import { ProxyConnectionInfo, ProxyMetrics } from '../../services/ProxyService';
 const OverviewContainer = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const MetricCard = styled(motion.div)`

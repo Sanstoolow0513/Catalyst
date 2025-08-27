@@ -1,25 +1,91 @@
 import { j as jsxRuntimeExports } from "./mui-vendor-CTE_O7gT.js";
 import { r as reactExports, d as dt } from "./styled-components-eg0Rzwc1.js";
-import { u as useTheme, a as useUser } from "./index-DI22-Bbg.js";
-import { P as PageContainer } from "./PageContainer-DNwXd5YI.js";
-import { j as Sparkles, S as Shield, k as MessageSquare, W as Wifi, C as Code, e as Sun, M as Moon, U as User } from "./icons-CcncyDR1.js";
+import { u as useTheme, a as useUser } from "./index-C-fhFnDy.js";
+import { j as Sparkles, S as Shield, k as MessageSquare, W as Wifi, C as Code, U as User } from "./icons-CcncyDR1.js";
 import { m as motion } from "./animation-DwHr2ej_.js";
 import { a as useNavigate } from "./routing-oDjbPx8E.js";
 import "./react-vendor-BS-dYsv0.js";
-const Header = dt.div`
+const GlassPageContainer = dt.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100%;
+  width: 100%;
+  background-color: ${(props) => props.$isGlassMode ? "transparent" : props.theme?.background || "#F9FAFB"};
+  color: ${(props) => props.theme?.textPrimary || "#111827"};
+  padding: ${(props) => props.theme?.spacing?.xl || "32px"};
+  position: relative;
+  
+  ${(props) => props.$isGlassMode && `
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(96, 165, 250, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(244, 114, 182, 0.04) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(147, 51, 234, 0.02) 100%);
+      z-index: -2;
+      pointer-events: none;
+    }
+    
+    &::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 60% 40%, rgba(34, 197, 94, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(251, 146, 60, 0.03) 0%, transparent 40%);
+      z-index: -1;
+      pointer-events: none;
+      animation: ambient 20s ease-in-out infinite;
+    }
+  `}
+  
+  @keyframes ambient {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: ${(props) => props.$isGlassMode ? "rgba(51, 65, 85, 0.2)" : "transparent"};
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: ${(props) => props.$isGlassMode ? "rgba(148, 163, 184, 0.3)" : props.theme?.border || "#E5E7EB"};
+    border-radius: 4px;
+    
+    &:hover {
+      background: ${(props) => props.$isGlassMode ? "rgba(203, 213, 225, 0.5)" : props.theme?.textTertiary || "#9CA3AF"};
+    }
+  }
+`;
+dt.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: ${({ theme }) => theme.spacing.xxl};
   padding: 0 ${({ theme }) => theme.spacing.xl};
 `;
-const Title = dt.h1`
+dt.h1`
   font-size: 2rem;
   font-weight: 700;
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
 `;
-const ThemeToggle = dt.button`
+dt.button`
   width: 40px;
   height: 40px;
   border-radius: ${({ theme }) => theme.borderRadius.large};
@@ -37,16 +103,33 @@ const ThemeToggle = dt.button`
   }
 `;
 const WelcomeCard = dt(motion.div)`
-  background: ${(props) => props.$isDarkMode ? "linear-gradient(135deg, #1e293b, #334155)" : "linear-gradient(135deg, #f8fafc, #e2e8f0)"};
+  background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "linear-gradient(135deg, rgba(30, 41, 59, 0.08) 0%, rgba(51, 65, 85, 0.05) 100%)";
+  }
+  return props.$isDarkMode ? "linear-gradient(135deg, #1e293b, #334155)" : "linear-gradient(135deg, #f8fafc, #e2e8f0)";
+}};
   border-radius: 20px;
-  padding: 2.5rem;
+  padding: 2rem;
   margin-bottom: 2rem;
-  border: 1px solid ${(props) => props.theme.border};
+  border: ${(props) => {
+  if (props.$isGlassMode) {
+    return "1px solid rgba(148, 163, 184, 0.15)";
+  }
+  return `1px solid ${props.theme.border}`;
+}};
   position: relative;
   overflow: hidden;
-  min-height: 180px;
+  min-height: 160px;
   display: flex;
   align-items: center;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(20px)" : "none"};
+  box-shadow: ${(props) => {
+  if (props.$isGlassMode) {
+    return "0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)";
+  }
+  return "0 1px 2px rgba(0, 0, 0, 0.05)";
+}};
   
   &::before {
     content: '';
@@ -55,10 +138,28 @@ const WelcomeCard = dt(motion.div)`
     right: -50%;
     width: 200%;
     height: 200%;
-    background: ${(props) => props.$isDarkMode ? "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)" : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)"};
-    animation: float 6s ease-in-out infinite;
+    background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(167, 139, 250, 0.05) 30%, transparent 60%)";
+  }
+  return props.$isDarkMode ? "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)" : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)";
+}};
+    animation: float 12s ease-in-out infinite;
   }
   
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${(props) => props.$isGlassMode ? "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)" : "none"};
+    pointer-events: none;
+    border-radius: 20px;
+  }
+  
+    
   @keyframes float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     50% { transform: translateY(-20px) rotate(180deg); }
@@ -67,6 +168,12 @@ const WelcomeCard = dt(motion.div)`
   @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+  }
+  
+    
+  @keyframes glow {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.7; }
   }
 `;
 const WelcomeContent = dt.div`
@@ -84,6 +191,9 @@ const WelcomeTitle = dt.h1`
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 2px 12px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 20px rgba(96, 165, 250, 0.1)" : "none"};
+  position: relative;
+  z-index: 2;
 `;
 const WelcomeSubtitle = dt.p`
   font-size: 1.1rem;
@@ -93,6 +203,9 @@ const WelcomeSubtitle = dt.p`
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 15px rgba(167, 139, 250, 0.08)" : "none"};
+  position: relative;
+  z-index: 2;
 `;
 const QuickActionsGrid = dt.div`
   display: grid;
@@ -101,18 +214,37 @@ const QuickActionsGrid = dt.div`
   margin-bottom: 2rem;
 `;
 const QuickActionItem = dt(motion.div)`
-  background: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-  border-radius: 12px;
+  background: ${(props) => props.$isGlassMode ? "rgba(30, 41, 59, 0.08)" : props.theme.surface};
+  border: ${(props) => props.$isGlassMode ? "1px solid rgba(148, 163, 184, 0.15)" : `1px solid ${props.theme.border}`};
+  border-radius: 16px;
   padding: 1.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(16px)" : "none"};
+  position: relative;
+  overflow: hidden;
   
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 16px;
+  }
+  
+    
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  }
-`;
+    box-shadow: ${(props) => props.$isGlassMode ? "0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)" : "0 8px 25px rgba(0, 0, 0, 0.1)"};
+    background: ${(props) => props.$isGlassMode ? "rgba(51, 65, 85, 0.12)" : props.theme.surfaceVariant};
+    
+      }
+  
+  `;
 const QuickActionItemIcon = dt.div`
   width: 48px;
   height: 48px;
@@ -161,15 +293,34 @@ const ActivityItem = dt.div`
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
-  border-radius: 8px;
+  background: ${(props) => props.$isGlassMode ? "rgba(30, 41, 59, 0.08)" : props.theme.surface};
+  border: ${(props) => props.$isGlassMode ? "1px solid rgba(148, 163, 184, 0.12)" : `1px solid ${props.theme.border}`};
+  border-radius: 12px;
   transition: all 0.2s ease;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(12px)" : "none"};
+  position: relative;
+  overflow: hidden;
   
-  &:hover {
-    background: ${(props) => props.theme.surfaceVariant};
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 12px;
   }
-`;
+  
+    
+  &:hover {
+    background: ${(props) => props.$isGlassMode ? "rgba(51, 65, 85, 0.12)" : props.theme.surfaceVariant};
+    box-shadow: ${(props) => props.$isGlassMode ? "0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1)" : "0 2px 8px rgba(0, 0, 0, 0.1)"};
+    
+      }
+  
+  `;
 const ActivityIcon = dt.div`
   width: 36px;
   height: 36px;
@@ -201,9 +352,10 @@ const Footer = dt.div`
   font-size: 0.9rem;
 `;
 const HomePage = () => {
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleTheme, themeMode } = useTheme();
   const { nickname } = useUser();
   const navigate = useNavigate();
+  const isGlassMode = themeMode.includes("Glass");
   const [proxyStatus, setProxyStatus] = reactExports.useState(null);
   const [loading, setLoading] = reactExports.useState(false);
   const [currentTime, setCurrentTime] = reactExports.useState("");
@@ -212,6 +364,32 @@ const HomePage = () => {
     { id: 2, text: "系统代理已准备就绪", time: "2分钟前", icon: Shield, color: "#3B82F6" },
     { id: 3, text: "AI 对话功能已激活", time: "5分钟前", icon: MessageSquare, color: "#10B981" }
   ]);
+  reactExports.useEffect(() => {
+    if (!isGlassMode) return;
+    const glassBackground = document.createElement("div");
+    glassBackground.className = "glass-background active";
+    document.body.appendChild(glassBackground);
+    const particles = document.createElement("div");
+    particles.className = "glass-particles active";
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement("div");
+      particle.className = "particle";
+      particle.style.left = Math.random() * 100 + "%";
+      particle.style.top = Math.random() * 100 + "%";
+      particle.style.animationDelay = Math.random() * 6 + "s";
+      particle.style.animationDuration = Math.random() * 4 + 4 + "s";
+      particles.appendChild(particle);
+    }
+    document.body.appendChild(particles);
+    return () => {
+      if (glassBackground.parentNode) {
+        glassBackground.parentNode.removeChild(glassBackground);
+      }
+      if (particles.parentNode) {
+        particles.parentNode.removeChild(particles);
+      }
+    };
+  }, [isGlassMode]);
   reactExports.useEffect(() => {
     const updateTime = () => {
       const now = /* @__PURE__ */ new Date();
@@ -316,24 +494,21 @@ const HomePage = () => {
       }
     }
   ];
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Header, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Title, { children: "欢迎回来" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeToggle, { onClick: toggleTheme, children: isDarkMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Sun, { size: 20 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Moon, { size: 20 }) })
-    ] }),
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(GlassPageContainer, { $isGlassMode: isGlassMode, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       WelcomeCard,
       {
         $isDarkMode: isDarkMode,
+        $isGlassMode: isGlassMode,
         initial: { opacity: 0, y: 20 },
         animate: { opacity: 1, y: 0 },
         transition: { duration: 0.6 },
         children: /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeContent, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeTitle, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeTitle, { $isGlassMode: isGlassMode, children: [
             currentTime,
             /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 32 })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(WelcomeSubtitle, { children: "今天准备好探索新的可能性了吗？让我们一起用 Catalyst 提升您的工作效率。" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(WelcomeSubtitle, { $isGlassMode: isGlassMode, children: "今天准备好探索新的可能性了吗？让我们一起用 Catalyst 提升您的工作效率。" })
         ] })
       }
     ),
@@ -347,6 +522,7 @@ const HomePage = () => {
         children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
           QuickActionItem,
           {
+            $isGlassMode: isGlassMode,
             whileHover: { scale: 1.02 },
             whileTap: { scale: 0.98 },
             style: { opacity: loading && action.title.includes("代理") ? 0.7 : 1 },
@@ -368,7 +544,7 @@ const HomePage = () => {
           initial: { opacity: 0, x: -20 },
           animate: { opacity: 1, x: 0 },
           transition: { delay: 0.1 * index + 0.5, duration: 0.4 },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ActivityItem, { children: [
+          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ActivityItem, { $isGlassMode: isGlassMode, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(ActivityIcon, { $color: activity.color, children: /* @__PURE__ */ jsxRuntimeExports.jsx(activity.icon, { size: 20 }) }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(ActivityContent, { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(ActivityText, { children: activity.text }),

@@ -1,77 +1,170 @@
 import { j as jsxRuntimeExports } from "./mui-vendor-CTE_O7gT.js";
 import { r as reactExports, d as dt } from "./styled-components-eg0Rzwc1.js";
-import { F as FormGroup, L as Label, I as Input, S as SelectWrapper, a as Select, B as Button, b as Card, T as ToastContainer, c as Toast } from "./PageContentLayout-C5gM8vRh.js";
-import { P as PageContainer } from "./PageContainer-DNwXd5YI.js";
+import { u as useTheme, b as useConfig } from "./index-C-fhFnDy.js";
+import { F as FormGroup, L as Label, I as Input, S as SelectWrapper, a as Select, B as Button, b as Card, T as ToastContainer, c as Toast } from "./PageContentLayout-2hb2Ff8p.js";
 import { S as StatusIndicator } from "./StatusIndicator-7Lw0xWRZ.js";
-import { b as useConfig } from "./index-DI22-Bbg.js";
 import { k as MessageSquare, J as Plus, K as Radio, N as SquarePen, u as Trash2, a as Settings, q as Save } from "./icons-CcncyDR1.js";
 import { m as motion } from "./animation-DwHr2ej_.js";
 import "./react-vendor-BS-dYsv0.js";
 import "./routing-oDjbPx8E.js";
-dt.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: ${(props) => props.theme.spacing.sm};
-  display: flex;
-  align-items: center;
-  gap: ${(props) => props.theme.spacing.sm};
-  text-shadow: ${(props) => props.theme.textShadow.light};
-`;
-dt.p`
-  color: ${(props) => props.theme.textSecondary};
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 500;
-`;
-const SettingsContentContainer = dt.div`
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-`;
-const MainContent = dt.div`
+const GlassPageContainer = dt.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: ${(props) => props.theme.background};
-  min-height: 0;
-`;
-dt.div`
-  padding: 24px;
-  border-bottom: 1px solid ${(props) => props.theme.border};
-  background: ${(props) => props.theme.surface};
-`;
-const TabContent = dt(motion.div)`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
   overflow-y: auto;
-  padding: 24px;
-  min-height: 0;
+  height: 100%;
+  width: 100%;
+  background-color: ${(props) => props.$isGlassMode ? "transparent" : props.theme?.background || "#F9FAFB"};
+  color: ${(props) => props.theme?.textPrimary || "#111827"};
+  padding: ${(props) => props.theme?.spacing?.xl || "32px"};
+  padding-bottom: 100px; /* 为固定保存栏留出足够空间 */
+  position: relative;
+  min-height: 0; /* 确保flex容器正确收缩 */
   
-  /* 隐藏滚动条 */
+  ${(props) => props.$isGlassMode && `
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(96, 165, 250, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(244, 114, 182, 0.04) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(147, 51, 234, 0.02) 100%);
+      z-index: -2;
+      pointer-events: none;
+    }
+    
+    &::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 60% 40%, rgba(34, 197, 94, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(251, 146, 60, 0.03) 0%, transparent 40%);
+      z-index: -1;
+      pointer-events: none;
+      animation: ambient 20s ease-in-out infinite;
+    }
+  `}
+  
+  @keyframes ambient {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+  
   &::-webkit-scrollbar {
     width: 8px;
   }
   
   &::-webkit-scrollbar-track {
-    background: transparent;
+    background: ${(props) => props.$isGlassMode ? "rgba(51, 65, 85, 0.2)" : "transparent"};
   }
   
   &::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.border};
+    background: ${(props) => props.$isGlassMode ? "rgba(148, 163, 184, 0.3)" : props.theme?.border || "#E5E7EB"};
     border-radius: 4px;
+    
+    &:hover {
+      background: ${(props) => props.$isGlassMode ? "rgba(203, 213, 225, 0.5)" : props.theme?.textTertiary || "#9CA3AF"};
+    }
+  }
+`;
+const ConfigWelcomeCard = dt(motion.div)`
+  background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "linear-gradient(135deg, rgba(30, 41, 59, 0.08) 0%, rgba(51, 65, 85, 0.05) 100%)";
+  }
+  return "linear-gradient(135deg, #f8fafc, #e2e8f0)";
+}};
+  border-radius: 20px;
+  padding: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  border: ${(props) => {
+  if (props.$isGlassMode) {
+    return "1px solid rgba(148, 163, 184, 0.15)";
+  }
+  return `1px solid ${props.theme.border}`;
+}};
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(20px)" : "none"};
+  box-shadow: ${(props) => {
+  if (props.$isGlassMode) {
+    return "0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)";
+  }
+  return "0 1px 2px rgba(0, 0, 0, 0.05)";
+}};
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(167, 139, 250, 0.05) 30%, transparent 60%)";
+  }
+  return "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)";
+}};
+    animation: float 12s ease-in-out infinite;
   }
   
-  &::-webkit-scrollbar-thumb:hover {
-    background: ${(props) => props.theme.borderLight};
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${(props) => props.$isGlassMode ? "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)" : "none"};
+    pointer-events: none;
+    border-radius: 20px;
   }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+`;
+const WelcomeContent = dt.div`
+  position: relative;
+  z-index: 1;
+`;
+const WelcomeTitle = dt.h1`
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  color: ${(props) => props.theme.textPrimary};
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 2px 12px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 20px rgba(96, 165, 250, 0.1)" : "none"};
+`;
+const WelcomeSubtitle = dt.p`
+  font-size: 1.1rem;
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0;
+  line-height: 1.6;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 15px rgba(167, 139, 250, 0.08)" : "none"};
 `;
 const SectionTitle = dt.h3`
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-  text-shadow: ${(props) => props.theme.textShadow.medium};
+  color: ${(props) => props.theme.textPrimary};
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15)" : "none"};
 `;
 const SectionDescription = dt.p`
   color: ${(props) => props.theme.textSecondary};
@@ -79,6 +172,7 @@ const SectionDescription = dt.p`
   line-height: 1.6;
   font-size: 0.95rem;
   font-weight: 500;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 4px rgba(0, 0, 0, 0.2)" : "none"};
 `;
 const SectionHeader = dt.div`
   display: flex;
@@ -106,6 +200,9 @@ const SectionHeader = dt.div`
 `;
 const SettingsSection = dt(motion.div)`
   background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "rgba(30, 41, 59, 0.08)";
+  }
   switch (props.$variant) {
     case "primary":
       return props.theme.cardLayer.primary;
@@ -118,6 +215,9 @@ const SettingsSection = dt(motion.div)`
   }
 }};
   border: ${(props) => {
+  if (props.$isGlassMode) {
+    return "1px solid rgba(148, 163, 184, 0.15)";
+  }
   switch (props.$variant) {
     case "primary":
       return `1px solid ${props.theme.primary.light}`;
@@ -129,10 +229,13 @@ const SettingsSection = dt(motion.div)`
       return `1px solid ${props.theme.border}`;
   }
 }};
-  border-radius: ${(props) => props.theme.borderRadius.medium};
-  padding: 24px;
-  margin-bottom: 24px;
+  border-radius: ${(props) => props.$isGlassMode ? "20px" : props.theme.borderRadius.medium};
+  padding: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   box-shadow: ${(props) => {
+  if (props.$isGlassMode) {
+    return "0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)";
+  }
   switch (props.$variant) {
     case "important":
       return props.theme.shadow.xl;
@@ -143,9 +246,43 @@ const SettingsSection = dt(motion.div)`
   position: relative;
   z-index: 1;
   transition: all ${(props) => props.theme.transition.normal} ease;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(20px)" : "none"};
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${(props) => props.$isGlassMode ? "radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(167, 139, 250, 0.05) 30%, transparent 60%)" : "none"};
+    animation: float 12s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${(props) => props.$isGlassMode ? "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)" : "none"};
+    pointer-events: none;
+    border-radius: ${(props) => props.$isGlassMode ? "20px" : props.theme.borderRadius.medium};
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
   
   &:hover {
     box-shadow: ${(props) => {
+  if (props.$isGlassMode) {
+    return "0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)";
+  }
   switch (props.$variant) {
     case "important":
       return "0 8px 32px rgba(0, 0, 0, 0.2)";
@@ -163,23 +300,23 @@ const SaveBar = dt.div`
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: ${(props) => props.theme.surface};
-  backdrop-filter: blur(10px);
-  border: 1px solid ${(props) => props.theme.border};
+  background: ${(props) => props.$isGlassMode ? "rgba(30, 41, 59, 0.8)" : props.theme.surface};
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(16px)" : "blur(10px)"};
+  border: ${(props) => props.$isGlassMode ? "1px solid rgba(148, 163, 184, 0.3)" : `1px solid ${props.theme.border}`};
   padding: 8px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  border-radius: ${(props) => props.theme.borderRadius.large};
-  box-shadow: ${(props) => props.theme.shadow.cardHover};
+  border-radius: ${(props) => props.$isGlassMode ? "20px" : props.theme.borderRadius.large};
+  box-shadow: ${(props) => props.$isGlassMode ? "0 8px 32px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)" : props.theme.shadow.cardHover};
   z-index: 1000;
   transition: all ${(props) => props.theme.transition.normal} ease;
   min-width: 280px;
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: ${(props) => props.$isGlassMode ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2)" : "0 8px 32px rgba(0, 0, 0, 0.2)"};
   }
 `;
 const SaveStatusContainer = dt.div`
@@ -188,12 +325,47 @@ const SaveStatusContainer = dt.div`
   gap: ${(props) => props.theme.spacing.sm};
 `;
 const LlmConfigItem = dt.div`
-  background: ${(props) => props.$isActive ? props.theme.primary.light + "10" : props.theme.surface};
-  border: 2px solid ${(props) => props.$isActive ? props.theme.primary.main : props.theme.border};
-  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => {
+  if (props.$isGlassMode) {
+    return props.$isActive ? "rgba(96, 165, 250, 0.15)" : "rgba(30, 41, 59, 0.08)";
+  }
+  return props.$isActive ? props.theme.primary.light + "10" : props.theme.surface;
+}};
+  border: ${(props) => {
+  if (props.$isGlassMode) {
+    return props.$isActive ? "1px solid rgba(96, 165, 250, 0.4)" : "1px solid rgba(148, 163, 184, 0.15)";
+  }
+  return `2px solid ${props.$isActive ? props.theme.primary.main : props.theme.border}`;
+}};
+  border-radius: ${(props) => props.$isGlassMode ? "16px" : props.theme.borderRadius.medium};
   padding: ${(props) => props.theme.spacing.md};
   margin-bottom: ${(props) => props.theme.spacing.sm};
-  transition: background-color ${(props) => props.theme.transition.normal} ease, border-color ${(props) => props.theme.transition.normal} ease;
+  transition: all ${(props) => props.theme.transition.normal} ease;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(12px)" : "none"};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: ${(props) => props.$isGlassMode ? "16px" : props.theme.borderRadius.medium};
+  }
+  
+  &:hover {
+    background: ${(props) => {
+  if (props.$isGlassMode) {
+    return props.$isActive ? "rgba(96, 165, 250, 0.2)" : "rgba(51, 65, 85, 0.12)";
+  }
+  return props.$isActive ? props.theme.primary.light + "15" : props.theme.surfaceVariant;
+}};
+    box-shadow: ${(props) => props.$isGlassMode ? "0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1)" : "0 2px 8px rgba(0, 0, 0, 0.1)"};
+  }
 `;
 const LlmConfigForm = dt.div`
   display: grid;
@@ -219,11 +391,30 @@ const ConfigActions = dt.div`
   gap: ${(props) => props.theme.spacing.sm};
 `;
 const NewConfigForm = dt.div`
-  background: ${(props) => props.theme.surface};
-  border: 2px dashed ${(props) => props.theme.border};
-  border-radius: ${(props) => props.theme.borderRadius.medium};
+  background: ${(props) => props.$isGlassMode ? "rgba(30, 41, 59, 0.08)" : props.theme.surface};
+  border: ${(props) => props.$isGlassMode ? "1px dashed rgba(148, 163, 184, 0.3)" : `2px dashed ${props.theme.border}`};
+  border-radius: ${(props) => props.$isGlassMode ? "16px" : props.theme.borderRadius.medium};
   padding: ${(props) => props.theme.spacing.lg};
   margin-bottom: ${(props) => props.theme.spacing.lg};
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(12px)" : "none"};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: ${(props) => props.$isGlassMode ? "16px" : props.theme.borderRadius.medium};
+  }
+  
+  &:hover {
+    background: ${(props) => props.$isGlassMode ? "rgba(51, 65, 85, 0.12)" : props.theme.surfaceVariant};
+  }
 `;
 const ParamsConfigForm = dt.div`
   display: grid;
@@ -232,16 +423,16 @@ const ParamsConfigForm = dt.div`
   margin-bottom: ${(props) => props.theme.spacing.md};
 `;
 const LLMConfigPage = () => {
+  const { themeMode } = useTheme();
   const {
     llmConfigs,
     addConfig,
     updateConfig,
     deleteConfig,
     setActiveConfig,
-    isLoading,
-    error,
     refreshConfigs
   } = useConfig();
+  const isGlassMode = themeMode.includes("Glass");
   const [editingConfig, setEditingConfig] = reactExports.useState(null);
   const [newConfig, setNewConfig] = reactExports.useState({
     name: "",
@@ -277,16 +468,16 @@ const LLMConfigPage = () => {
         systemPrompt: "You are a helpful assistant."
       });
       showToast("配置已添加", "success");
-    } catch (error2) {
-      console.error("添加配置失败:", error2);
+    } catch (error) {
+      console.error("添加配置失败:", error);
       showToast("添加配置失败", "error");
     }
   };
   const updateLlmConfig = async (id, updates) => {
     try {
       await updateConfig(id, updates);
-    } catch (error2) {
-      console.error("更新配置失败:", error2);
+    } catch (error) {
+      console.error("更新配置失败:", error);
       showToast("更新配置失败", "error");
     }
   };
@@ -294,8 +485,8 @@ const LLMConfigPage = () => {
     try {
       await deleteConfig(id);
       showToast("配置已删除", "success");
-    } catch (error2) {
-      console.error("删除配置失败:", error2);
+    } catch (error) {
+      console.error("删除配置失败:", error);
       showToast("删除配置失败", "error");
     }
   };
@@ -303,8 +494,8 @@ const LLMConfigPage = () => {
     try {
       await setActiveConfig(id);
       showToast("已切换配置", "success");
-    } catch (error2) {
-      console.error("切换配置失败:", error2);
+    } catch (error) {
+      console.error("切换配置失败:", error);
       showToast("切换配置失败", "error");
     }
   };
@@ -339,8 +530,8 @@ const LLMConfigPage = () => {
       setTimeout(() => {
         setSaveStatus("idle");
       }, 3e3);
-    } catch (error2) {
-      console.error("保存配置失败:", error2);
+    } catch (error) {
+      console.error("保存配置失败:", error);
       setSaveStatus("error");
       showToast("保存配置失败", "error");
       setTimeout(() => {
@@ -351,9 +542,25 @@ const LLMConfigPage = () => {
   reactExports.useEffect(() => {
     setHasUnsavedChanges(true);
   }, [llmConfigs, newConfig]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsContentContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(MainContent, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      TabContent,
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(GlassPageContainer, { $isGlassMode: isGlassMode, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ConfigWelcomeCard,
+      {
+        $isGlassMode: isGlassMode,
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeContent, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeTitle, { $isGlassMode: isGlassMode, children: [
+            "语言模型配置",
+            /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 32 })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(WelcomeSubtitle, { $isGlassMode: isGlassMode, children: "管理您的AI模型配置，添加、编辑和删除不同的LLM提供商设置，让Catalyst更好地为您服务。" })
+        ] })
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      motion.div,
       {
         initial: { opacity: 0, y: 20 },
         animate: { opacity: 1, y: 0 },
@@ -363,6 +570,7 @@ const LLMConfigPage = () => {
             SettingsSection,
             {
               $variant: "accent",
+              $isGlassMode: isGlassMode,
               initial: { opacity: 0, y: 20 },
               animate: { opacity: 1, y: 0 },
               transition: { delay: 0.4, duration: 0.5 },
@@ -370,11 +578,11 @@ const LLMConfigPage = () => {
                 /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "accent", children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquare, { size: 20 }),
                   /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle, { children: "语言模型配置" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "管理多个语言模型配置，可添加、编辑和删除不同的配置" })
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle, { $isGlassMode: isGlassMode, children: "语言模型配置" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { $isGlassMode: isGlassMode, children: "管理多个语言模型配置，可添加、编辑和删除不同的配置" })
                   ] })
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(NewConfigForm, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(NewConfigForm, { $isGlassMode: isGlassMode, children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigName, { children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 16 }),
                     "添加新配置"
@@ -524,7 +732,7 @@ const LLMConfigPage = () => {
                   ] }),
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: addLlmConfig, variant: "primary", startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 16 }), children: "添加配置" })
                 ] }),
-                llmConfigs.map((config) => /* @__PURE__ */ jsxRuntimeExports.jsxs(LlmConfigItem, { $isActive: config.isActive, children: [
+                llmConfigs.map((config) => /* @__PURE__ */ jsxRuntimeExports.jsxs(LlmConfigItem, { $isActive: config.isActive, $isGlassMode: isGlassMode, children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigHeader, { children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigName, { children: [
                       config.isActive && /* @__PURE__ */ jsxRuntimeExports.jsx(Radio, { size: 16, fill: "currentColor" }),
@@ -727,6 +935,7 @@ const LLMConfigPage = () => {
             SettingsSection,
             {
               $variant: "primary",
+              $isGlassMode: isGlassMode,
               initial: { opacity: 0, y: 20 },
               animate: { opacity: 1, y: 0 },
               transition: { delay: 0.5, duration: 0.5 },
@@ -734,8 +943,8 @@ const LLMConfigPage = () => {
                 /* @__PURE__ */ jsxRuntimeExports.jsxs(SectionHeader, { $variant: "primary", children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }),
                   /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle, { children: "提供商信息" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { children: "常见 LLM 提供商的配置信息" })
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionTitle, { $isGlassMode: isGlassMode, children: "提供商信息" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionDescription, { $isGlassMode: isGlassMode, children: "常见 LLM 提供商的配置信息" })
                   ] })
                 ] }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { $padding: "medium", $borderRadius: "medium", children: [
@@ -760,8 +969,8 @@ const LLMConfigPage = () => {
           )
         ]
       }
-    ) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(SaveBar, { children: [
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(SaveBar, { $isGlassMode: isGlassMode, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(SaveStatusContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         StatusIndicator,
         {

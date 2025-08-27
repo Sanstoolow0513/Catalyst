@@ -1,11 +1,10 @@
 import { j as jsxRuntimeExports } from "./mui-vendor-CTE_O7gT.js";
 import { r as reactExports, d as dt } from "./styled-components-eg0Rzwc1.js";
-import { u as useTheme } from "./index-DI22-Bbg.js";
-import { P as PageContainer } from "./PageContainer-DNwXd5YI.js";
+import { u as useTheme } from "./index-C-fhFnDy.js";
+import { B as Button, P as PageContainer } from "./PageContentLayout-2hb2Ff8p.js";
 import { A as Activity, W as Wifi, l as Clock, G as Globe, m as Users, Z as Zap, n as Gauge, o as TrendingUp, p as CircleX, a as Settings, D as Download, S as Shield, P as Play, i as CircleCheckBig, R as RefreshCw, q as Save, F as FolderOpen, L as Layers, d as Search, r as Funnel, s as ChevronDown, t as ArrowUpDown, c as ChevronRight } from "./icons-CcncyDR1.js";
 import { m as motion, A as AnimatePresence } from "./animation-DwHr2ej_.js";
 import { S as StatusIndicator } from "./StatusIndicator-7Lw0xWRZ.js";
-import { B as Button } from "./PageContentLayout-C5gM8vRh.js";
 import { d as dump, l as load } from "./utils-CO-nVJB8.js";
 import "./react-vendor-BS-dYsv0.js";
 import "./routing-oDjbPx8E.js";
@@ -865,8 +864,8 @@ class ErrorBoundary extends reactExports.Component {
 const OverviewContainer = dt(motion.div)`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 const MetricCard = dt(motion.div)`
   background: ${(props) => props.theme.surface};
@@ -1189,16 +1188,16 @@ const StatusCard = dt(motion.div)`
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   }
 `;
-const StatusContent$1 = dt.div`
+const StatusContent = dt.div`
   flex: 1;
 `;
-const StatusTitle$1 = dt.h3`
+const StatusTitle = dt.h3`
   font-size: 1.2rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
   margin: 0 0 0.5rem 0;
 `;
-const StatusDescription$1 = dt.p`
+const StatusDescription = dt.p`
   color: ${(props) => props.theme.textSecondary};
   margin: 0;
   font-size: 0.9rem;
@@ -1289,9 +1288,9 @@ const ProxyStatus = reactExports.memo(({
       transition: { duration: 0.6 },
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIndicator, { status: isRunning ? "success" : "error", size: "small" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusContent$1, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusTitle$1, { children: "代理服务状态" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDescription$1, { children: statusText })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusContent, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusTitle, { children: "代理服务状态" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDescription, { children: statusText })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(ControlButtonGroup, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -2052,7 +2051,7 @@ const Container$1 = dt(motion.div)`
   flex-direction: column;
   gap: 1.5rem;
 `;
-const Header$1 = dt.div`
+const Header = dt.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2064,7 +2063,7 @@ const HeaderLeft = dt.div`
   flex-direction: column;
   gap: 0.5rem;
 `;
-const Title$1 = dt.h2`
+const Title = dt.h2`
   font-size: 1.5rem;
   font-weight: 700;
   color: ${(props) => props.theme.textPrimary};
@@ -2456,9 +2455,9 @@ const EnhancedProxyGroupManager = ({
       animate: { opacity: 1, y: 0 },
       transition: { duration: 0.5 },
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Header$1, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(Header, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(HeaderLeft, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(Title$1, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(Title, { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(Layers, { size: 24 }),
               "代理组管理"
             ] }),
@@ -2619,8 +2618,8 @@ const EnhancedProxyGroupManager = ({
 const Container = dt.div`
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 1.5rem;
+  gap: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.md};
   max-width: 1400px;
   margin: 0 auto;
 `;
@@ -2643,7 +2642,7 @@ const StatusMessageContainer = dt(motion.div)`
     color: ${props.theme.error.main};
   `}
 `;
-const StatusIcon$1 = dt.div`
+const StatusIcon = dt.div`
   font-size: 1.2rem;
   font-weight: bold;
 `;
@@ -2652,7 +2651,7 @@ const StatusText = dt.div`
   font-weight: 500;
 `;
 const SectionContainer = dt(motion.div)`
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 const RestructuredProxyManager = () => {
   const {
@@ -2914,37 +2913,71 @@ const RestructuredProxyManager = () => {
         animate: { opacity: 1, y: 0 },
         exit: { opacity: 0, y: -10 },
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon$1, { children: state.isSuccess ? "✓" : "✗" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon, { children: state.isSuccess ? "✓" : "✗" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(StatusText, { children: state.statusMessage })
         ]
       }
     )
   ] }) });
 };
-const Header = dt.div`
+dt.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: ${({ theme }) => theme.spacing.xxl};
   padding: 0 ${({ theme }) => theme.spacing.xl};
 `;
-const Title = dt.h1`
+dt.h1`
   font-size: 2rem;
   font-weight: 700;
   color: ${(props) => props.theme.textPrimary};
   margin: 0;
 `;
-const WelcomeCard = dt(motion.div)`
-  background: ${(props) => props.$isDarkMode ? "linear-gradient(135deg, #1e293b, #334155)" : "linear-gradient(135deg, #f8fafc, #e2e8f0)"};
-  border-radius: 20px;
-  padding: 2.5rem;
-  margin-bottom: 2rem;
-  border: 1px solid ${(props) => props.theme.border};
-  position: relative;
-  overflow: hidden;
-  min-height: 120px;
+dt.button`
+  width: 40px;
+  height: 40px;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  background: ${(props) => props.theme.surfaceVariant};
+  border: none;
   display: flex;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: ${(props) => props.theme.textPrimary};
+  transition: all ${(props) => props.theme.transition.fast} ease;
+  
+  &:hover {
+    background: ${(props) => props.theme.border};
+  }
+`;
+const WelcomeCard = dt(motion.div)`
+  background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "linear-gradient(135deg, rgba(30, 41, 59, 0.08) 0%, rgba(51, 65, 85, 0.05) 100%)";
+  }
+  return props.$isDarkMode ? "linear-gradient(135deg, #1e293b, #334155)" : "linear-gradient(135deg, #f8fafc, #e2e8f0)";
+}};
+  border-radius: 20px;
+  padding: 1.8rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  border: ${(props) => {
+  if (props.$isGlassMode) {
+    return "1px solid rgba(148, 163, 184, 0.15)";
+  }
+  return `1px solid ${props.theme.border}`;
+}};
+  position: relative;
+  overflow: hidden;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(20px)" : "none"};
+  box-shadow: ${(props) => {
+  if (props.$isGlassMode) {
+    return "0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)";
+  }
+  return "0 1px 2px rgba(0, 0, 0, 0.05)";
+}};
   
   &::before {
     content: '';
@@ -2953,8 +2986,25 @@ const WelcomeCard = dt(motion.div)`
     right: -50%;
     width: 200%;
     height: 200%;
-    background: ${(props) => props.$isDarkMode ? "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)" : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)"};
-    animation: float 6s ease-in-out infinite;
+    background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(167, 139, 250, 0.05) 30%, transparent 60%)";
+  }
+  return props.$isDarkMode ? "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)" : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)";
+}};
+    animation: float 12s ease-in-out infinite;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${(props) => props.$isGlassMode ? "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)" : "none"};
+    pointer-events: none;
+    border-radius: 20px;
   }
   
   @keyframes float {
@@ -2975,30 +3025,52 @@ const WelcomeTitle = dt.h2`
   display: flex;
   align-items: center;
   gap: 1rem;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 2px 12px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 20px rgba(96, 165, 250, 0.1)" : "none"};
+  position: relative;
+  z-index: 2;
 `;
 const WelcomeSubtitle = dt.p`
   font-size: 1rem;
   color: ${(props) => props.theme.textSecondary};
   margin: 0;
   line-height: 1.6;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 15px rgba(167, 139, 250, 0.08)" : "none"};
+  position: relative;
+  z-index: 2;
 `;
-const ProxyStatusCard = dt(motion.div)`
-  background: ${(props) => props.theme.surface};
-  border: 1px solid ${(props) => props.theme.border};
+dt(motion.div)`
+  background: ${(props) => props.$isGlassMode ? "rgba(30, 41, 59, 0.08)" : props.theme.surface};
+  border: ${(props) => props.$isGlassMode ? "1px solid rgba(148, 163, 184, 0.15)" : `1px solid ${props.theme.border}`};
   border-radius: 12px;
   padding: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   display: flex;
   align-items: center;
   gap: 1rem;
   transition: all 0.3s ease;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(16px)" : "none"};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 12px;
+  }
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: ${(props) => props.$isGlassMode ? "0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)" : "0 8px 25px rgba(0, 0, 0, 0.1)"};
+    background: ${(props) => props.$isGlassMode ? "rgba(51, 65, 85, 0.12)" : props.theme.surfaceVariant};
   }
 `;
-const StatusIcon = dt.div`
+dt.div`
   width: 48px;
   height: 48px;
   border-radius: 12px;
@@ -3008,26 +3080,27 @@ const StatusIcon = dt.div`
   background: ${(props) => props.$color}20;
   color: ${(props) => props.$color};
 `;
-const StatusContent = dt.div`
+dt.div`
   flex: 1;
 `;
-const StatusTitle = dt.h3`
+dt.h3`
   font-size: 1.2rem;
   font-weight: 600;
   color: ${(props) => props.theme.textPrimary};
   margin: 0 0 0.5rem 0;
 `;
-const StatusDescription = dt.p`
+dt.p`
   color: ${(props) => props.theme.textSecondary};
   font-size: 0.9rem;
   margin: 0;
 `;
 const ContentSection = dt(motion.div)`
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 const ProxyPage = () => {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, toggleTheme, themeMode } = useTheme();
   const [isProxyRunning, setIsProxyRunning] = reactExports.useState(false);
+  const isGlassMode = themeMode.includes("Glass");
   reactExports.useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -3044,36 +3117,21 @@ const ProxyPage = () => {
     return () => clearInterval(interval);
   }, []);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(PageContainer, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Header, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Title, { children: "代理管理" }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       WelcomeCard,
       {
         $isDarkMode: isDarkMode,
+        $isGlassMode: isGlassMode,
         initial: { opacity: 0, y: 20 },
         animate: { opacity: 1, y: 0 },
         transition: { duration: 0.6 },
         children: /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeContent, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeTitle, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeTitle, { $isGlassMode: isGlassMode, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 32 }),
             "代理管理中心"
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(WelcomeSubtitle, { children: "配置和管理您的代理服务，享受安全、快速的网络体验" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(WelcomeSubtitle, { $isGlassMode: isGlassMode, children: "配置和管理您的代理服务，享受安全、快速的网络体验" })
         ] })
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      ProxyStatusCard,
-      {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.6, delay: 0.1 },
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon, { $color: isProxyRunning ? "#10B981" : "#EF4444", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Wifi, { size: 24 }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(StatusContent, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(StatusTitle, { children: "代理状态" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDescription, { children: isProxyRunning ? "代理服务正在运行" : "代理服务已停止" })
-          ] })
-        ]
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(

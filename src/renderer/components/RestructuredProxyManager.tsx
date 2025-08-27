@@ -15,8 +15,8 @@ import * as yaml from 'js-yaml';
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 1.5rem;
+  gap: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.md};
   max-width: 1400px;
   margin: 0 auto;
 `;
@@ -52,7 +52,7 @@ const StatusText = styled.div`
 `;
 
 const SectionContainer = styled(motion.div)`
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const RestructuredProxyManager: React.FC = () => {

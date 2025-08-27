@@ -27,11 +27,12 @@ const TitleBarContainer = styled(motion.div)`
   padding: 0 16px;
   background-color: ${props => props.theme.titleBar.background};
   -webkit-app-region: drag;
-  border-bottom: 1px solid transparent;
+  border-bottom: 1px solid ${props => props.theme.titleBar.border};
   transition: all ${props => props.theme.transition.normal} ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
   z-index: 1000;
-`;
+  
+  `;
 
 const LeftSection = styled.div`
   display: flex;
@@ -60,7 +61,11 @@ const LogoIcon = styled.div`
   color: white;
   font-weight: bold;
   font-size: 12px;
-`;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+  
+  `;
 
 const SearchContainer = styled(motion.div)`
   position: relative;
@@ -76,6 +81,7 @@ const SearchInput = styled.input`
   width: 240px;
   font-size: 14px;
   transition: all ${props => props.theme.transition.normal} ease;
+  backdrop-filter: blur(12px);
   
   &:focus {
     outline: none;
@@ -105,8 +111,8 @@ const RightSection = styled.div`
 `;
 
 const ActionButton = styled(motion.button)`
-  background: none;
-  border: none;
+  background: ${props => props.theme.surfaceVariant};
+  border: 1px solid transparent;
   color: ${props => props.theme.titleBar.icon};
   cursor: pointer;
   padding: 8px;
@@ -115,10 +121,12 @@ const ActionButton = styled(motion.button)`
   align-items: center;
   justify-content: center;
   transition: all ${props => props.theme.transition.fast} ease;
+  backdrop-filter: blur(8px);
   
   &:hover {
-    background-color: ${props => props.theme.surfaceVariant};
+    background-color: ${props => props.theme.surface};
     color: ${props => props.theme.titleBar.iconHover};
+    border-color: ${props => props.theme.border};
   }
 `;
 
@@ -139,8 +147,10 @@ const UserProfileContainer = styled(motion.div)`
   padding: 4px;
   border-radius: 20px;
   background-color: ${props => props.theme.surfaceVariant};
+  border: 1px solid ${props => props.theme.border};
   cursor: pointer;
   -webkit-app-region: no-drag;
+  backdrop-filter: blur(8px);
 `;
 
 const UserAvatar = styled.div`
@@ -177,7 +187,7 @@ const WindowControls = styled.div`
 const WindowButton = styled(motion.button)<{ variant: 'minimize' | 'maximize' | 'close' }>`
   width: 32px;
   height: 32px;
-  border: none;
+  border: 1px solid ${props => props.theme.name === 'darkGlass' ? 'rgba(255, 255, 255, 0.3)' : props.theme.border};
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -186,31 +196,36 @@ const WindowButton = styled(motion.button)<{ variant: 'minimize' | 'maximize' | 
   font-size: 16px;
   font-weight: 500;
   transition: all ${props => props.theme.transition.fast} ease;
+  background-color: ${props => props.theme.name === 'darkGlass' ? 'rgba(24, 24, 24, 0.6)' : 'transparent'};
+  backdrop-filter: blur(8px);
   
   ${props => {
     switch (props.variant) {
       case 'minimize':
         return `
-          color: ${props.theme.titleBar.icon};
+          color: ${props.theme.name === 'darkGlass' ? 'rgba(255, 255, 255, 0.8)' : props.theme.titleBar.icon};
           &:hover {
-            background-color: ${props.theme.surfaceVariant};
+            background-color: ${props.theme.name === 'darkGlass' ? 'rgba(255, 255, 255, 0.1)' : props.theme.surfaceVariant};
             color: ${props.theme.titleBar.iconHover};
+            border-color: ${props.theme.name === 'darkGlass' ? 'rgba(255, 255, 255, 0.5)' : props.theme.border};
           }
         `;
       case 'maximize':
         return `
-          color: ${props.theme.titleBar.icon};
+          color: ${props.theme.name === 'darkGlass' ? 'rgba(255, 255, 255, 0.8)' : props.theme.titleBar.icon};
           &:hover {
-            background-color: ${props.theme.surfaceVariant};
+            background-color: ${props.theme.name === 'darkGlass' ? 'rgba(255, 255, 255, 0.1)' : props.theme.surfaceVariant};
             color: ${props.theme.titleBar.iconHover};
+            border-color: ${props.theme.name === 'darkGlass' ? 'rgba(255, 255, 255, 0.5)' : props.theme.border};
           }
         `;
       case 'close':
         return `
-          color: ${props.theme.titleBar.icon};
+          color: ${props.theme.name === 'darkGlass' ? 'rgba(255, 255, 255, 0.8)' : props.theme.titleBar.icon};
           &:hover {
             background-color: ${props.theme.error.main};
             color: white;
+            border-color: ${props.theme.error.main};
           }
         `;
       default:

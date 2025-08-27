@@ -3,9 +3,9 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import { ThemeProvider } from 'styled-components';
-import { lightTheme, darkTheme, muiLightTheme, muiDarkTheme, Theme } from '../styles/theme';
+import { lightGlassTheme, darkGlassTheme, muiLightGlassTheme, muiDarkGlassTheme, Theme } from '../styles/theme';
 
-type ThemeMode = 'light' | 'dark' | 'auto';
+type ThemeMode = 'lightGlass' | 'darkGlass' | 'auto';
 
 type ThemeContextType = {
   theme: Theme;
@@ -33,10 +33,10 @@ type ThemeProviderProps = {
 };
 
 export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [theme, setTheme] = useState(lightTheme);
+  const [theme, setTheme] = useState(lightGlassTheme);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('auto');
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('lightGlass');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   
@@ -52,29 +52,41 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
     return false;
   };
 
-  // 根据模式和系统偏好确定是否使用暗色主题
-  const shouldUseDarkMode = (mode: ThemeMode, systemDark: boolean) => {
+  // 根据模式和系统偏好确定使用哪个主题
+  const getThemeForMode = (mode: ThemeMode, systemDark: boolean) => {
     switch (mode) {
-      case 'dark':
-        return true;
-      case 'light':
-        return false;
+      case 'darkGlass':
+        return { theme: darkGlassTheme, isDark: true, name: 'darkGlass' as const };
+      case 'lightGlass':
+        return { theme: lightGlassTheme, isDark: false, name: 'lightGlass' as const };
       case 'auto':
-        return systemDark;
+        return systemDark 
+          ? { theme: darkGlassTheme, isDark: true, name: 'darkGlass' as const }
+          : { theme: lightGlassTheme, isDark: false, name: 'lightGlass' as const };
       default:
-        return false;
+        return { theme: lightGlassTheme, isDark: false, name: 'lightGlass' as const };
     }
   };
 
   // 更新主题状态
   const updateTheme = (mode: ThemeMode, systemDark: boolean) => {
-    const dark = shouldUseDarkMode(mode, systemDark);
-    setIsDarkMode(dark);
-    setTheme({ ...(dark ? darkTheme : lightTheme), name: dark ? 'dark' : 'light' });
+    const { theme, isDark, name } = getThemeForMode(mode, systemDark);
+    setIsDarkMode(isDark);
+    setTheme({ ...theme, name });
   };
 
   const toggleTheme = () => {
-    const newMode = isDarkMode ? 'light' : 'dark';
+    const currentMode = themeModeRef.current;
+    let newMode: ThemeMode;
+    
+    if (currentMode === 'lightGlass') {
+      newMode = 'darkGlass';
+    } else if (currentMode === 'darkGlass') {
+      newMode = 'lightGlass';
+    } else {
+      newMode = isDarkMode ? 'lightGlass' : 'darkGlass';
+    }
+    
     setThemeModeState(newMode);
     themeModeRef.current = newMode;
   };
@@ -94,7 +106,7 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
       try {
         // 首先尝试从 electron-store 获取配置
         const result = await window.electronAPI?.config?.getTheme();
-        const savedThemeMode = result?.success ? result.data : localStorage.getItem('themeMode') as ThemeMode || 'auto';
+        const savedThemeMode = result?.success ? result.data : localStorage.getItem('themeMode') as ThemeMode || 'lightGlass';
         const savedSidebarState = localStorage.getItem('sidebarCollapsed');
         
         // 初始化系统主题偏好
@@ -135,7 +147,7 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
       } catch (error) {
         console.error('Failed to initialize theme:', error);
         // 降级到 localStorage
-        const savedThemeMode = localStorage.getItem('themeMode') as ThemeMode || 'auto';
+        const savedThemeMode = localStorage.getItem('themeMode') as ThemeMode || 'lightGlass';
         const initialSystemPrefersDark = checkSystemTheme();
         setSystemPrefersDark(initialSystemPrefersDark);
         systemPrefersDarkRef.current = initialSystemPrefersDark;
@@ -190,7 +202,7 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode, isInitialized]);
 
-  const muiTheme = isDarkMode ? muiDarkTheme : muiLightTheme;
+  const muiTheme = isDarkMode ? muiDarkGlassTheme : muiLightGlassTheme;
 
   // 避免在初始化完成前渲染，防止主题闪烁
   if (!isInitialized) {
@@ -209,7 +221,7 @@ export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
       muiTheme 
     }}>
       <MuiThemeProvider theme={muiTheme}>
-        <ThemeProvider theme={{ ...theme, name: isDarkMode ? 'dark' : 'light' }}>
+        <ThemeProvider theme={{ ...theme, name: isDarkMode ? 'darkGlass' : 'lightGlass' }}>
           {children}
         </ThemeProvider>
       </MuiThemeProvider>

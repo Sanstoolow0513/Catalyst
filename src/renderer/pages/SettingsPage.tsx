@@ -11,13 +11,508 @@ import {
   Settings as SettingsIcon
 } from 'lucide-react';
 import ModernCard from '../components/common/ModernCard';
-import SettingsSidebar from '../components/common/SettingsSidebar';
 import StatusIndicator from '../components/common/StatusIndicator';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useConfig } from '../contexts/ConfigContext';
 
-// Toast 组件 - 现代化设计
+// 页面容器 - 使用与其他页面一致的玻璃容器
+const GlassPageContainer = styled.div<{ $isGlassMode?: boolean }>`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100%;
+  width: 100%;
+  background-color: ${props => props.$isGlassMode 
+    ? 'transparent' 
+    : (props.theme?.background || '#F9FAFB')};
+  color: ${props => props.theme?.textPrimary || '#111827'};
+  padding: ${props => props.theme?.spacing?.xl || '32px'};
+  position: relative;
+  
+  ${props => props.$isGlassMode && `
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(96, 165, 250, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(244, 114, 182, 0.04) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(147, 51, 234, 0.02) 100%);
+      z-index: -2;
+      pointer-events: none;
+    }
+    
+    &::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 60% 40%, rgba(34, 197, 94, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(251, 146, 60, 0.03) 0%, transparent 40%);
+      z-index: -1;
+      pointer-events: none;
+      animation: ambient 20s ease-in-out infinite;
+    }
+  `}
+  
+  @keyframes ambient {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+`;
+
+// 欢迎卡片
+const WelcomeCard = styled(motion.div)<{ $isDarkMode?: boolean; $isGlassMode?: boolean }>`
+  background: ${props => {
+    if (props.$isGlassMode) {
+      return 'linear-gradient(135deg, rgba(30, 41, 59, 0.08) 0%, rgba(51, 65, 85, 0.05) 100%)';
+    }
+    return props.$isDarkMode 
+      ? 'linear-gradient(135deg, #1e293b, #334155)' 
+      : 'linear-gradient(135deg, #f8fafc, #e2e8f0)';
+  }};
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: ${props => {
+    if (props.$isGlassMode) {
+      return '1px solid rgba(148, 163, 184, 0.15)';
+    }
+    return `1px solid ${props.theme.border}`;
+  }};
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(20px)' : 'none'};
+  box-shadow: ${props => {
+    if (props.$isGlassMode) {
+      return '0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)';
+    }
+    return '0 1px 2px rgba(0, 0, 0, 0.05)';
+  }};
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${props => {
+      if (props.$isGlassMode) {
+        return 'radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(167, 139, 250, 0.05) 30%, transparent 60%)';
+      }
+      return props.$isDarkMode 
+        ? 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)' 
+        : 'radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)';
+    }};
+    animation: float 12s ease-in-out infinite;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${props => props.$isGlassMode 
+      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)' 
+      : 'none'};
+    pointer-events: none;
+    border-radius: 20px;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+`;
+
+const WelcomeContent = styled.div`
+  position: relative;
+  z-index: 1;
+`;
+
+const WelcomeTitle = styled.h1<{ $isGlassMode?: boolean }>`
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  color: ${props => props.theme.textPrimary};
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 2px 12px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 20px rgba(96, 165, 250, 0.1)' 
+    : 'none'};
+  position: relative;
+  z-index: 2;
+`;
+
+const WelcomeSubtitle = styled.p<{ $isGlassMode?: boolean }>`
+  font-size: 1.1rem;
+  color: ${props => props.theme.textSecondary};
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 15px rgba(167, 139, 250, 0.08)' 
+    : 'none'};
+  position: relative;
+  z-index: 2;
+`;
+
+// 页面布局
+const PageLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1200px;
+`;
+
+// 设置区块
+const SettingsSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+// 区块标题
+const SectionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+`;
+
+const SectionIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: ${props => props.theme?.borderRadius?.medium || '12px'};
+  background: ${props => props.theme?.name === 'dark' 
+    ? 'rgba(59, 130, 246, 0.2)' 
+    : 'rgba(37, 99, 235, 0.1)'
+  };
+  color: ${props => props.theme?.primary?.main || '#2563EB'};
+`;
+
+const SectionTitle = styled.h2`
+  margin: 0;
+  color: ${props => props.theme?.textPrimary || '#111827'};
+  font-size: 1.5rem;
+  font-weight: 600;
+`;
+
+const SectionDescription = styled.p`
+  margin: 0;
+  color: ${props => props.theme?.textSecondary || '#4B5563'};
+  font-size: 0.9rem;
+  line-height: 1.5;
+`;
+
+// 设置卡片
+const SettingsCard = styled(motion.div)<{ $isGlassMode?: boolean }>`
+  background: ${props => props.$isGlassMode 
+    ? 'rgba(30, 41, 59, 0.15)' 
+    : props.theme.surface};
+  border: ${props => props.$isGlassMode 
+    ? '1px solid rgba(148, 163, 184, 0.2)' 
+    : `1px solid ${props.theme.border}`};
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(20px)' : 'none'};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 16px;
+  }
+`;
+
+// 表单网格
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+`;
+
+// 表单组
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+// 表单标签
+const FormLabel = styled.label<{ $isGlassMode?: boolean }>`
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: ${props => props.theme.textSecondary};
+  margin-bottom: 4px;
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 1px 2px rgba(0, 0, 0, 0.3)' 
+    : 'none'};
+`;
+
+// 表单输入
+const FormInput = styled.input<{ $isGlassMode?: boolean }>`
+  padding: 12px 16px;
+  border: ${props => props.$isGlassMode 
+    ? '1px solid rgba(148, 163, 184, 0.2)' 
+    : `1px solid ${props.theme.border}`};
+  border-radius: ${props => props.theme.borderRadius.medium};
+  background: ${props => props.$isGlassMode 
+    ? 'rgba(30, 41, 59, 0.1)' 
+    : props.theme.input.background};
+  color: ${props => props.theme.input.text};
+  font-size: 0.9rem;
+  transition: all ${props => props.theme.transition.normal} ease;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(10px)' : 'none'};
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => props.theme.primary.main};
+    box-shadow: ${props => props.$isGlassMode 
+      ? '0 0 0 3px rgba(59, 130, 246, 0.2)' 
+      : props.theme.button.shadowHover};
+  }
+  
+  &::placeholder {
+    color: ${props => props.theme.input.placeholder};
+  }
+  
+  &:read-only {
+    background: ${props => props.$isGlassMode 
+      ? 'rgba(51, 65, 85, 0.1)' 
+      : props.theme.surfaceVariant};
+    cursor: not-allowed;
+  }
+`;
+
+// 头像容器
+const AvatarContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+`;
+
+const Avatar = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: ${props => props.theme.primary.main};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  box-shadow: ${props => props.theme.button.shadow};
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+// 开关容器
+const SwitchContainer = styled.div<{ $isGlassMode?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: ${props => props.$isGlassMode 
+    ? 'rgba(30, 41, 59, 0.08)' 
+    : props.theme.surfaceVariant};
+  border: ${props => props.$isGlassMode 
+    ? '1px solid rgba(148, 163, 184, 0.15)' 
+    : `1px solid ${props.theme.border}`};
+  border-radius: ${props => props.theme.borderRadius.medium};
+  margin-bottom: 12px;
+  transition: all ${props => props.theme.transition.normal} ease;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(12px)' : 'none'};
+  
+  &:hover {
+    background: ${props => props.$isGlassMode 
+      ? 'rgba(51, 65, 85, 0.12)' 
+      : props.theme.surface};
+    border-color: ${props => props.theme.primary.main};
+  }
+`;
+
+// 开关信息
+const SwitchInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const SwitchLabel = styled.div<{ $isGlassMode?: boolean }>`
+  font-weight: 500;
+  color: ${props => props.theme.textPrimary};
+  font-size: 0.95rem;
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 1px 2px rgba(0, 0, 0, 0.3)' 
+    : 'none'};
+`;
+
+const SwitchDescription = styled.div<{ $isGlassMode?: boolean }>`
+  font-size: 0.85rem;
+  color: ${props => props.theme.textSecondary};
+  line-height: 1.4;
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 1px 2px rgba(0, 0, 0, 0.2)' 
+    : 'none'};
+`;
+
+// 开关组件
+const Switch = styled.div<{ $checked: boolean; $isGlassMode?: boolean }>`
+  width: 48px;
+  height: 24px;
+  background: ${props => props.$checked 
+    ? props.theme.primary.main 
+    : (props.$isGlassMode ? 'rgba(148, 163, 184, 0.3)' : props.theme.borderLight)};
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: all ${props => props.theme.transition.normal} ease;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: ${props => props.$checked ? '26px' : '2px'};
+    transition: all ${props => props.theme.transition.normal} ease;
+    box-shadow: ${props => props.theme.button.shadow};
+  }
+  
+  &:hover {
+    transform: scale(1.02);
+  }
+`;
+
+// 按钮组
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+// 按钮组件
+const ModernButton = styled(motion.button)<{ $variant?: 'primary' | 'secondary' | 'outline' | 'danger'; $isGlassMode?: boolean }>`
+  padding: 12px 24px;
+  border-radius: ${props => props.theme.borderRadius.small};
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all ${props => props.theme.transition.normal} ease;
+  cursor: pointer;
+  border: 1px solid ${props => props.theme.border};
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(10px)' : 'none'};
+  
+  ${props => {
+    switch(props.$variant) {
+      case 'primary':
+        return css`
+          background: ${props => props.theme.primary.main};
+          color: ${props => props.theme.primary.contrastText};
+          border-color: ${props => props.theme.primary.main};
+          box-shadow: ${props => props.theme.button.shadow};
+          
+          &:hover {
+            background: ${props => props.theme.primary.dark};
+            border-color: ${props => props.theme.primary.dark};
+            box-shadow: ${props => props.theme.button.shadowHover};
+          }
+        `;
+      case 'danger':
+        return css`
+          background: ${props => props.theme.error.main};
+          color: ${props => props.theme.error.contrastText};
+          border-color: ${props => props.theme.error.main};
+          box-shadow: ${props => props.theme.button.shadow};
+          
+          &:hover {
+            background: ${props => props.theme.error.dark};
+            border-color: ${props => props.theme.error.dark};
+            box-shadow: ${props => props.theme.button.shadowHover};
+          }
+        `;
+      default:
+        return css`
+          background: ${props => props.$isGlassMode 
+            ? 'rgba(30, 41, 59, 0.1)' 
+            : props.theme.surface};
+          color: ${props => props.theme.textPrimary};
+          border-color: ${props => props.theme.border};
+          box-shadow: ${props => props.theme.button.shadow};
+          
+          &:hover {
+            background: ${props => props.$isGlassMode 
+              ? 'rgba(51, 65, 85, 0.15)' 
+              : props.theme.surfaceVariant};
+            border-color: ${props => props.theme.primary.main};
+            box-shadow: ${props => props.theme.button.shadowHover};
+          }
+        `;
+    }
+  }}
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+`;
+
+// Toast 组件
 const ToastContainer = styled.div`
   position: fixed;
   top: 20px;
@@ -81,361 +576,17 @@ const ToastComponent = styled(motion.div)<{
   transition: all 0.3s ease;
 `;
 
-// 简洁设置页面容器
-const ModernSettingsContainer = styled.div`
-  height: 100%;
-  background: ${props => props.theme.background};
-  position: relative;
-  font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
-  overflow: hidden;
-`;
-
-// 主布局容器
-const MainLayout = styled.div`
-  display: flex;
-  height: 100%;
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  padding: 24px;
-  gap: 24px;
-  width: 100%;
-  box-sizing: border-box;
-`;
-
-
-// 主内容区域 - 简洁设计
-const MainContent = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: ${props => props.theme.surface};
-  border: 1px solid ${props => props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.large};
-  box-shadow: ${props => props.theme.card.shadow};
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  position: relative;
-`;
-
-// 页面头部 - 简洁设计
-const ContentHeader = styled.div`
-  padding: ${props => props.theme.spacing.lg};
-  background: ${props => props.theme.surface};
-  border-bottom: 1px solid ${props => props.theme.border};
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-// 页面标题 - 简洁设计
-const PageTitle = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin: 0;
-  color: ${props => props.theme.textPrimary};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
-// 标签页内容 - 现代化设计
-const TabContent = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-  padding: 24px;
-  min-height: 0;
-  
-  &::-webkit-scrollbar {
-    width: 6px;
-    background: transparent;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.name === 'dark' 
-      ? 'rgba(59, 130, 246, 0.3)' 
-      : 'rgba(37, 99, 235, 0.3)'};
-    border-radius: 3px;
-  }
-  
-  &::-webkit-scrollbar-thumb:hover {
-    background: ${props => props.theme.name === 'dark' 
-      ? 'rgba(59, 130, 246, 0.5)' 
-      : 'rgba(37, 99, 235, 0.5)'};
-  }
-`;
-
-// 区块标题 - 简洁设计
-const SectionTitle = styled.h3`
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin: 0;
-  color: ${props => props.theme.textPrimary};
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-// 设置项卡片
-const SettingsCard = styled(ModernCard)`
-  margin-bottom: 16px;
-`;
-
-// 表单网格
-const FormGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-`;
-
-// 表单组
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-// 表单标签
-const FormLabel = styled.label`
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: ${props => props.theme.textSecondary};
-  margin-bottom: 4px;
-`;
-
-// 表单输入 - 简洁设计
-const FormInput = styled.input`
-  padding: 12px 16px;
-  border: 1px solid ${props => props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.medium};
-  background: ${props => props.theme.input.background};
-  color: ${props => props.theme.input.text};
-  font-size: 0.9rem;
-  transition: all ${props => props.theme.transition.normal} ease;
-  
-  &:focus {
-    outline: none;
-    border-color: ${props => props.theme.input.borderFocus};
-    box-shadow: ${props => props.theme.button.shadowHover};
-  }
-  
-  &::placeholder {
-    color: ${props => props.theme.input.placeholder};
-  }
-  
-  &:read-only {
-    background: ${props => props.theme.surfaceVariant};
-    cursor: not-allowed;
-  }
-`;
-
-// 头像容器
-const AvatarContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-`;
-
-const Avatar = styled.div`
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: ${props => props.theme.primary.main};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-  box-shadow: ${props => props.theme.button.shadow};
-  
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-// 开关容器 - 简洁设计
-const SwitchContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: ${props => props.theme.surfaceVariant};
-  border: 1px solid ${props => props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.medium};
-  margin-bottom: 12px;
-  transition: all ${props => props.theme.transition.normal} ease;
-  
-  &:hover {
-    background: ${props => props.theme.surface};
-    border-color: ${props => props.theme.primary.main};
-  }
-`;
-
-// 开关信息
-const SwitchInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`;
-
-const SwitchLabel = styled.div`
-  font-weight: 500;
-  color: ${props => props.theme.textPrimary};
-  font-size: 0.95rem;
-`;
-
-const SwitchDescription = styled.div`
-  font-size: 0.85rem;
-  color: ${props => props.theme.textSecondary};
-  line-height: 1.4;
-`;
-
-// 开关组件 - 简洁设计
-const Switch = styled.div<{ $checked: boolean }>`
-  width: 48px;
-  height: 24px;
-  background: ${props => props.$checked 
-    ? props.theme.primary.main 
-    : props.theme.borderLight};
-  border-radius: 12px;
-  position: relative;
-  cursor: pointer;
-  transition: all ${props => props.theme.transition.normal} ease;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: white;
-    border-radius: 50%;
-    top: 2px;
-    left: ${props => props.$checked ? '26px' : '2px'};
-    transition: all ${props => props.theme.transition.normal} ease;
-    box-shadow: ${props => props.theme.button.shadow};
-  }
-  
-  &:hover {
-    transform: scale(1.02);
-  }
-`;
-
-// 按钮组
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-`;
-
-// 简洁按钮设计
-const ModernButton = styled(motion.button)<{ $variant?: 'primary' | 'secondary' | 'outline' | 'danger' }>`
-  padding: 12px 24px;
-  border-radius: ${props => props.theme.borderRadius.small};
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all ${props => props.theme.transition.normal} ease;
-  cursor: pointer;
-  border: 1px solid ${props => props.theme.border};
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: "Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
-  
-  ${props => {
-    switch(props.$variant) {
-      case 'primary':
-        return css`
-          background: ${props => props.theme.primary.main};
-          color: ${props => props.theme.primary.contrastText};
-          border-color: ${props => props.theme.primary.main};
-          box-shadow: ${props => props.theme.button.shadow};
-          
-          &:hover {
-            background: ${props => props.theme.primary.dark};
-            border-color: ${props => props.theme.primary.dark};
-            box-shadow: ${props => props.theme.button.shadowHover};
-          }
-        `;
-      case 'secondary':
-        return css`
-          background: ${props => props.theme.secondary.main};
-          color: ${props => props.theme.secondary.contrastText};
-          border-color: ${props => props.theme.secondary.main};
-          box-shadow: ${props => props.theme.button.shadow};
-          
-          &:hover {
-            background: ${props => props.theme.secondary.dark};
-            border-color: ${props => props.theme.secondary.dark};
-            box-shadow: ${props => props.theme.button.shadowHover};
-          }
-        `;
-      case 'outline':
-        return css`
-          background: ${props => props.theme.surface};
-          color: ${props => props.theme.primary.main};
-          border-color: ${props => props.theme.primary.main};
-          box-shadow: ${props => props.theme.button.shadow};
-          
-          &:hover {
-            background: ${props => props.theme.primary.main};
-            color: ${props => props.theme.primary.contrastText};
-            box-shadow: ${props => props.theme.button.shadowHover};
-          }
-        `;
-      case 'danger':
-        return css`
-          background: ${props => props.theme.error.main};
-          color: ${props => props.theme.error.contrastText};
-          border-color: ${props => props.theme.error.main};
-          box-shadow: ${props => props.theme.button.shadow};
-          
-          &:hover {
-            background: ${props => props.theme.error.dark};
-            border-color: ${props => props.theme.error.dark};
-            box-shadow: ${props => props.theme.button.shadowHover};
-          }
-        `;
-      default:
-        return css`
-          background: ${props => props.theme.surface};
-          color: ${props => props.theme.textPrimary};
-          border-color: ${props => props.theme.border};
-          box-shadow: ${props => props.theme.button.shadow};
-          
-          &:hover {
-            background: ${props => props.theme.surfaceVariant};
-            border-color: ${props => props.theme.borderLight};
-            box-shadow: ${props => props.theme.button.shadowHover};
-          }
-        `;
-    }
-  }}
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  whileHover={{ scale: 1.02 }}
-  whileTap={{ scale: 0.98 }}
-`;
-
-// 保存栏 - 简洁设计
-const SaveBar = styled(motion.div)`
+// 保存栏
+const SaveBar = styled(motion.div)<{ $isGlassMode?: boolean }>`
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: ${props => props.theme.surface};
-  border: 1px solid ${props => props.theme.border};
+  background: ${props => props.$isGlassMode 
+    ? 'rgba(30, 41, 59, 0.15)' 
+    : props.theme.surface};
+  border: ${props => props.$isGlassMode 
+    ? '1px solid rgba(148, 163, 184, 0.2)' 
+    : `1px solid ${props.theme.border}`};
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
@@ -445,46 +596,14 @@ const SaveBar = styled(motion.div)`
   box-shadow: ${props => props.theme.card.shadowHover};
   z-index: 1000;
   min-width: 280px;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(20px)' : 'none'};
 `;
 
-// 保存状态指示器容器
 const SaveStatusContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
 `;
-
-// 标签页容器（用于移动端）- 简洁设计
-const TabsContainer = styled.div`
-  display: none;
-  gap: 8px;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: ${props => props.theme.surfaceVariant};
-  border: 1px solid ${props => props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.medium};
-`;
-
-// 标签页按钮 - 简洁设计
-const TabButton = styled(motion.button)<{ $active: boolean }>`
-  padding: 8px 16px;
-  border-radius: ${props => props.theme.borderRadius.small};
-  font-size: 0.9rem;
-  font-weight: 500;
-  border: 1px solid ${props => props.theme.border};
-  cursor: pointer;
-  transition: all ${props => props.theme.transition.normal} ease;
-  background: ${props => props.$active 
-    ? props.theme.primary.main 
-    : props.theme.surfaceVariant};
-  color: ${props => props.$active ? props.theme.primary.contrastText : props.theme.textSecondary};
-  
-  whileHover={{ scale: 1.02 }}
-  whileTap={{ scale: 0.98 }}
-`;
-
-
-type TabType = 'user' | 'system' | 'backup';
 
 interface ToastMessage {
   id: number;
@@ -495,9 +614,9 @@ interface ToastMessage {
 
 const SettingsPage: React.FC = () => {
   const { nickname, avatar } = useUser();
-  const { theme } = useTheme();
+  const { theme, isDarkMode, themeMode } = useTheme();
   const { llmConfigs, activeConfig, refreshConfigs } = useConfig();
-  const [activeSection, setActiveSection] = useState<TabType>('user');
+  const isGlassMode = themeMode.includes('Glass');
   
   // 用户设置
   const [userEmail, setUserEmail] = useState('');
@@ -509,11 +628,11 @@ const SettingsPage: React.FC = () => {
   const [minimizeToTray, setMinimizeToTray] = useState(false);
   const [notifications, setNotifications] = useState(true);
   
-  // 统一保存状态
+  // 保存状态
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
-  // 全局浮窗提醒
+  // Toast
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [toastId, setToastId] = useState(0);
 
@@ -539,7 +658,6 @@ const SettingsPage: React.FC = () => {
         setNotifications(config.app.notifications || true);
       }
       
-      // 刷新LLM配置
       await refreshConfigs();
     } catch (error) {
       console.error('加载设置失败:', error);
@@ -547,13 +665,11 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     const id = toastId;
     setToastId(prev => prev + 1);
     setToasts(prev => [...prev, { id, message, type }]);
     
-    // 3秒后自动移除
     setTimeout(() => {
       setToasts(prev => prev.map(toast => 
         toast.id === id ? { ...toast, exiting: true } : toast
@@ -575,26 +691,20 @@ const SettingsPage: React.FC = () => {
     }, 300);
   };
 
-  
-  // 统一保存所有设置
   const saveAllSettings = async () => {
     setSaveStatus('saving');
     try {
-      // 用户信息现在是只读的，不需要保存
-      
       // 保存系统设置
       await window.electronAPI.config.setStartup(startup);
       await window.electronAPI.config.setMinimizeToTray(minimizeToTray);
       await window.electronAPI.config.setNotifications(notifications);
       
-      // 刷新LLM配置
       await refreshConfigs();
         
       setHasUnsavedChanges(false);
       setSaveStatus('saved');
       showToast('所有设置已保存', 'success');
       
-      // 3秒后恢复到idle状态
       setTimeout(() => {
         setSaveStatus('idle');
       }, 3000);
@@ -603,19 +713,15 @@ const SettingsPage: React.FC = () => {
       setSaveStatus('error');
       showToast('保存设置失败', 'error');
       
-      // 3秒后恢复到idle状态
       setTimeout(() => {
         setSaveStatus('idle');
       }, 3000);
     }
   };
 
-  // 监听变化以标记未保存状态
   useEffect(() => {
     setHasUnsavedChanges(true);
-  }, [
-    startup, minimizeToTray, notifications,
-    ]);
+  }, [startup, minimizeToTray, notifications]);
 
   const exportConfig = async () => {
     try {
@@ -636,7 +742,7 @@ const SettingsPage: React.FC = () => {
       const result = await window.electronAPI.config.import();
       if (result.success) {
         showToast('配置已导入', 'success');
-        loadSettings(); // 重新加载设置
+        loadSettings();
       } else {
         showToast('导入配置失败', 'error');
       }
@@ -652,7 +758,7 @@ const SettingsPage: React.FC = () => {
         const result = await window.electronAPI.config.reset();
         if (result.success) {
           showToast('设置已重置', 'success');
-          loadSettings(); // 重新加载设置
+          loadSettings();
         } else {
           showToast('重置设置失败', 'error');
         }
@@ -663,61 +769,48 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const tabs = [
-    { id: 'user', label: '用户', icon: UserIcon },
-    { id: 'system', label: '系统', icon: MonitorIcon },
-    { id: 'backup', label: '备份', icon: DatabaseIcon }
-  ] as const;
-
   return (
-    <ModernSettingsContainer>
-      <MainLayout>
-        {/* 侧边栏导航 */}
-        <SettingsSidebar 
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-        />
-        
-        {/* 主内容区域 */}
-        <MainContent
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          {/* 页面头部 */}
-          <ContentHeader>
-            <PageTitle>
-            </PageTitle>
-          </ContentHeader>
+    <GlassPageContainer $isGlassMode={isGlassMode}>
+      <WelcomeCard
+        $isDarkMode={isDarkMode}
+        $isGlassMode={isGlassMode}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <WelcomeContent>
+          <WelcomeTitle $isGlassMode={isGlassMode}>
+            系统设置
+            <SettingsIcon size={32} />
+          </WelcomeTitle>
+          <WelcomeSubtitle $isGlassMode={isGlassMode}>
+            在这里您可以管理用户信息、系统行为和配置备份等设置。
+          </WelcomeSubtitle>
+        </WelcomeContent>
+      </WelcomeCard>
 
-          {/* 移动端标签页 */}
-          <TabsContainer>
-            {tabs.map((tab) => (
-              <TabButton
-                key={tab.id}
-                $active={activeSection === tab.id}
-                onClick={() => setActiveSection(tab.id as TabType)}
-              >
-                <tab.icon size={16} />
-                {tab.label}
-              </TabButton>
-            ))}
-          </TabsContainer>
-
-          <TabContent>
-        {activeSection === 'user' && (
+      <PageLayout>
+        {/* 用户信息设置 */}
+        <SettingsSection>
+          <SectionHeader>
+            <SectionIcon>
+              <UserIcon size={24} />
+            </SectionIcon>
+            <div>
+              <SectionTitle>用户信息</SectionTitle>
+              <SectionDescription>管理您的个人资料和账户信息</SectionDescription>
+            </div>
+          </SectionHeader>
+          
           <SettingsCard
-            variant="glass"
-            padding="large"
-            borderRadius="large"
-            hoverable={false}
-            animationDelay={0.4}
+            $isGlassMode={isGlassMode}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
           >
-            <SectionTitle>个人信息</SectionTitle>
-            
             <FormGrid>
               <FormGroup>
-                <FormLabel>头像</FormLabel>
+                <FormLabel $isGlassMode={isGlassMode}>头像</FormLabel>
                 <AvatarContainer>
                   <Avatar>
                     {userAvatar ? (
@@ -730,104 +823,120 @@ const SettingsPage: React.FC = () => {
               </FormGroup>
 
               <FormGroup>
-                <FormLabel>昵称</FormLabel>
+                <FormLabel $isGlassMode={isGlassMode}>昵称</FormLabel>
                 <FormInput
                   value={userNickname}
                   readOnly
                   placeholder="您的昵称"
+                  $isGlassMode={isGlassMode}
                 />
               </FormGroup>
 
               <FormGroup>
-                <FormLabel>邮箱</FormLabel>
+                <FormLabel $isGlassMode={isGlassMode}>邮箱</FormLabel>
                 <FormInput
                   type="email"
                   value={userEmail}
                   readOnly
                   placeholder="您的邮箱地址"
+                  $isGlassMode={isGlassMode}
                 />
               </FormGroup>
             </FormGrid>
           </SettingsCard>
-        )}
+        </SettingsSection>
 
-        
-        {activeSection === 'system' && (
+        {/* 系统行为设置 */}
+        <SettingsSection>
+          <SectionHeader>
+            <SectionIcon>
+              <MonitorIcon size={24} />
+            </SectionIcon>
+            <div>
+              <SectionTitle>系统行为</SectionTitle>
+              <SectionDescription>配置应用程序的运行行为和系统设置</SectionDescription>
+            </div>
+          </SectionHeader>
+          
           <SettingsCard
-            variant="glass"
-            padding="large"
-            borderRadius="large"
-            hoverable={false}
-            animationDelay={0.4}
+            $isGlassMode={isGlassMode}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
           >
-            <SectionTitle>系统行为</SectionTitle>
-
-            <SwitchContainer>
+            <SwitchContainer $isGlassMode={isGlassMode}>
               <SwitchInfo>
-                <SwitchLabel>开机启动</SwitchLabel>
-                <SwitchDescription>
+                <SwitchLabel $isGlassMode={isGlassMode}>开机启动</SwitchLabel>
+                <SwitchDescription $isGlassMode={isGlassMode}>
                   应用程序将在系统启动时自动运行
                 </SwitchDescription>
               </SwitchInfo>
               <Switch 
                 $checked={startup}
+                $isGlassMode={isGlassMode}
                 onClick={() => setStartup(!startup)}
               />
             </SwitchContainer>
 
-            <SwitchContainer>
+            <SwitchContainer $isGlassMode={isGlassMode}>
               <SwitchInfo>
-                <SwitchLabel>最小化到托盘</SwitchLabel>
-                <SwitchDescription>
+                <SwitchLabel $isGlassMode={isGlassMode}>最小化到托盘</SwitchLabel>
+                <SwitchDescription $isGlassMode={isGlassMode}>
                   关闭窗口时将应用程序最小化到系统托盘
                 </SwitchDescription>
               </SwitchInfo>
               <Switch 
                 $checked={minimizeToTray}
+                $isGlassMode={isGlassMode}
                 onClick={() => setMinimizeToTray(!minimizeToTray)}
               />
             </SwitchContainer>
 
-            <SwitchContainer>
+            <SwitchContainer $isGlassMode={isGlassMode}>
               <SwitchInfo>
-                <SwitchLabel>通知</SwitchLabel>
-                <SwitchDescription>
+                <SwitchLabel $isGlassMode={isGlassMode}>通知</SwitchLabel>
+                <SwitchDescription $isGlassMode={isGlassMode}>
                   启用应用程序的通知功能
                 </SwitchDescription>
               </SwitchInfo>
               <Switch 
                 $checked={notifications}
+                $isGlassMode={isGlassMode}
                 onClick={() => setNotifications(!notifications)}
               />
             </SwitchContainer>
           </SettingsCard>
-        )}
+        </SettingsSection>
 
-        
-        
-        
-        
-        {activeSection === 'backup' && (
+        {/* 配置管理 */}
+        <SettingsSection>
+          <SectionHeader>
+            <SectionIcon>
+              <DatabaseIcon size={24} />
+            </SectionIcon>
+            <div>
+              <SectionTitle>配置管理</SectionTitle>
+              <SectionDescription>备份、导入和导出应用程序配置</SectionDescription>
+            </div>
+          </SectionHeader>
+          
           <SettingsCard
-            variant="glass"
-            padding="large"
-            borderRadius="large"
-            hoverable={false}
-            animationDelay={0.4}
+            $isGlassMode={isGlassMode}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
           >
-            <SectionTitle>配置管理</SectionTitle>
-
             <ButtonGroup>
               <ModernButton
                 onClick={exportConfig}
-                $variant="outline"
+                $isGlassMode={isGlassMode}
               >
                 <UploadIcon size={16} />
                 导出配置
               </ModernButton>
               <ModernButton
                 onClick={importConfig}
-                $variant="outline"
+                $isGlassMode={isGlassMode}
               >
                 <UploadIcon size={16} />
                 导入配置
@@ -835,47 +944,46 @@ const SettingsPage: React.FC = () => {
               <ModernButton
                 onClick={resetConfig}
                 $variant="danger"
+                $isGlassMode={isGlassMode}
               >
                 <RefreshIcon size={16} />
                 重置配置
               </ModernButton>
             </ButtonGroup>
           </SettingsCard>
-        )}
-      </TabContent>
-        </MainContent>
-      </MainLayout>
-      
-      {/* 统一保存栏 */}
-      {activeSection !== 'backup' && (
-        <SaveBar
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <SaveStatusContainer>
-            <StatusIndicator 
-              status={
-                saveStatus === 'saving' ? 'saving' :
-                saveStatus === 'error' ? 'error' :
-                saveStatus === 'saved' ? 'saved' :
-                hasUnsavedChanges ? 'changed' : 'idle'
-              }
-              size="small"
-            />
-          </SaveStatusContainer>
-          <ModernButton
-            onClick={saveAllSettings}
-            disabled={saveStatus === 'saving' || !hasUnsavedChanges}
-            $variant="primary"
-          >
-            <SaveIcon size={16} />
-            {saveStatus === 'saving' ? '保存中...' : '保存'}
-          </ModernButton>
-        </SaveBar>
-      )}
+        </SettingsSection>
+      </PageLayout>
 
-      {/* 全局浮窗提醒 */}
+      {/* 保存栏 */}
+      <SaveBar
+        $isGlassMode={isGlassMode}
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <SaveStatusContainer>
+          <StatusIndicator 
+            status={
+              saveStatus === 'saving' ? 'saving' :
+              saveStatus === 'error' ? 'error' :
+              saveStatus === 'saved' ? 'saved' :
+              hasUnsavedChanges ? 'changed' : 'idle'
+            }
+            size="small"
+          />
+        </SaveStatusContainer>
+        <ModernButton
+          onClick={saveAllSettings}
+          disabled={saveStatus === 'saving' || !hasUnsavedChanges}
+          $variant="primary"
+          $isGlassMode={isGlassMode}
+        >
+          <SaveIcon size={16} />
+          {saveStatus === 'saving' ? '保存中...' : '保存'}
+        </ModernButton>
+      </SaveBar>
+
+      {/* Toast 通知 */}
       <ToastContainer>
         {toasts.map((toast) => (
           <ToastComponent 
@@ -888,7 +996,7 @@ const SettingsPage: React.FC = () => {
           />
         ))}
       </ToastContainer>
-    </ModernSettingsContainer>
+    </GlassPageContainer>
   );
 };
 

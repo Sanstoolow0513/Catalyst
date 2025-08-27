@@ -1,6 +1,6 @@
 import { j as jsxRuntimeExports } from "./mui-vendor-CTE_O7gT.js";
 import { d as dt, a as React, r as reactExports, l as lt } from "./styled-components-eg0Rzwc1.js";
-import { u as useTheme, a as useUser, b as useConfig } from "./index-DI22-Bbg.js";
+import { u as useTheme, a as useUser, b as useConfig } from "./index-C-fhFnDy.js";
 import { m as motion } from "./animation-DwHr2ej_.js";
 import { a as Settings, d as Search, U as User, y as Monitor, z as Database, E as Upload, R as RefreshCw, q as Save } from "./icons-CcncyDR1.js";
 import { S as StatusIndicator } from "./StatusIndicator-7Lw0xWRZ.js";
@@ -362,7 +362,7 @@ const NavItem = dt(motion.button)`
   align-items: center;
   gap: 12px;
   position: relative;
-  margin: 0 12px 8px 12px;
+  margin: 0 0 8px 0;
   
   &:hover {
     background: ${(props) => props.$active ? props.theme.name === "dark" ? "rgba(59, 130, 246, 0.3)" : "rgba(37, 99, 235, 0.2)" : props.theme.name === "dark" ? "rgba(51, 65, 85, 0.6)" : "rgba(248, 250, 252, 0.8)"};
@@ -472,9 +472,6 @@ const SettingsSidebar = ({
           {
             $active: activeSection === item.id,
             onClick: () => onSectionChange(item.id),
-            initial: { opacity: 0, x: -20 },
-            animate: { opacity: 1, x: 0 },
-            transition: { duration: 0.4, delay: 0.3 + index * 0.1 },
             children: [
               item.icon,
               /* @__PURE__ */ jsxRuntimeExports.jsxs(NavItemContent, { children: [
@@ -1035,10 +1032,7 @@ const SettingsPage = () => {
           animate: { opacity: 1, y: 0 },
           transition: { duration: 0.5, delay: 0.3 },
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ContentHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(PageTitle, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 28 }),
-              "设置"
-            ] }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(ContentHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(PageTitle, {}) }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(TabsContainer, { children: tabs.map((tab) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
               TabButton,
               {

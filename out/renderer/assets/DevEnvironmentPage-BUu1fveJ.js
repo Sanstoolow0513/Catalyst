@@ -1,9 +1,8 @@
 import { j as jsxRuntimeExports } from "./mui-vendor-CTE_O7gT.js";
 import { d as dt, r as reactExports } from "./styled-components-eg0Rzwc1.js";
-import { C as ContentArea } from "./PageContentLayout-C5gM8vRh.js";
-import { P as PageContainer } from "./PageContainer-DNwXd5YI.js";
+import { P as PageContainer, C as ContentArea } from "./PageContentLayout-2hb2Ff8p.js";
 import "./StatusIndicator-7Lw0xWRZ.js";
-import { u as useTheme } from "./index-DI22-Bbg.js";
+import { u as useTheme } from "./index-C-fhFnDy.js";
 import { m as motion } from "./animation-DwHr2ej_.js";
 import { x as GenIcon } from "./icons-CcncyDR1.js";
 import "./react-vendor-BS-dYsv0.js";
@@ -12,17 +11,58 @@ const CardContainer = dt(motion.div)`
   display: flex;
   align-items: center;
   padding: 16px 20px;
-  background: ${(props) => props.theme?.name === "dark" ? props.theme?.card?.background || "#111827" : props.theme?.card?.background || "#FFFFFF"};
-  border: 1px solid ${(props) => props.theme?.name === "dark" ? props.theme?.card?.border || "#374151" : props.theme?.card?.border || "#E5E7EB"};
+  background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "rgba(30, 41, 59, 0.08)";
+  }
+  return props.theme?.name === "dark" ? props.theme?.surface || "#1F2937" : props.theme?.surface || "#FFFFFF";
+}};
+  border: ${(props) => {
+  if (props.$isGlassMode) {
+    return "1px solid rgba(148, 163, 184, 0.15)";
+  }
+  return `1px solid ${props.theme?.border || "#E5E7EB"}`;
+}};
   border-radius: ${(props) => props.theme?.borderRadius?.medium || "12px"};
-  box-shadow: ${(props) => props.theme?.name === "dark" ? props.theme?.card?.shadow || "0 1px 2px 0 rgba(0, 0, 0, 0.1)" : props.theme?.card?.shadow || "0 1px 2px 0 rgba(0, 0, 0, 0.05)"};
+  box-shadow: ${(props) => {
+  if (props.$isGlassMode) {
+    return "0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06)";
+  }
+  return props.theme?.name === "dark" ? "0 1px 2px 0 rgba(0, 0, 0, 0.1)" : "0 1px 2px 0 rgba(0, 0, 0, 0.05)";
+}};
   transition: all ${(props) => props.theme?.transition?.normal || "0.2s"} ease;
   cursor: pointer;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(16px)" : "none"};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: ${(props) => props.theme?.borderRadius?.medium || "12px"};
+  }
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: ${(props) => props.theme?.name === "dark" ? props.theme?.card?.shadowHover || "0 4px 12px 0 rgba(0, 0, 0, 0.15)" : props.theme?.card?.shadowHover || "0 4px 12px 0 rgba(0, 0, 0, 0.08)"};
+    box-shadow: ${(props) => {
+  if (props.$isGlassMode) {
+    return "0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15)";
+  }
+  return props.theme?.name === "dark" ? "0 4px 12px 0 rgba(0, 0, 0, 0.15)" : "0 4px 12px 0 rgba(0, 0, 0, 0.08)";
+}};
     border-color: ${(props) => props.theme?.primary?.main || "#2563EB"};
+    background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "rgba(51, 65, 85, 0.12)";
+  }
+  return props.theme?.name === "dark" ? props.theme?.surfaceVariant || "#374151" : props.theme?.surfaceVariant || "#F9FAFB";
+}};
   }
   
   &:active {
@@ -48,12 +88,15 @@ const ContentContainer = dt.div`
 `;
 const ToolName = dt.h3`
   margin: 0;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: ${(props) => props.theme?.textPrimary || "#111827"};
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 2px rgba(0, 0, 0, 0.1)" : "none"};
 `;
 const OfficialLink = dt.button`
-  font-size: 14px;
+  font-size: 0.875rem;
   color: ${(props) => props.theme?.textSecondary || "#4B5563"};
   text-decoration: none;
   transition: color ${(props) => props.theme?.transition?.fast || "0.15s"} ease;
@@ -63,28 +106,35 @@ const OfficialLink = dt.button`
   cursor: pointer;
   text-align: left;
   font-family: inherit;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 2px rgba(0, 0, 0, 0.1)" : "none"};
   
   &:hover {
     color: ${(props) => props.theme?.primary?.main || "#2563EB"};
   }
 `;
 const DownloadButton = dt(motion.button)`
-  padding: 8px 16px;
+  padding: 6px 14px;
   background: ${(props) => props.theme?.primary?.main || "#2563EB"};
   color: ${(props) => props.theme?.primary?.contrastText || "#FFFFFF"};
   border: none;
   border-radius: ${(props) => props.theme?.borderRadius?.small || "8px"};
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all ${(props) => props.theme?.transition?.fast || "0.15s"} ease;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 2px rgba(0, 0, 0, 0.2)" : "none"};
   
   &:hover {
     background: ${(props) => props.theme?.name === "dark" ? props.theme?.primary?.dark || "#1D4ED8" : props.theme?.primary?.dark || "#1E40AF"};
+    transform: scale(1.02);
   }
   
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
 `;
 const SimpleToolCard = ({
@@ -93,7 +143,8 @@ const SimpleToolCard = ({
   officialUrl,
   downloadUrl,
   onDownload,
-  className
+  className,
+  isGlassMode = false
 }) => {
   const theme = useTheme();
   const handleDownload = (e) => {
@@ -113,17 +164,19 @@ const SimpleToolCard = ({
     CardContainer,
     {
       className,
+      $isGlassMode: isGlassMode,
       whileHover: { scale: 1.01 },
       whileTap: { scale: 0.99 },
       theme,
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(IconContainer, { theme, children: icon }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(ContentContainer, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolName, { theme, children: name }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ToolName, { $isGlassMode: isGlassMode, theme, children: name }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             OfficialLink,
             {
               onClick: handleOfficialLink,
+              $isGlassMode: isGlassMode,
               theme,
               children: "官网"
             }
@@ -133,6 +186,7 @@ const SimpleToolCard = ({
           DownloadButton,
           {
             onClick: handleDownload,
+            $isGlassMode: isGlassMode,
             whileHover: { scale: 1.05 },
             whileTap: { scale: 0.95 },
             theme,
@@ -169,6 +223,9 @@ function FaCode(props) {
 }
 function FaLaptopCode(props) {
   return GenIcon({ "attr": { "viewBox": "0 0 640 512" }, "child": [{ "tag": "path", "attr": { "d": "M255.03 261.65c6.25 6.25 16.38 6.25 22.63 0l11.31-11.31c6.25-6.25 6.25-16.38 0-22.63L253.25 192l35.71-35.72c6.25-6.25 6.25-16.38 0-22.63l-11.31-11.31c-6.25-6.25-16.38-6.25-22.63 0l-58.34 58.34c-6.25 6.25-6.25 16.38 0 22.63l58.35 58.34zm96.01-11.3l11.31 11.31c6.25 6.25 16.38 6.25 22.63 0l58.34-58.34c6.25-6.25 6.25-16.38 0-22.63l-58.34-58.34c-6.25-6.25-16.38-6.25-22.63 0l-11.31 11.31c-6.25 6.25-6.25 16.38 0 22.63L386.75 192l-35.71 35.72c-6.25 6.25-6.25 16.38 0 22.63zM624 416H381.54c-.74 19.81-14.71 32-32.74 32H288c-18.69 0-33.02-17.47-32.77-32H16c-8.8 0-16 7.2-16 16v16c0 35.2 28.8 64 64 64h512c35.2 0 64-28.8 64-64v-16c0-8.8-7.2-16-16-16zM576 48c0-26.4-21.6-48-48-48H112C85.6 0 64 21.6 64 48v336h512V48zm-64 272H128V64h384v256z" }, "child": [] }] })(props);
+}
+function FaRocket(props) {
+  return GenIcon({ "attr": { "viewBox": "0 0 512 512" }, "child": [{ "tag": "path", "attr": { "d": "M505.12019,19.09375c-1.18945-5.53125-6.65819-11-12.207-12.1875C460.716,0,435.507,0,410.40747,0,307.17523,0,245.26909,55.20312,199.05238,128H94.83772c-16.34763.01562-35.55658,11.875-42.88664,26.48438L2.51562,253.29688A28.4,28.4,0,0,0,0,264a24.00867,24.00867,0,0,0,24.00582,24H127.81618l-22.47457,22.46875c-11.36521,11.36133-12.99607,32.25781,0,45.25L156.24582,406.625c11.15623,11.1875,32.15619,13.15625,45.27726,0l22.47457-22.46875V488a24.00867,24.00867,0,0,0,24.00581,24,28.55934,28.55934,0,0,0,10.707-2.51562l98.72834-49.39063c14.62888-7.29687,26.50776-26.5,26.50776-42.85937V312.79688c72.59753-46.3125,128.03493-108.40626,128.03493-211.09376C512.07526,76.5,512.07526,51.29688,505.12019,19.09375ZM384.04033,168A40,40,0,1,1,424.05,128,40.02322,40.02322,0,0,1,384.04033,168Z" }, "child": [] }] })(props);
 }
 function FaTerminal(props) {
   return GenIcon({ "attr": { "viewBox": "0 0 640 512" }, "child": [{ "tag": "path", "attr": { "d": "M257.981 272.971L63.638 467.314c-9.373 9.373-24.569 9.373-33.941 0L7.029 444.647c-9.357-9.357-9.375-24.522-.04-33.901L161.011 256 6.99 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L257.981 239.03c9.373 9.372 9.373 24.568 0 33.941zM640 456v-32c0-13.255-10.745-24-24-24H312c-13.255 0-24 10.745-24 24v32c0 13.255 10.745 24 24 24h304c13.255 0 24-10.745 24-24z" }, "child": [] }] })(props);
@@ -311,20 +368,225 @@ const devToolsSimple = [
     downloadUrl: "https://zen-browser.app/download"
   }
 ];
+const GlassPageContainer = dt.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100%;
+  width: 100%;
+  background-color: ${(props) => props.$isGlassMode ? "transparent" : props.theme?.background || "#F9FAFB"};
+  color: ${(props) => props.theme?.textPrimary || "#111827"};
+  padding: ${(props) => props.theme?.spacing?.xl || "32px"};
+  position: relative;
+  
+  ${(props) => props.$isGlassMode && `
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(96, 165, 250, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(244, 114, 182, 0.04) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(147, 51, 234, 0.02) 100%);
+      z-index: -2;
+      pointer-events: none;
+    }
+    
+    &::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 60% 40%, rgba(34, 197, 94, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(251, 146, 60, 0.03) 0%, transparent 40%);
+      z-index: -1;
+      pointer-events: none;
+      animation: ambient 20s ease-in-out infinite;
+    }
+  `}
+  
+  @keyframes ambient {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: ${(props) => props.$isGlassMode ? "rgba(51, 65, 85, 0.2)" : "transparent"};
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: ${(props) => props.$isGlassMode ? "rgba(148, 163, 184, 0.3)" : props.theme?.border || "#E5E7EB"};
+    border-radius: 4px;
+    
+    &:hover {
+      background: ${(props) => props.$isGlassMode ? "rgba(203, 213, 225, 0.5)" : props.theme?.textTertiary || "#9CA3AF"};
+    }
+  }
+`;
+const WelcomeCard = dt(motion.div)`
+  background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "linear-gradient(135deg, rgba(30, 41, 59, 0.08) 0%, rgba(51, 65, 85, 0.05) 100%)";
+  }
+  return props.$isDarkMode ? "linear-gradient(135deg, #1e293b, #334155)" : "linear-gradient(135deg, #f8fafc, #e2e8f0)";
+}};
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: ${(props) => {
+  if (props.$isGlassMode) {
+    return "1px solid rgba(148, 163, 184, 0.15)";
+  }
+  return `1px solid ${props.theme.border}`;
+}};
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(20px)" : "none"};
+  box-shadow: ${(props) => {
+  if (props.$isGlassMode) {
+    return "0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)";
+  }
+  return "0 1px 2px rgba(0, 0, 0, 0.05)";
+}};
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${(props) => {
+  if (props.$isGlassMode) {
+    return "radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(167, 139, 250, 0.05) 30%, transparent 60%)";
+  }
+  return props.$isDarkMode ? "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)" : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)";
+}};
+    animation: float 12s ease-in-out infinite;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${(props) => props.$isGlassMode ? "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)" : "none"};
+    pointer-events: none;
+    border-radius: 20px;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+`;
+const WelcomeContent = dt.div`
+  position: relative;
+  z-index: 1;
+`;
+const WelcomeTitle = dt.h1`
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  color: ${(props) => props.theme.textPrimary};
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 2px 12px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 20px rgba(96, 165, 250, 0.1)" : "none"};
+  position: relative;
+  z-index: 2;
+`;
+const WelcomeSubtitle = dt.p`
+  font-size: 1.1rem;
+  color: ${(props) => props.theme.textSecondary};
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  text-shadow: ${(props) => props.$isGlassMode ? "0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 15px rgba(167, 139, 250, 0.08)" : "none"};
+  position: relative;
+  z-index: 2;
+`;
+const StatsGrid = dt.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`;
+const StatCard = dt(motion.div)`
+  background: ${(props) => props.$isGlassMode ? "rgba(30, 41, 59, 0.08)" : props.theme.surface};
+  border: ${(props) => props.$isGlassMode ? "1px solid rgba(148, 163, 184, 0.15)" : `1px solid ${props.theme.border}`};
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  backdrop-filter: ${(props) => props.$isGlassMode ? "blur(16px)" : "none"};
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${(props) => props.$isGlassMode ? "0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15)" : "0 8px 25px rgba(0, 0, 0, 0.1)"};
+  }
+`;
+const StatIcon = dt.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  background: ${(props) => props.$color}20;
+  color: ${(props) => props.$color};
+`;
+const StatValue = dt.div`
+  font-size: 2rem;
+  font-weight: 700;
+  color: ${(props) => props.theme.textPrimary};
+  margin-bottom: 0.5rem;
+`;
+const StatLabel = dt.div`
+  font-size: 0.9rem;
+  color: ${(props) => props.theme.textSecondary};
+`;
 const PageLayout = dt.div`
   display: flex;
   flex-direction: column;
   gap: 32px;
-  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  
-  &::-webkit-scrollbar {
-    display: none;
-  }
-  
-  scrollbar-width: none;
-  -ms-overflow-style: none;
 `;
 const CategorySection = dt.div`
   display: flex;
@@ -360,12 +622,21 @@ const CategoryDescription = dt.p`
   line-height: 1.5;
 `;
 const ToolsGrid = dt.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
   
   @media (min-width: 768px) {
-    gap: 16px;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+  
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  }
+  
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   }
 `;
 const categories = [
@@ -395,6 +666,8 @@ const categories = [
   }
 ];
 const DevEnvironmentPage = () => {
+  const { isDarkMode, themeMode } = useTheme();
+  const isGlassMode = themeMode.includes("Glass");
   const [installingTools, setInstallingTools] = reactExports.useState(/* @__PURE__ */ new Set());
   const handleDownload = (toolId) => {
     setInstallingTools((prev) => new Set(prev).add(toolId));
@@ -406,23 +679,76 @@ const DevEnvironmentPage = () => {
       });
     }, 2e3);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(PageContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ContentArea, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(PageLayout, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { style: {
-        margin: 0,
-        color: "var(--text-primary)",
-        fontSize: "2rem",
-        fontWeight: 700,
-        marginBottom: "8px"
-      }, children: "开发环境工具" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { style: {
-        margin: 0,
-        color: "var(--text-secondary)",
-        fontSize: "1rem",
-        lineHeight: 1.5
-      }, children: "这里收录了开发所需的各类工具，包括开发环境、IDE、命令行工具和个人常用软件" })
-    ] }),
-    categories.map((category) => {
+  const totalTools = devToolsSimple.length;
+  const environmentTools = devToolsSimple.filter((tool) => tool.category === "开发环境").length;
+  const ideTools = devToolsSimple.filter((tool) => tool.category === "IDE工具").length;
+  const cliTools = devToolsSimple.filter((tool) => tool.category === "命令行工具").length;
+  const stats = [
+    {
+      icon: FaTools,
+      value: totalTools,
+      label: "总工具数",
+      color: "#3B82F6"
+    },
+    {
+      icon: FaCode,
+      value: environmentTools,
+      label: "开发环境",
+      color: "#10B981"
+    },
+    {
+      icon: FaLaptopCode,
+      value: ideTools,
+      label: "IDE工具",
+      color: "#8B5CF6"
+    },
+    {
+      icon: FaTerminal,
+      value: cliTools,
+      label: "命令行工具",
+      color: "#F59E0B"
+    }
+  ];
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(PageContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ContentArea, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(GlassPageContainer, { $isGlassMode: isGlassMode, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      WelcomeCard,
+      {
+        $isDarkMode: isDarkMode,
+        $isGlassMode: isGlassMode,
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeContent, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(WelcomeTitle, { $isGlassMode: isGlassMode, children: [
+            "开发环境工具",
+            /* @__PURE__ */ jsxRuntimeExports.jsx(FaRocket, { size: 32 })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(WelcomeSubtitle, { $isGlassMode: isGlassMode, children: "这里收录了开发所需的各类工具，包括开发环境、IDE、命令行工具和个人常用软件。一站式解决您的开发环境配置需求。" })
+        ] })
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(StatsGrid, { children: stats.map((stat, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      motion.div,
+      {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.1 * index + 0.3, duration: 0.5 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          StatCard,
+          {
+            $isGlassMode: isGlassMode,
+            whileHover: { scale: 1.02 },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(StatIcon, { $color: stat.color, children: /* @__PURE__ */ jsxRuntimeExports.jsx(stat.icon, { size: 24 }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(StatValue, { children: stat.value }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(StatLabel, { children: stat.label })
+            ]
+          }
+        )
+      },
+      stat.label
+    )) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(PageLayout, { children: categories.map((category) => {
       const categoryTools = devToolsSimple.filter((tool) => tool.category === category.id);
       return /* @__PURE__ */ jsxRuntimeExports.jsxs(CategorySection, { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(CategoryHeader, { children: [
@@ -433,19 +759,28 @@ const DevEnvironmentPage = () => {
           ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(ToolsGrid, { children: categoryTools.map((tool) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-          SimpleToolCard,
+          motion.div,
           {
-            icon: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, { size: 24 }),
-            name: tool.name,
-            officialUrl: tool.website,
-            downloadUrl: tool.downloadUrl,
-            onDownload: () => handleDownload(tool.id),
-            className: installingTools.has(tool.id) ? "installing" : ""
+            initial: { opacity: 0, y: 20 },
+            animate: { opacity: 1, y: 0 },
+            transition: { duration: 0.5 },
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              SimpleToolCard,
+              {
+                icon: /* @__PURE__ */ jsxRuntimeExports.jsx(tool.icon, { size: 24 }),
+                name: tool.name,
+                officialUrl: tool.website,
+                downloadUrl: tool.downloadUrl,
+                onDownload: () => handleDownload(tool.id),
+                className: installingTools.has(tool.id) ? "installing" : "",
+                isGlassMode
+              }
+            )
           },
           tool.id
         )) })
       ] }, category.id);
-    })
+    }) })
   ] }) }) });
 };
 export {

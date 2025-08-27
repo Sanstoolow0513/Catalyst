@@ -1,6 +1,6 @@
 import { j as jsxRuntimeExports } from "./mui-vendor-CTE_O7gT.js";
 import { r as reactExports, d as dt, l as lt, m as mt } from "./styled-components-eg0Rzwc1.js";
-import { b as useConfig } from "./index-DI22-Bbg.js";
+import { b as useConfig } from "./index-C-fhFnDy.js";
 import { k as MessageSquare, j as Sparkles, u as Trash2, D as Download, U as User, B as Bot, v as LoaderCircle, w as Send } from "./icons-CcncyDR1.js";
 import { m as motion } from "./animation-DwHr2ej_.js";
 import "./react-vendor-BS-dYsv0.js";

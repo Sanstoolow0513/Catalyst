@@ -177,312 +177,312 @@ export interface Theme {
   borderRadius: ThemeBorderRadius;
 
   // 主题名称
-  name: 'light' | 'dark';
+  name: 'lightGlass' | 'darkGlass';
 }
 
-// 浅色模式主题
-export const lightTheme: Theme = {
-  // 基础背景色
-  background: '#F9FAFB',      // 页面背景
-  foreground: '#FFFFFF',      // 前景元素背景
-  surface: '#FFFFFF',         // 卡片、面板背景
-  surfaceVariant: '#F3F4F6',  // 变体表面（如输入框背景）
+// 亮色主题 - 主流浅色设计
+export const lightGlassTheme: Theme = {
+  // 基础背景色 - 浅灰白色背景
+  background: '#F8F9FA',
+  foreground: '#F8F9FA',
+  surface: '#FFFFFF',
+  surfaceVariant: '#F1F3F4',
 
-  // 文本颜色
-  textPrimary: '#111827',     // 主要文本
-  textSecondary: '#4B5563',   // 次要文本
-  textTertiary: '#9CA3AF',    // 第三级文本（如占位符）
+  // 文本颜色 - 深灰色系确保在浅色背景上清晰可读
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  textTertiary: '#9CA3AF',
 
-  // 边框颜色
-  border: '#E5E7EB',          // 标准边框
-  borderLight: '#F3F4F6',     // 浅边框
-  divider: '#E5E7EB',         // 分隔线
+  // 边框颜色 - 浅灰色边框分隔
+  border: '#E5E7EB',
+  borderLight: '#F3F4F6',
+  divider: '#E5E7EB',
 
-  // 主要颜色
+  // 主要颜色 - 保持品牌色
   primary: {
-    main: '#2563EB',          // 主色
-    light: '#3B82F6',
-    dark: '#1D4ED8',
+    main: '#3182CE',
+    light: '#4299E1',
+    dark: '#2C5282',
     contrastText: '#FFFFFF',
   },
 
   // 次要颜色
   secondary: {
-    main: '#64748B',
-    light: '#94A3B8',
-    dark: '#475569',
+    main: '#805AD5',
+    light: '#9F7AEA',
+    dark: '#6B46C1',
     contrastText: '#FFFFFF',
   },
 
   // 强调色
-  accent: '#7C3AED',
-  accentHover: '#6D28D9',
+  accent: '#ED64A6',
+  accentHover: '#D53F8C',
   
-  // 渐变色
+  // 渐变色 - 适应浅色背景
   gradient: {
-    primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    success: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
-    warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    info: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-    modern: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #EC4899 100%)',
-    sunset: 'linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%)',
-    ocean: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    forest: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-    fire: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
-    luxury: 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
-    sidebar: 'linear-gradient(135deg, #2563EB, #7C3AED)',
-    logo: 'linear-gradient(135deg, #2563EB, #7C3AED)',
+    primary: 'linear-gradient(135deg, #3182CE 0%, #805AD5 100%)',
+    success: 'linear-gradient(135deg, #48BB78 0%, #38B2AC 100%)',
+    warning: 'linear-gradient(135deg, #ED8936 0%, #F6AD55 100%)',
+    info: 'linear-gradient(135deg, #4299E1 0%, #764AB2 100%)',
+    modern: 'linear-gradient(135deg, #3182CE 0%, #805AD5 50%, #ED64A6 100%)',
+    sunset: 'linear-gradient(135deg, #FB923C 0%, #E17055 100%)',
+    ocean: 'linear-gradient(135deg, #3B82F6 0%, #9333EA 100%)',
+    forest: 'linear-gradient(135deg, #22C55E 0%, #10B981 100%)',
+    fire: 'linear-gradient(135deg, #FB7185 0%, #FED7AA 100%)',
+    luxury: 'linear-gradient(135deg, #9F7AEA 0%, #EC4899 100%)',
+    sidebar: 'linear-gradient(135deg, #F8F9FA, #F1F3F4)',
+    logo: 'linear-gradient(135deg, #3182CE, #805AD5)',
   },
   
-  // 卡片层次色
+  // 卡片层次色 - 浅色层次
   cardLayer: {
-    primary: '#F0F9FF',
-    secondary: '#F8FAFC',
-    accent: '#FEF3C7',
+    primary: '#F8F9FA',
+    secondary: '#F1F3F4',
+    accent: '#F3F4F6',
   },
 
-  // 阴影系统
+  // 阴影系统 - 传统浅色主题阴影
   shadow: {
     sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    md: '0 2px 8px rgba(0, 0, 0, 0.08)',
-    lg: '0 4px 12px rgba(0, 0, 0, 0.12)',
-    xl: '0 8px 25px rgba(0, 0, 0, 0.15)',
-    card: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    cardHover: '0 4px 12px rgba(0, 0, 0, 0.08)',
-    sidebar: '0 4px 12px rgba(0, 0, 0, 0.08)',
-    sidebarHover: '0 6px 16px rgba(0, 0, 0, 0.12)',
+    md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+    xl: '0 20px 25px rgba(0, 0, 0, 0.15)',
+    card: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+    cardHover: '0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)',
+    sidebar: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+    sidebarHover: '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05)',
     input: '0 1px 2px rgba(0, 0, 0, 0.05)',
     button: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    buttonHover: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    buttonHover: '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05)',
   },
 
-  // 文本阴影
+  // 文本阴影 - 浅色主题不需要文本阴影
   textShadow: {
-    light: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    medium: '0 1px 2px rgba(0, 0, 0, 0.1)',
+    light: 'none',
+    medium: 'none',
   },
 
   // 图标颜色
   iconColor: {
-    default: '#999999',
+    default: '#6B7280',
   },
 
-  // 状态颜色
+  // 状态颜色 - 适应浅色背景
   success: { main: '#10B981', light: '#34D399', dark: '#059669', contrastText: '#FFFFFF' },
   error: { main: '#EF4444', light: '#F87171', dark: '#DC2626', contrastText: '#FFFFFF' },
   warning: { main: '#F59E0B', light: '#FBBF24', dark: '#D97706', contrastText: '#FFFFFF' },
-  info: { main: '#06B6D4', light: '#22D3EE', dark: '#0891B2', contrastText: '#FFFFFF' },
+  info: { main: '#3B82F6', light: '#60A5FA', dark: '#2563EB', contrastText: '#FFFFFF' },
 
-  // 组件特定样式
+  // 组件特定样式 - 主流浅色设计
   sidebar: {
     background: '#FFFFFF',
     border: '#E5E7EB',
-    itemHover: '#F3F4F6',
-    itemActive: '#EFF6FF',
-    text: '#374151',
-    textActive: '#2563EB',
+    itemHover: '#F8F9FA',
+    itemActive: '#EBF5FF',
+    text: '#1F2937',
+    textActive: '#3182CE',
   },
 
   titleBar: {
-    background: 'rgba(255, 255, 255, 0.85)',
-    border: 'rgba(229, 231, 235, 0.6)',
-    text: '#111827',
-    icon: '#4B5563',
-    iconHover: '#111827',
+    background: '#FFFFFF',
+    border: '#E5E7EB',
+    text: '#1F2937',
+    icon: '#6B7280',
+    iconHover: '#1F2937',
     height: '48px',
   },
 
   input: {
-    background: '#F9FAFB',
-    border: '#E5E7EB',
-    borderFocus: '#2563EB',
-    text: '#111827',
+    background: '#FFFFFF',
+    border: '#D1D5DB',
+    borderFocus: '#3182CE',
+    text: '#1F2937',
     placeholder: '#9CA3AF',
   },
-  inputBorder: '#E5E7EB',
-  inputBackground: '#F9FAFB',
-  inputFocusBorder: '#2563EB',
+  inputBorder: '#D1D5DB',
+  inputBackground: '#FFFFFF',
+  inputFocusBorder: '#3182CE',
 
   card: {
     background: '#FFFFFF',
     border: '#E5E7EB',
-    shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    shadowHover: '0 4px 12px 0 rgba(0, 0, 0, 0.08)',
+    shadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+    shadowHover: '0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)',
   },
 
   button: {
     background: '#FFFFFF',
-    border: 'none',
+    border: '#E5E7EB',
     borderRadius: '8px',
-    shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    shadowHover: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
+    shadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    shadowHover: '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05)',
   },
 
   // 间距系统
   spacing: {
-    xs: '4px',   // 4px
-    sm: '8px',   // 8px
-    md: '16px',  // 16px
-    lg: '24px',  // 24px
-    xl: '32px',  // 32px
-    xxl: '48px', // 48px
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px',
   },
 
-  // 过渡动画
+  // 过渡动画 - 适度的动画效果
   transition: {
-    fast: '150ms',   // 150ms
-    normal: '300ms', // 300ms
-    slow: '500ms',   // 500ms
+    fast: '150ms',
+    normal: '200ms',
+    slow: '300ms',
   },
 
-  // 圆角系统
+  // 圆角系统 - 现代设计圆角
   borderRadius: {
-    small: '8px',      // 8px - 用于按钮、标签等小元素
-    medium: '12px',   // 12px - 用于卡片、输入框等
-    large: '16px',    // 16px - 用于页面容器、模态框等
-    xlarge: '20px',   // 20px - 用于特殊场景
-    extraLarge: '24px', // 24px - 用于特殊大圆角场景
+    small: '6px',
+    medium: '8px',
+    large: '12px',
+    xlarge: '16px',
+    extraLarge: '20px',
   },
 
-  name: 'light',
+  name: 'lightGlass',
 };
 
-// 深色模式主题
-export const darkTheme: Theme = {
-  // 基础背景色
-  background: '#030712',      // 页面背景
-  foreground: '#111827',      // 前景元素背景
-  surface: '#111827',         // 卡片、面板背景
-  surfaceVariant: '#1F2937',  // 变体表面（如输入框背景）
+// 暗色玻璃主题 - 纯黑背景配合深色组件
+export const darkGlassTheme: Theme = {
+  // 基础背景色 - 纯黑背景
+  background: '#000000',
+  foreground: '#000000',
+  surface: '#000000',
+  surfaceVariant: '#000000',
 
-  // 文本颜色
-  textPrimary: '#F9FAFB',     // 主要文本
-  textSecondary: '#9CA3AF',   // 次要文本
-  textTertiary: '#4B5563',    // 第三级文本（如占位符）
+  // 文本颜色 - 暖白色系减少刺眼感
+  textPrimary: '#F0F0F0',     // 主要文本 - 暖白色
+  textSecondary: '#C0C0C0',   // 次要文本 - 中灰色
+  textTertiary: '#808080',    // 第三级文本 - 深灰色
 
-  // 边框颜色
-  border: '#374151',          // 标准边框
-  borderLight: '#4B5563',     // 浅边框
-  divider: '#374151',         // 分隔线
+  // 边框颜色 - 低透明度灰色边框
+  border: 'rgba(128, 128, 128, 0.3)',          // 适度透明的边框
+  borderLight: 'rgba(128, 128, 128, 0.2)',     // 细致的边框
+  divider: 'rgba(128, 128, 128, 0.25)',         // 分隔线
 
   // 主要颜色
   primary: {
-    main: '#3B82F6',          // 主色
-    light: '#60A5FA',
-    dark: '#2563EB',
-    contrastText: '#FFFFFF',
+    main: '#60A5FA',          // 亮蓝色主色
+    light: '#93C5FD',
+    dark: '#3B82F6',
+    contrastText: '#0F172A',
   },
 
   // 次要颜色
   secondary: {
-    main: '#94A3B8',
-    light: '#CBD5E1',
-    dark: '#64748B',
-    contrastText: '#030712',
+    main: '#A78BFA',
+    light: '#C4B5FD',
+    dark: '#8B5CF6',
+    contrastText: '#0F172A',
   },
 
   // 强调色
-  accent: '#A78BFA',
-  accentHover: '#8B5CF6',
+  accent: '#F472B6',
+  accentHover: '#EC4899',
   
-  // 渐变色
+  // 渐变色 - 黑色背景上的低饱和度渐变
   gradient: {
-    primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    success: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
-    warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    info: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    primary: 'linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%)',
+    success: 'linear-gradient(135deg, #34D399 0%, #22C55E 100%)',
+    warning: 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)',
+    info: 'linear-gradient(135deg, #22D3EE 0%, #06B6D4 100%)',
     modern: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #EC4899 100%)',
     sunset: 'linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%)',
-    ocean: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    forest: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-    fire: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
-    luxury: 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
-    sidebar: 'linear-gradient(135deg, #60A5FA, #A78BFA)',
+    ocean: 'linear-gradient(135deg, #667EEA 0%, #764AB2 100%)',
+    forest: 'linear-gradient(135deg, #11998E 0%, #38EF7D 100%)',
+    fire: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)',
+    luxury: 'linear-gradient(135deg, #834D9B 0%, #D04AD6 100%)',
+    sidebar: 'linear-gradient(135deg, rgba(96, 165, 250, 0.3), rgba(167, 139, 250, 0.3))',
     logo: 'linear-gradient(135deg, #60A5FA, #A78BFA)',
   },
   
-  // 卡片层次色
+  // 卡片层次色 - 深色透明层次
   cardLayer: {
-    primary: '#1E3A8A',
-    secondary: '#1F2937',
-    accent: '#78350F',
+    primary: 'rgba(96, 165, 250, 0.1)',
+    secondary: 'rgba(64, 64, 64, 0.08)',
+    accent: 'rgba(251, 191, 36, 0.08)',
   },
 
-  // 阴影系统
+  // 阴影系统 - 黑色背景上的深色阴影
   shadow: {
-    sm: '0 1px 2px rgba(0, 0, 0, 0.1)',
-    md: '0 2px 8px rgba(0, 0, 0, 0.15)',
-    lg: '0 4px 12px rgba(0, 0, 0, 0.25)',
-    xl: '0 8px 25px rgba(0, 0, 0, 0.3)',
-    card: '0 1px 2px rgba(0, 0, 0, 0.1)',
-    cardHover: '0 4px 12px rgba(0, 0, 0, 0.15)',
-    sidebar: '0 4px 12px rgba(0, 0, 0, 0.15)',
-    sidebarHover: '0 6px 16px rgba(0, 0, 0, 0.25)',
-    input: '0 1px 2px rgba(0, 0, 0, 0.1)',
-    button: '0 1px 2px rgba(0, 0, 0, 0.1)',
-    buttonHover: '0 2px 4px rgba(0, 0, 0, 0.2)',
+    sm: '0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3)',
+    md: '0 4px 6px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4)',
+    lg: '0 10px 15px rgba(0, 0, 0, 0.7), 0 4px 6px rgba(0, 0, 0, 0.5)',
+    xl: '0 20px 25px rgba(0, 0, 0, 0.8), 0 10px 10px rgba(0, 0, 0, 0.6)',
+    card: '0 4px 6px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4)',
+    cardHover: '0 20px 25px rgba(0, 0, 0, 0.8), 0 10px 10px rgba(0, 0, 0, 0.6)',
+    sidebar: '0 4px 6px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)',
+    sidebarHover: '0 10px 15px rgba(0, 0, 0, 0.7), 0 4px 6px rgba(0, 0, 0, 0.5)',
+    input: '0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2)',
+    button: '0 2px 4px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3)',
+    buttonHover: '0 4px 6px rgba(0, 0, 0, 0.7), 0 2px 4px rgba(0, 0, 0, 0.5)',
   },
 
-  // 文本阴影
+  // 文本阴影 - 深色阴影增强可读性
   textShadow: {
-    light: '0 2px 4px rgba(0, 0, 0, 0.2)',
-    medium: '0 1px 2px rgba(0, 0, 0, 0.2)',
+    light: '0 1px 3px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.6)',
+    medium: '0 2px 4px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4)',
   },
 
   // 图标颜色
   iconColor: {
-    default: '#999999',
+    default: '#C0C0C0',
   },
 
   // 状态颜色
-  success: { main: '#34D399', light: '#6EE7B7', dark: '#10B981', contrastText: '#FFFFFF' },
-  error: { main: '#F87171', light: '#FCA5A5', dark: '#EF4444', contrastText: '#FFFFFF' },
-  warning: { main: '#FBBF24', light: '#FCD34D', dark: '#F59E0B', contrastText: '#FFFFFF' },
-  info: { main: '#22D3EE', light: '#67E8F9', dark: '#06B6D4', contrastText: '#FFFFFF' },
+  success: { main: '#34D399', light: '#6EE7B7', dark: '#10B981', contrastText: '#0F172A' },
+  error: { main: '#F87171', light: '#FCA5A5', dark: '#EF4444', contrastText: '#0F172A' },
+  warning: { main: '#FBBF24', light: '#FCD34D', dark: '#F59E0B', contrastText: '#0F172A' },
+  info: { main: '#22D3EE', light: '#67E8F9', dark: '#06B6D4', contrastText: '#0F172A' },
 
-  // 组件特定样式
+  // 组件特定样式 - 深色半透明组件在黑色背景上
   sidebar: {
-    background: '#111827',
-    border: '#374151',
-    itemHover: '#1F2937',
-    itemActive: 'rgba(59, 130, 246, 0.1)',
-    text: '#9CA3AF',
+    background: 'rgba(32, 32, 32, 0.8)',
+    border: 'rgba(64, 64, 64, 0.5)',
+    itemHover: 'rgba(48, 48, 48, 0.9)',
+    itemActive: 'rgba(96, 165, 250, 0.3)',
+    text: '#F0F0F0',
     textActive: '#60A5FA',
   },
 
   titleBar: {
-    background: 'rgba(17, 24, 39, 0.85)',
-    border: 'rgba(55, 65, 81, 0.6)',
-    text: '#F9FAFB',
-    icon: '#9CA3AF',
-    iconHover: '#F9FAFB',
+    background: 'rgba(24, 24, 24, 0.9)',
+    border: 'rgba(48, 48, 48, 0.7)',
+    text: '#F0F0F0',
+    icon: '#C0C0C0',
+    iconHover: '#F0F0F0',
     height: '48px',
   },
 
   input: {
-    background: '#1F2937',
-    border: '#374151',
-    borderFocus: '#3B82F6',
-    text: '#F9FAFB',
-    placeholder: '#4B5563',
+    background: 'rgba(40, 40, 40, 0.8)',
+    border: 'rgba(64, 64, 64, 0.6)',
+    borderFocus: 'rgba(96, 165, 250, 0.5)',
+    text: '#F0F0F0',
+    placeholder: '#808080',
   },
-  inputBorder: '#374151',
-  inputBackground: '#1F2937',
-  inputFocusBorder: '#3B82F6',
+  inputBorder: 'rgba(64, 64, 64, 0.6)',
+  inputBackground: 'rgba(40, 40, 40, 0.8)',
+  inputFocusBorder: 'rgba(96, 165, 250, 0.5)',
 
   card: {
-    background: '#111827',
-    border: '#374151',
-    shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
-    shadowHover: '0 4px 12px 0 rgba(0, 0, 0, 0.15)',
+    background: 'rgba(32, 32, 32, 0.7)',
+    border: 'rgba(48, 48, 48, 0.5)',
+    shadow: '0 4px 6px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4)',
+    shadowHover: '0 20px 25px rgba(0, 0, 0, 0.8), 0 10px 10px rgba(0, 0, 0, 0.6)',
   },
 
   button: {
-    background: '#111827',
-    border: 'none',
-    borderRadius: '8px',
-    shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
-    shadowHover: '0 2px 4px 0 rgba(0, 0, 0, 0.2)',
+    background: 'rgba(48, 48, 48, 0.8)',
+    border: 'rgba(64, 64, 64, 0.6)',
+    borderRadius: '12px',
+    shadow: '0 2px 4px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3)',
+    shadowHover: '0 4px 6px rgba(0, 0, 0, 0.7), 0 2px 4px rgba(0, 0, 0, 0.5)',
   },
 
   // 间距系统
@@ -495,51 +495,52 @@ export const darkTheme: Theme = {
     xxl: '48px', // 48px
   },
 
-  // 过渡动画
+  // 过渡动画 - 简化为无动画
   transition: {
-    fast: '150ms',   // 150ms
-    normal: '300ms', // 300ms
-    slow: '500ms',   // 500ms
+    fast: '0ms',   // 无动画
+    normal: '0ms', // 无动画
+    slow: '0ms',   // 无动画
   },
 
   // 圆角系统
   borderRadius: {
-    small: '8px',      // 8px - 用于按钮、标签等小元素
-    medium: '12px',   // 12px - 用于卡片、输入框等
-    large: '16px',    // 16px - 用于页面容器、模态框等
-    xlarge: '20px',   // 20px - 用于特殊场景
-    extraLarge: '24px', // 24px - 用于特殊大圆角场景
+    small: '12px',     // 玻璃态风格使用更大圆角
+    medium: '16px',
+    large: '20px',
+    xlarge: '24px',
+    extraLarge: '28px',
   },
 
-  name: 'dark',
+  name: 'darkGlass',
 };
 
+
 // MUI主题配置 - 浅色模式
-export const muiLightTheme = createTheme({
+export const muiLightGlassTheme = createTheme({
   palette: {
-    mode: 'light',
-    primary: lightTheme.primary,
-    secondary: lightTheme.secondary,
-    error: lightTheme.error,
-    warning: lightTheme.warning,
-    info: lightTheme.info,
-    success: lightTheme.success,
+    mode: 'light', // 使用light模式
+    primary: lightGlassTheme.primary,
+    secondary: lightGlassTheme.secondary,
+    error: lightGlassTheme.error,
+    warning: lightGlassTheme.warning,
+    info: lightGlassTheme.info,
+    success: lightGlassTheme.success,
     background: {
-      default: lightTheme.background,
-      paper: lightTheme.surface,
+      default: lightGlassTheme.background,
+      paper: lightGlassTheme.surface,
     },
     text: {
-      primary: lightTheme.textPrimary,
-      secondary: lightTheme.textSecondary,
+      primary: lightGlassTheme.textPrimary,
+      secondary: lightGlassTheme.textSecondary,
     },
-    divider: lightTheme.divider,
-    border: lightTheme.border,
+    divider: lightGlassTheme.divider,
+    border: lightGlassTheme.border,
   },
   typography: {
     fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
   },
   shape: {
-    borderRadius: 12, // 默认圆角设置为12px
+    borderRadius: 8, // 现代设计圆角
   },
   components: {
     MuiButton: {
@@ -547,9 +548,13 @@ export const muiLightTheme = createTheme({
         root: {
           textTransform: 'none',
           boxShadow: 'none',
-          borderRadius: '8px', // 按钮圆角为8px
+          borderRadius: '8px',
+          background: lightGlassTheme.button.background,
+          border: lightGlassTheme.button.border,
+          color: lightGlassTheme.textPrimary,
           '&:hover': {
-            boxShadow: 'none',
+            boxShadow: lightGlassTheme.button.shadowHover,
+            background: '#F8F9FA',
           },
         },
       },
@@ -557,25 +562,31 @@ export const muiLightTheme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: lightTheme.card.shadow,
+          boxShadow: lightGlassTheme.card.shadow,
+          background: lightGlassTheme.card.background,
+          border: lightGlassTheme.card.border,
           '&:hover': {
-            boxShadow: lightTheme.card.shadowHover,
+            boxShadow: lightGlassTheme.card.shadowHover,
           },
-          borderRadius: '12px', // 卡片圆角为12px
+          borderRadius: '12px',
         },
       },
     },
     MuiInput: {
       styleOverrides: {
         root: {
-          borderRadius: '12px', // 输入框圆角为12px
+          borderRadius: '8px',
+          background: lightGlassTheme.input.background,
+          color: lightGlassTheme.textPrimary,
         },
       },
     },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: '12px', // 输入框圆角为12px
+          borderRadius: '8px',
+          background: lightGlassTheme.input.background,
+          color: lightGlassTheme.textPrimary,
         },
       },
     },
@@ -600,32 +611,32 @@ export const muiLightTheme = createTheme({
   },
 });
 
-// MUI主题配置 - 深色模式
-export const muiDarkTheme = createTheme({
+// MUI主题配置 - 暗色玻璃模式（黑色背景）
+export const muiDarkGlassTheme = createTheme({
   palette: {
     mode: 'dark',
-    primary: darkTheme.primary,
-    secondary: darkTheme.secondary,
-    error: darkTheme.error,
-    warning: darkTheme.warning,
-    info: darkTheme.info,
-    success: darkTheme.success,
+    primary: darkGlassTheme.primary,
+    secondary: darkGlassTheme.secondary,
+    error: darkGlassTheme.error,
+    warning: darkGlassTheme.warning,
+    info: darkGlassTheme.info,
+    success: darkGlassTheme.success,
     background: {
-      default: darkTheme.background,
-      paper: darkTheme.surface,
+      default: darkGlassTheme.background,
+      paper: darkGlassTheme.surface,
     },
     text: {
-      primary: darkTheme.textPrimary,
-      secondary: darkTheme.textSecondary,
+      primary: darkGlassTheme.textPrimary,
+      secondary: darkGlassTheme.textSecondary,
     },
-    divider: darkTheme.divider,
-    border: darkTheme.border,
+    divider: darkGlassTheme.divider,
+    border: darkGlassTheme.border,
   },
   typography: {
     fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
   },
   shape: {
-    borderRadius: 12, // 默认圆角设置为12px
+    borderRadius: 16, // 玻璃态使用更大圆角
   },
   components: {
     MuiButton: {
@@ -633,9 +644,14 @@ export const muiDarkTheme = createTheme({
         root: {
           textTransform: 'none',
           boxShadow: 'none',
-          borderRadius: '8px', // 按钮圆角为8px
+          borderRadius: '12px',
+          background: darkGlassTheme.button.background,
+          border: darkGlassTheme.button.border,
+          backdropFilter: 'blur(8px)',
+          color: darkGlassTheme.textPrimary,
           '&:hover': {
-            boxShadow: 'none',
+            boxShadow: darkGlassTheme.button.shadowHover,
+            background: 'rgba(64, 64, 64, 0.9)',
           },
         },
       },
@@ -643,25 +659,34 @@ export const muiDarkTheme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: darkTheme.card.shadow,
+          boxShadow: darkGlassTheme.card.shadow,
+          background: darkGlassTheme.card.background,
+          border: darkGlassTheme.card.border,
+          backdropFilter: 'blur(8px)',
           '&:hover': {
-            boxShadow: darkTheme.card.shadowHover,
+            boxShadow: darkGlassTheme.card.shadowHover,
           },
-          borderRadius: '12px', // 卡片圆角为12px
+          borderRadius: '16px',
         },
       },
     },
     MuiInput: {
       styleOverrides: {
         root: {
-          borderRadius: '12px', // 输入框圆角为12px
+          borderRadius: '16px',
+          background: darkGlassTheme.input.background,
+          backdropFilter: 'blur(8px)',
+          color: darkGlassTheme.textPrimary,
         },
       },
     },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: '12px', // 输入框圆角为12px
+          borderRadius: '16px',
+          background: darkGlassTheme.input.background,
+          backdropFilter: 'blur(8px)',
+          color: darkGlassTheme.textPrimary,
         },
       },
     },
@@ -669,22 +694,23 @@ export const muiDarkTheme = createTheme({
   spacing: 8,
   transitions: {
     duration: {
-      shortest: 150,
-      shorter: 200,
-      short: 250,
-      standard: 300,
-      complex: 375,
-      enteringScreen: 225,
-      leavingScreen: 195,
+      shortest: 0,
+      shorter: 0,
+      short: 0,
+      standard: 0,
+      complex: 0,
+      enteringScreen: 0,
+      leavingScreen: 0,
     },
     easing: {
-      easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
-      easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
-      easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
-      sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
+      easeInOut: 'linear',
+      easeOut: 'linear',
+      easeIn: 'linear',
+      sharp: 'linear',
     },
   },
 });
+
 
 // 导出主题类型
 export type AppTheme = Theme;

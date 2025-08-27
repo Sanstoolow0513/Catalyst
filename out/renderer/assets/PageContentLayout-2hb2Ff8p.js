@@ -1,7 +1,35 @@
+import { d as dt, a as React } from "./styled-components-eg0Rzwc1.js";
 import { j as jsxRuntimeExports } from "./mui-vendor-CTE_O7gT.js";
-import { a as React, d as dt } from "./styled-components-eg0Rzwc1.js";
 import { m as motion } from "./animation-DwHr2ej_.js";
 import { X, I as Info, p as CircleX, i as CircleCheckBig } from "./icons-CcncyDR1.js";
+const PageContainer = dt.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100%;
+  width: 100%;
+  background-color: ${(props) => props.theme?.background || "#F9FAFB"};
+  color: ${(props) => props.theme?.textPrimary || "#111827"};
+  padding: ${(props) => props.theme?.spacing?.xl || "32px"};
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: ${(props) => props.theme?.border || "#E5E7EB"};
+    border-radius: 4px;
+    
+    &:hover {
+      background: ${(props) => props.theme?.textTertiary || "#9CA3AF"};
+    }
+  }
+`;
 const StyledButton = dt(motion.button)`
   text-transform: none;
   font-weight: 500;
@@ -780,6 +808,7 @@ export {
   FormGroup as F,
   Input as I,
   Label as L,
+  PageContainer as P,
   SelectWrapper as S,
   ToastContainer as T,
   Select as a,

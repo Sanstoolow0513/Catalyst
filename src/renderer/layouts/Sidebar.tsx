@@ -20,7 +20,7 @@ const SidebarContainer = styled(motion.aside)<{ $collapsed: boolean }>`
   min-width: ${props => props.$collapsed ? '80px' : '200px'};
   position: relative;
   background-color: ${props => props.theme.sidebar.background};
-  border: none;
+  border: 1px solid ${props => props.theme.sidebar.border};
   border-radius: 16px;
   margin: 8px;
   display: flex;
@@ -31,11 +31,13 @@ const SidebarContainer = styled(motion.aside)<{ $collapsed: boolean }>`
   flex-shrink: 0;
   z-index: 100;
   box-shadow: ${props => props.theme.shadow.sidebar};
+  backdrop-filter: blur(16px);
   
   &:hover {
     box-shadow: ${props => props.theme.shadow.sidebarHover};
   }
   
+    
   /* 自定义滚动条 */
   &::-webkit-scrollbar {
     width: 6px;
@@ -102,7 +104,11 @@ const Logo = styled.div`
   font-size: 18px;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-`;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+  
+  `;
 
 const LogoText = styled.div<{ $collapsed: boolean }>`
   display: flex;
@@ -182,6 +188,21 @@ const NavItem = styled(Link)<{ $isActive: boolean; $collapsed: boolean }>`
   overflow: hidden;
   border: 1px solid transparent;
   position: relative;
+  backdrop-filter: blur(8px);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
   
   &:hover {
     background-color: ${props => props.$isActive ? props.theme.sidebar.itemActive : props.theme.sidebar.itemHover};
@@ -189,6 +210,10 @@ const NavItem = styled(Link)<{ $isActive: boolean; $collapsed: boolean }>`
     border-color: ${props => props.theme.border};
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    
+    &::before {
+      opacity: 1;
+    }
   }
   
   & .nav-icon {
@@ -226,6 +251,7 @@ const Tooltip = styled.div`
   pointer-events: none;
   white-space: nowrap;
   border: 1px solid ${props => props.theme.border};
+  backdrop-filter: blur(8px);
 `;
 
 const navigationItems = [

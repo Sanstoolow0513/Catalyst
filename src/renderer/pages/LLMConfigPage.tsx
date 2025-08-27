@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   Button, 
   Input, 
@@ -26,89 +27,196 @@ import {
 import { useConfig } from '../contexts/ConfigContext';
 import { ILLMConfig } from '../utils/configManager';
 
-const PageTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: ${props => props.theme.spacing.sm};
-  display: flex;
-  align-items: center;
-  gap: ${props => props.theme.spacing.sm};
-  text-shadow: ${props => props.theme.textShadow.light};
-`;
 
-const PageSubtitle = styled.p`
-  color: ${props => props.theme.textSecondary};
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 500;
-`;
-
-// 设置页面内容容器
-const SettingsContentContainer = styled.div`
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-`;
-
-// 主内容区域
-const MainContent = styled.div`
+// 主要页面容器 - 复用HomePage的样式
+const GlassPageContainer = styled.div<{ $isGlassMode?: boolean }>`
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: ${props => props.theme.background};
-  min-height: 0;
-`;
-
-// 页面头部
-const ContentHeader = styled.div`
-  padding: 24px;
-  border-bottom: 1px solid ${props => props.theme.border};
-  background: ${props => props.theme.surface};
-`;
-
-// 标签页内容
-const TabContent = styled(motion.div)`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
   overflow-y: auto;
-  padding: 24px;
-  min-height: 0;
+  height: 100%;
+  width: 100%;
+  background-color: ${props => props.$isGlassMode 
+    ? 'transparent' 
+    : (props.theme?.background || '#F9FAFB')};
+  color: ${props => props.theme?.textPrimary || '#111827'};
+  padding: ${props => props.theme?.spacing?.xl || '32px'};
+  padding-bottom: 100px; /* 为固定保存栏留出足够空间 */
+  position: relative;
+  min-height: 0; /* 确保flex容器正确收缩 */
   
-  /* 隐藏滚动条 */
+  ${props => props.$isGlassMode && `
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(96, 165, 250, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(244, 114, 182, 0.04) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(147, 51, 234, 0.02) 100%);
+      z-index: -2;
+      pointer-events: none;
+    }
+    
+    &::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 60% 40%, rgba(34, 197, 94, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(251, 146, 60, 0.03) 0%, transparent 40%);
+      z-index: -1;
+      pointer-events: none;
+      animation: ambient 20s ease-in-out infinite;
+    }
+  `}
+  
+  @keyframes ambient {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+  
   &::-webkit-scrollbar {
     width: 8px;
   }
   
   &::-webkit-scrollbar-track {
-    background: transparent;
+    background: ${props => props.$isGlassMode ? 'rgba(51, 65, 85, 0.2)' : 'transparent'};
   }
   
   &::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.border};
+    background: ${props => props.$isGlassMode ? 'rgba(148, 163, 184, 0.3)' : (props.theme?.border || '#E5E7EB')};
     border-radius: 4px;
+    
+    &:hover {
+      background: ${props => props.$isGlassMode ? 'rgba(203, 213, 225, 0.5)' : (props.theme?.textTertiary || '#9CA3AF')};
+    }
+  }
+`;
+
+// 顶部信息卡片 - 复用HomePage的WelcomeCard样式
+const ConfigWelcomeCard = styled(motion.div)<{ $isGlassMode?: boolean }>`
+  background: ${props => {
+    if (props.$isGlassMode) {
+      return 'linear-gradient(135deg, rgba(30, 41, 59, 0.08) 0%, rgba(51, 65, 85, 0.05) 100%)';
+    }
+    return 'linear-gradient(135deg, #f8fafc, #e2e8f0)';
+  }};
+  border-radius: 20px;
+  padding: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  border: ${props => {
+    if (props.$isGlassMode) {
+      return '1px solid rgba(148, 163, 184, 0.15)';
+    }
+    return `1px solid ${props.theme.border}`;
+  }};
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(20px)' : 'none'};
+  box-shadow: ${props => {
+    if (props.$isGlassMode) {
+      return '0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)';
+    }
+    return '0 1px 2px rgba(0, 0, 0, 0.05)';
+  }};
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${props => {
+      if (props.$isGlassMode) {
+        return 'radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(167, 139, 250, 0.05) 30%, transparent 60%)';
+      }
+      return 'radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)';
+    }};
+    animation: float 12s ease-in-out infinite;
   }
   
-  &::-webkit-scrollbar-thumb:hover {
-    background: ${props => props.theme.borderLight};
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${props => props.$isGlassMode 
+      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)' 
+      : 'none'};
+    pointer-events: none;
+    border-radius: 20px;
   }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+`;
+
+const WelcomeContent = styled.div`
+  position: relative;
+  z-index: 1;
+`;
+
+
+// 欢迎标题样式
+const WelcomeTitle = styled.h1<{ $isGlassMode?: boolean }>`
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  color: ${props => props.theme.textPrimary};
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 2px 12px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 20px rgba(96, 165, 250, 0.1)' 
+    : 'none'};
+`;
+
+const WelcomeSubtitle = styled.p<{ $isGlassMode?: boolean }>`
+  font-size: 1.1rem;
+  color: ${props => props.theme.textSecondary};
+  margin: 0;
+  line-height: 1.6;
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 15px rgba(167, 139, 250, 0.08)' 
+    : 'none'};
 `;
 
 // 区块标题
-const SectionTitle = styled.h3`
+const SectionTitle = styled.h3<{ $isGlassMode?: boolean }>`
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-  text-shadow: ${props => props.theme.textShadow.medium};
+  color: ${props => props.theme.textPrimary};
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15)' 
+    : 'none'};
 `;
 
-const SectionDescription = styled.p`
+const SectionDescription = styled.p<{ $isGlassMode?: boolean }>`
   color: ${props => props.theme.textSecondary};
   margin: 0;
   line-height: 1.6;
   font-size: 0.95rem;
   font-weight: 500;
+  text-shadow: ${props => props.$isGlassMode 
+    ? '0 1px 4px rgba(0, 0, 0, 0.2)' 
+    : 'none'};
 `;
 
 const SectionHeader = styled.div<{ $variant?: 'default' | 'primary' | 'accent' }>`
@@ -134,8 +242,11 @@ const SectionHeader = styled.div<{ $variant?: 'default' | 'primary' | 'accent' }
 `;
 
 // 设置区块
-const SettingsSection = styled(motion.div)<{ $variant?: 'default' | 'primary' | 'accent' | 'important' }>`
+const SettingsSection = styled(motion.div)<{ $variant?: 'default' | 'primary' | 'accent' | 'important'; $isGlassMode?: boolean }>`
   background: ${props => {
+    if (props.$isGlassMode) {
+      return 'rgba(30, 41, 59, 0.08)';
+    }
     switch (props.$variant) {
       case 'primary': return props.theme.cardLayer.primary;
       case 'accent': return props.theme.cardLayer.accent;
@@ -144,6 +255,9 @@ const SettingsSection = styled(motion.div)<{ $variant?: 'default' | 'primary' | 
     }
   }};
   border: ${props => {
+    if (props.$isGlassMode) {
+      return '1px solid rgba(148, 163, 184, 0.15)';
+    }
     switch (props.$variant) {
       case 'primary': return `1px solid ${props.theme.primary.light}`;
       case 'accent': return `1px solid ${props.theme.warning.light}`;
@@ -151,10 +265,13 @@ const SettingsSection = styled(motion.div)<{ $variant?: 'default' | 'primary' | 
       default: return `1px solid ${props.theme.border}`;
     }
   }};
-  border-radius: ${props => props.theme.borderRadius.medium};
-  padding: 24px;
-  margin-bottom: 24px;
+  border-radius: ${props => props.$isGlassMode ? '20px' : props.theme.borderRadius.medium};
+  padding: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   box-shadow: ${props => {
+    if (props.$isGlassMode) {
+      return '0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05)';
+    }
     switch (props.$variant) {
       case 'important': return props.theme.shadow.xl;
       default: return props.theme.shadow.card;
@@ -163,9 +280,47 @@ const SettingsSection = styled(motion.div)<{ $variant?: 'default' | 'primary' | 
   position: relative;
   z-index: 1;
   transition: all ${props => props.theme.transition.normal} ease;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(20px)' : 'none'};
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: ${props => props.$isGlassMode 
+      ? 'radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(167, 139, 250, 0.05) 30%, transparent 60%)' 
+      : 'none'};
+    animation: float 12s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${props => props.$isGlassMode 
+      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)' 
+      : 'none'};
+    pointer-events: none;
+    border-radius: ${props => props.$isGlassMode ? '20px' : props.theme.borderRadius.medium};
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
   
   &:hover {
     box-shadow: ${props => {
+      if (props.$isGlassMode) {
+        return '0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+      }
       switch (props.$variant) {
         case 'important': return '0 8px 32px rgba(0, 0, 0, 0.2)';
         default: return props.theme.shadow.cardHover;
@@ -179,27 +334,31 @@ const SettingsSection = styled(motion.div)<{ $variant?: 'default' | 'primary' | 
 `;
 
 // 统一保存栏
-const SaveBar = styled.div`
+const SaveBar = styled.div<{ $isGlassMode?: boolean }>`
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: ${props => props.theme.surface};
-  backdrop-filter: blur(10px);
-  border: 1px solid ${props => props.theme.border};
+  background: ${props => props.$isGlassMode ? 'rgba(30, 41, 59, 0.8)' : props.theme.surface};
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(16px)' : 'blur(10px)'};
+  border: ${props => props.$isGlassMode ? '1px solid rgba(148, 163, 184, 0.3)' : `1px solid ${props.theme.border}`};
   padding: 8px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  border-radius: ${props => props.theme.borderRadius.large};
-  box-shadow: ${props => props.theme.shadow.cardHover};
+  border-radius: ${props => props.$isGlassMode ? '20px' : props.theme.borderRadius.large};
+  box-shadow: ${props => props.$isGlassMode 
+    ? '0 8px 32px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)' 
+    : props.theme.shadow.cardHover};
   z-index: 1000;
   transition: all ${props => props.theme.transition.normal} ease;
   min-width: 280px;
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: ${props => props.$isGlassMode 
+      ? '0 8px 32px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2)' 
+      : '0 8px 32px rgba(0, 0, 0, 0.2)'};
   }
 `;
 
@@ -212,13 +371,50 @@ const SaveStatusContainer = styled.div`
 
 
 // LLM配置项
-const LlmConfigItem = styled.div<{ $isActive: boolean }>`
-  background: ${props => props.$isActive ? props.theme.primary.light + '10' : props.theme.surface};
-  border: 2px solid ${props => props.$isActive ? props.theme.primary.main : props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.medium};
+const LlmConfigItem = styled.div<{ $isActive: boolean; $isGlassMode?: boolean }>`
+  background: ${props => {
+    if (props.$isGlassMode) {
+      return props.$isActive ? 'rgba(96, 165, 250, 0.15)' : 'rgba(30, 41, 59, 0.08)';
+    }
+    return props.$isActive ? props.theme.primary.light + '10' : props.theme.surface;
+  }};
+  border: ${props => {
+    if (props.$isGlassMode) {
+      return props.$isActive ? '1px solid rgba(96, 165, 250, 0.4)' : '1px solid rgba(148, 163, 184, 0.15)';
+    }
+    return `2px solid ${props.$isActive ? props.theme.primary.main : props.theme.border}`;
+  }};
+  border-radius: ${props => props.$isGlassMode ? '16px' : props.theme.borderRadius.medium};
   padding: ${props => props.theme.spacing.md};
   margin-bottom: ${props => props.theme.spacing.sm};
-  transition: background-color ${props => props.theme.transition.normal} ease, border-color ${props => props.theme.transition.normal} ease;
+  transition: all ${props => props.theme.transition.normal} ease;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(12px)' : 'none'};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: ${props => props.$isGlassMode ? '16px' : props.theme.borderRadius.medium};
+  }
+  
+  &:hover {
+    background: ${props => {
+      if (props.$isGlassMode) {
+        return props.$isActive ? 'rgba(96, 165, 250, 0.2)' : 'rgba(51, 65, 85, 0.12)';
+      }
+      return props.$isActive ? props.theme.primary.light + '15' : props.theme.surfaceVariant;
+    }};
+    box-shadow: ${props => props.$isGlassMode 
+      ? '0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1)' 
+      : '0 2px 8px rgba(0, 0, 0, 0.1)'};
+  }
 `;
 
 // LLM配置表单
@@ -253,12 +449,31 @@ const ConfigActions = styled.div`
 `;
 
 // 新增配置表单
-const NewConfigForm = styled.div`
-  background: ${props => props.theme.surface};
-  border: 2px dashed ${props => props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.medium};
+const NewConfigForm = styled.div<{ $isGlassMode?: boolean }>`
+  background: ${props => props.$isGlassMode ? 'rgba(30, 41, 59, 0.08)' : props.theme.surface};
+  border: ${props => props.$isGlassMode ? '1px dashed rgba(148, 163, 184, 0.3)' : `2px dashed ${props.theme.border}`};
+  border-radius: ${props => props.$isGlassMode ? '16px' : props.theme.borderRadius.medium};
   padding: ${props => props.theme.spacing.lg};
   margin-bottom: ${props => props.theme.spacing.lg};
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(12px)' : 'none'};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: ${props => props.$isGlassMode ? '16px' : props.theme.borderRadius.medium};
+  }
+  
+  &:hover {
+    background: ${props => props.$isGlassMode ? 'rgba(51, 65, 85, 0.12)' : props.theme.surfaceVariant};
+  }
 `;
 
 // 参数配置表单
@@ -277,16 +492,17 @@ interface ToastMessage {
 }
 
 const LLMConfigPage: React.FC = () => {
+  const { themeMode } = useTheme();
   const { 
     llmConfigs, 
     addConfig, 
     updateConfig, 
     deleteConfig, 
     setActiveConfig, 
-    isLoading, 
-    error,
     refreshConfigs 
   } = useConfig();
+  
+  const isGlassMode = themeMode.includes('Glass');
   
   const [editingConfig, setEditingConfig] = useState<string | null>(null);
   const [newConfig, setNewConfig] = useState({
@@ -425,17 +641,34 @@ const LLMConfigPage: React.FC = () => {
   }, [llmConfigs, newConfig]);
 
   return (
-    <PageContainer>
-      <SettingsContentContainer>
-        {/* 主内容区域 */}
-        <MainContent>
-          <TabContent
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+    <GlassPageContainer $isGlassMode={isGlassMode}>
+      {/* 顶部信息卡片 */}
+      <ConfigWelcomeCard
+        $isGlassMode={isGlassMode}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <WelcomeContent>
+          <WelcomeTitle $isGlassMode={isGlassMode}>
+            语言模型配置
+            <MessageIcon size={32} />
+          </WelcomeTitle>
+          <WelcomeSubtitle $isGlassMode={isGlassMode}>
+            管理您的AI模型配置，添加、编辑和删除不同的LLM提供商设置，让Catalyst更好地为您服务。
+          </WelcomeSubtitle>
+        </WelcomeContent>
+      </ConfigWelcomeCard>
+
+      {/* 配置内容区域 */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
             <SettingsSection 
               $variant="accent"
+              $isGlassMode={isGlassMode}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
@@ -443,15 +676,15 @@ const LLMConfigPage: React.FC = () => {
               <SectionHeader $variant="accent">
                 <MessageIcon size={20} />
                 <div>
-                  <SectionTitle>语言模型配置</SectionTitle>
-                  <SectionDescription>
+                  <SectionTitle $isGlassMode={isGlassMode}>语言模型配置</SectionTitle>
+                  <SectionDescription $isGlassMode={isGlassMode}>
                     管理多个语言模型配置，可添加、编辑和删除不同的配置
                   </SectionDescription>
                 </div>
               </SectionHeader>
 
               {/* 新增配置表单 */}
-              <NewConfigForm>
+              <NewConfigForm $isGlassMode={isGlassMode}>
                 <ConfigHeader>
                   <ConfigName>
                     <PlusIcon size={16} />
@@ -583,7 +816,7 @@ const LLMConfigPage: React.FC = () => {
 
               {/* 现有配置列表 */}
               {llmConfigs.map((config) => (
-                <LlmConfigItem key={config.id} $isActive={config.isActive}>
+                <LlmConfigItem key={config.id} $isActive={config.isActive} $isGlassMode={isGlassMode}>
                   <ConfigHeader>
                     <ConfigName>
                       {config.isActive && <RadioIcon size={16} fill="currentColor" />}
@@ -760,6 +993,7 @@ const LLMConfigPage: React.FC = () => {
             {/* 提供商信息 */}
             <SettingsSection 
               $variant="primary"
+              $isGlassMode={isGlassMode}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
@@ -767,8 +1001,8 @@ const LLMConfigPage: React.FC = () => {
               <SectionHeader $variant="primary">
                 <SettingsIcon size={20} />
                 <div>
-                  <SectionTitle>提供商信息</SectionTitle>
-                  <SectionDescription>
+                  <SectionTitle $isGlassMode={isGlassMode}>提供商信息</SectionTitle>
+                  <SectionDescription $isGlassMode={isGlassMode}>
                     常见 LLM 提供商的配置信息
                   </SectionDescription>
                 </div>
@@ -783,12 +1017,10 @@ const LLMConfigPage: React.FC = () => {
                 </ul>
               </Card>
             </SettingsSection>
-          </TabContent>
-        </MainContent>
-      </SettingsContentContainer>
+        </motion.div>
       
       {/* 统一保存栏 */}
-      <SaveBar>
+      <SaveBar $isGlassMode={isGlassMode}>
         <SaveStatusContainer>
           <StatusIndicator 
             status={
@@ -823,7 +1055,7 @@ const LLMConfigPage: React.FC = () => {
           />
         ))}
       </ToastContainer>
-    </PageContainer>
+    </GlassPageContainer>
   );
 };
 

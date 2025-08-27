@@ -21,7 +21,9 @@
       "Bash(npm audit:*)",
       "Bash(pnpm audit)",
       "Bash(pnpm install:*)",
-      "Bash(pnpm run build:*)"
+      "Bash(pnpm run build:*)",
+      "Bash(copy:*)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []
