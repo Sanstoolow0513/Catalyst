@@ -1,4 +1,5 @@
 onlyBuiltDependencies:
   - electron
+  - electron-winstaller
   - esbuild
   - unrs-resolver

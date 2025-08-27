@@ -72,6 +72,28 @@ app.whenReady().then(() => {
   registerLlmIpcHandlers()
   registerDevEnvironmentIpcHandlers()
   registerConfigIpcHandlers()
+  
+  // 注册测试页面IPC处理器
+  ipcMain.handle(IPC_EVENTS.TEST_RUN_INSTALLER, async (event, installerPath) => {
+    try {
+      const { exec } = require('child_process');
+      const path = require('path');
+      
+      const fullPath = path.join(process.cwd(), installerPath);
+      
+      return new Promise((resolve, reject) => {
+        exec(`"${fullPath}"`, (error: any, stdout: string, stderr: string) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve({ success: true, message: '安装程序已启动' });
+          }
+        });
+      });
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  })
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

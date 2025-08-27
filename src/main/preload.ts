@@ -68,6 +68,10 @@ try {
       installPython: () => ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_PYTHON),
     },
     
+    test: {
+      runInstaller: (installerPath: string) => ipcRenderer.invoke(IPC_EVENTS.TEST_RUN_INSTALLER, installerPath),
+    },
+    
     windowControl: {
       minimize: () => ipcRenderer.send(IPC_EVENTS.WINDOW_MINIMIZE),
       maximize: () => ipcRenderer.send(IPC_EVENTS.WINDOW_MAXIMIZE),

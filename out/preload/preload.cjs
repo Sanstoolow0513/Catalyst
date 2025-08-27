@@ -57,6 +57,8 @@ const IPC_EVENTS = {
   CONFIG_GET_BACKUP_FILES: "config:get-backup-files",
   CONFIG_VALIDATE_CONFIG: "config:validate-config",
   CONFIG_MIGRATE_CONFIG: "config:migrate-config",
+  // 测试页面相关事件
+  TEST_RUN_INSTALLER: "test:run-installer",
   // 窗口控制事件
   WINDOW_MINIMIZE: "window:minimize",
   WINDOW_MAXIMIZE: "window:maximize",
@@ -122,6 +124,9 @@ try {
       installVSCode: () => electron.ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_VSCODE),
       installNodeJS: () => electron.ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_NODEJS),
       installPython: () => electron.ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_PYTHON)
+    },
+    test: {
+      runInstaller: (installerPath) => electron.ipcRenderer.invoke(IPC_EVENTS.TEST_RUN_INSTALLER, installerPath)
     },
     windowControl: {
       minimize: () => electron.ipcRenderer.send(IPC_EVENTS.WINDOW_MINIMIZE),

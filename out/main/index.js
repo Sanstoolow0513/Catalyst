@@ -82,6 +82,8 @@ const IPC_EVENTS = {
   CONFIG_GET_BACKUP_FILES: "config:get-backup-files",
   CONFIG_VALIDATE_CONFIG: "config:validate-config",
   CONFIG_MIGRATE_CONFIG: "config:migrate-config",
+  // 测试页面相关事件
+  TEST_RUN_INSTALLER: "test:run-installer",
   // 窗口控制事件
   WINDOW_MINIMIZE: "window:minimize",
   WINDOW_MAXIMIZE: "window:maximize",
@@ -23171,6 +23173,24 @@ app$1.whenReady().then(() => {
   registerLlmIpcHandlers();
   registerDevEnvironmentIpcHandlers();
   registerConfigIpcHandlers();
+  ipcMain$1.handle(IPC_EVENTS.TEST_RUN_INSTALLER, async (event, installerPath) => {
+    try {
+      const { exec: exec2 } = require2("child_process");
+      const path2 = require2("path");
+      const fullPath = path2.join(process.cwd(), installerPath);
+      return new Promise((resolve2, reject) => {
+        exec2(`"${fullPath}"`, (error, stdout, stderr) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve2({ success: true, message: "安装程序已启动" });
+          }
+        });
+      });
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  });
   app$1.on("activate", function() {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

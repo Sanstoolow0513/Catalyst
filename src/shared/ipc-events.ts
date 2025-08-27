@@ -60,6 +60,9 @@ export const IPC_EVENTS = {
   CONFIG_VALIDATE_CONFIG: 'config:validate-config',
   CONFIG_MIGRATE_CONFIG: 'config:migrate-config',
   
+  // 测试页面相关事件
+  TEST_RUN_INSTALLER: 'test:run-installer',
+  
   // 窗口控制事件
   WINDOW_MINIMIZE: 'window:minimize',
   WINDOW_MAXIMIZE: 'window:maximize',

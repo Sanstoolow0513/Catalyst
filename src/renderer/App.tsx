@@ -11,6 +11,7 @@ const ProxyPage = lazy(() => import('./pages/ProxyPage'));
 const ModernChatPage = lazy(() => import('./pages/ModernChatPage'));
 const DevEnvironmentPage = lazy(() => import('./pages/DevEnvironmentPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const TestPage = lazy(() => import('./pages/TestPage'));
 const LLMConfigPage = lazy(() => import('./pages/LLMConfigPage'));
 const InfoPage = lazy(() => import('./pages/InfoPage'));
 
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/proxy-management" element={<ProxyPage />} />
                 <Route path="/chat" element={<ModernChatPage />} />
                 <Route path="/modern-chat" element={<ModernChatPage />} />
+                <Route path="/test" element={<TestPage />} />
                 <Route path="/llm-config" element={<LLMConfigPage />} />
                 <Route path="/dev-environment" element={<DevEnvironmentPage />} />
                 <Route path="/settings" element={<SettingsPage />} />

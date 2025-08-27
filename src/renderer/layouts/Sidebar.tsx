@@ -10,6 +10,7 @@ import {
   Settings as SettingsIcon,
   Code as CodeIcon,
   Info as InfoIcon,
+  TestTube as TestIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon
 } from 'lucide-react';
@@ -260,6 +261,7 @@ const navigationItems = [
       { path: '/', label: '首页', icon: HomeIcon },
       { path: '/proxy-management', label: '代理管理', icon: ShieldIcon },
       { path: '/chat', label: 'AI 对话', icon: BotIcon },
+      { path: '/test', label: '测试页面', icon: TestIcon },
       { path: '/llm-config', label: 'LLM 配置', icon: SettingsIcon },
       { path: '/dev-environment', label: '开发环境', icon: CodeIcon },
       { path: '/settings', label: '设置', icon: SettingsIcon },
