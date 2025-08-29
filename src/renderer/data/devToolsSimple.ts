@@ -18,7 +18,7 @@ export const devToolsSimple = [
     category: '开发环境', 
     icon: SiNodedotjs,
     website: 'https://nodejs.org',
-    downloadUrl: 'https://nodejs.org/download/'
+    downloadUrl: 'https://nodejs.org/dist/v20.18.0/node-v20.18.0-x64.msi'
   },
   { 
     id: 'anaconda', 
@@ -27,7 +27,7 @@ export const devToolsSimple = [
     category: '开发环境', 
     icon: SiPython,
     website: 'https://www.anaconda.com',
-    downloadUrl: 'https://www.anaconda.com/download'
+    downloadUrl: 'https://repo.anaconda.com/archive/Anaconda3-2024.06-1-Windows-x86_64.exe'
   },
   { 
     id: 'powershell', 
@@ -47,7 +47,7 @@ export const devToolsSimple = [
     category: 'IDE工具', 
     icon: VscCode,
     website: 'https://code.visualstudio.com',
-    downloadUrl: 'https://code.visualstudio.com/download'
+    downloadUrl: 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user'
   },
   { 
     id: 'vscode-insider', 
@@ -56,7 +56,7 @@ export const devToolsSimple = [
     category: 'IDE工具', 
     icon: VscCode,
     website: 'https://code.visualstudio.com/insiders',
-    downloadUrl: 'https://code.visualstudio.com/insiders'
+    downloadUrl: 'https://code.visualstudio.com/sha/download?build=insider&os=win32-x64-user'
   },
   { 
     id: 'intellij', 
@@ -65,7 +65,7 @@ export const devToolsSimple = [
     category: 'IDE工具', 
     icon: SiIntellijidea,
     website: 'https://www.jetbrains.com/idea/',
-    downloadUrl: 'https://www.jetbrains.com/idea/download/'
+    downloadUrl: 'https://download.jetbrains.com/idea/ideaIC-2024.1.4.exe'
   },
   
   // 命令行工具

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
+import { getAnimationConfig, hoverAnimation, tapAnimation } from '../../utils/animations';
 
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
@@ -200,11 +201,9 @@ const Button = React.memo<ButtonProps>(({
   className,
   ...props 
 }) => {
-  // 使用更优雅的方式判断是否为具体服务页面
-  const isServicePage = React.useMemo(() => {
-    return ['/proxy-management', '/chat', '/dev-environment'].some(path => 
-      window.location.pathname.includes(path)
-    );
+  // 使用统一的动画配置
+  const animationConfig = React.useMemo(() => {
+    return getAnimationConfig(window.location.pathname);
   }, []);
   
   return (
@@ -217,9 +216,9 @@ const Button = React.memo<ButtonProps>(({
       type={type}
       onClick={onClick}
       className={className}
-      whileHover={isServicePage ? undefined : { scale: $loading || disabled ? 1 : 1.01, zIndex: $loading || disabled ? 0 : 1 }}
-      whileTap={isServicePage ? undefined : { scale: $loading || disabled ? 1 : 0.99, zIndex: $loading || disabled ? 0 : 1 }}
-      transition={isServicePage ? { duration: 0.15 } : { duration: 0.2 }}
+      whileHover={animationConfig.disabled || $loading || disabled ? undefined : hoverAnimation}
+      whileTap={animationConfig.disabled || $loading || disabled ? undefined : tapAnimation}
+      transition={{ duration: animationConfig.hoverDuration }}
       {...props}
     >
       {$loading ? null : startIcon}

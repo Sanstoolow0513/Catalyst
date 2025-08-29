@@ -8,137 +8,28 @@ import {
   Shield,
   MessageSquare,
   Code,
-  Moon,
-  Sun,
   Wifi,
   User,
   Sparkles
 } from 'lucide-react';
-import { PageContainer } from '../components/common/PageContainer';
+import { 
+  PageContainer, 
+  GridContainer, 
+  MainContent, 
+  Sidebar,
+  CardGrid
+} from '../components/common/PageContainer';
 
-const GlassPageContainer = styled.div<{ $isGlassMode?: boolean }>`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  height: 100%;
-  width: 100%;
-  background-color: ${props => props.$isGlassMode 
-    ? 'transparent' 
-    : (props.theme?.background || '#F9FAFB')};
-  color: ${props => props.theme?.textPrimary || '#111827'};
-  padding: ${props => props.theme?.spacing?.xl || '32px'};
-  position: relative;
-  
-  ${props => props.$isGlassMode && `
-    &::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: 
-        radial-gradient(circle at 20% 50%, rgba(96, 165, 250, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.06) 0%, transparent 50%),
-        radial-gradient(circle at 40% 20%, rgba(244, 114, 182, 0.04) 0%, transparent 50%),
-        linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(147, 51, 234, 0.02) 100%);
-      z-index: -2;
-      pointer-events: none;
-    }
-    
-    &::after {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: 
-        radial-gradient(circle at 60% 40%, rgba(34, 197, 94, 0.03) 0%, transparent 40%),
-        radial-gradient(circle at 20% 80%, rgba(251, 146, 60, 0.03) 0%, transparent 40%);
-      z-index: -1;
-      pointer-events: none;
-      animation: ambient 20s ease-in-out infinite;
-    }
-  `}
-  
-  @keyframes ambient {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.7; }
-  }
-  
+const HiddenScrollPageContainer = styled(PageContainer)`
   &::-webkit-scrollbar {
-    width: 8px;
+    display: none;
   }
-  
-  &::-webkit-scrollbar-track {
-    background: ${props => props.$isGlassMode ? 'rgba(51, 65, 85, 0.2)' : 'transparent'};
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: ${props => props.$isGlassMode ? 'rgba(148, 163, 184, 0.3)' : (props.theme?.border || '#E5E7EB')};
-    border-radius: 4px;
-    
-    &:hover {
-      background: ${props => props.$isGlassMode ? 'rgba(203, 213, 225, 0.5)' : (props.theme?.textTertiary || '#9CA3AF')};
-    }
-  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 `;
-
-// const HomePageContainer = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   height: 100%;
-//   background-color: ${props => props.theme.background};
-//   color: ${props => props.theme.textPrimary};
-// `;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xxl};
-  padding: 0 ${({ theme }) => theme.spacing.xl};
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${props => props.theme.textPrimary};
-  margin: 0;
-`;
-
-const ThemeToggle = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  background: ${props => props.theme.surfaceVariant};
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: ${props => props.theme.textPrimary};
-  transition: all ${props => props.theme.transition.fast} ease;
-  
-  &:hover {
-    background: ${props => props.theme.border};
-  }
-`;
-
-
-
-
-
-
-
-
-
-
-
-
-
+import SystemStatusCard from '../components/dashboard/SystemStatusCard';
+import QuickTools from '../components/dashboard/QuickTools';
+import Card from '../components/common/Card';
 
 const WelcomeCard = styled(motion.div)<{ $isDarkMode?: boolean; $isGlassMode?: boolean }>`
   background: ${props => {
@@ -150,8 +41,8 @@ const WelcomeCard = styled(motion.div)<{ $isDarkMode?: boolean; $isGlassMode?: b
       : 'linear-gradient(135deg, #f8fafc, #e2e8f0)';
   }};
   border-radius: 20px;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 1.8rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   border: ${props => {
     if (props.$isGlassMode) {
       return '1px solid rgba(148, 163, 184, 0.15)';
@@ -160,7 +51,7 @@ const WelcomeCard = styled(motion.div)<{ $isDarkMode?: boolean; $isGlassMode?: b
   }};
   position: relative;
   overflow: hidden;
-  min-height: 160px;
+  min-height: 140px;
   display: flex;
   align-items: center;
   backdrop-filter: ${props => props.$isGlassMode ? 'blur(20px)' : 'none'};
@@ -203,7 +94,6 @@ const WelcomeCard = styled(motion.div)<{ $isDarkMode?: boolean; $isGlassMode?: b
     border-radius: 20px;
   }
   
-    
   @keyframes float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     50% { transform: translateY(-20px) rotate(180deg); }
@@ -214,29 +104,44 @@ const WelcomeCard = styled(motion.div)<{ $isDarkMode?: boolean; $isGlassMode?: b
     to { transform: rotate(360deg); }
   }
   
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .welcome-card {
+      padding: 1.2rem;
+      min-height: 120px;
+    }
     
-  @keyframes glow {
-    0% { opacity: 0.3; }
-    100% { opacity: 0.7; }
+    .welcome-title {
+      font-size: 1.4rem;
+    }
+    
+    .welcome-subtitle {
+      font-size: 0.9rem;
+    }
   }
 `;
 
 const WelcomeContent = styled.div`
   position: relative;
   z-index: 1;
+  flex: 1;
 `;
 
-const WelcomeTitle = styled.h1<{ $isGlassMode?: boolean }>`
-  font-size: 2.2rem;
+const WelcomeTitle = styled.h2<{ $isGlassMode?: boolean }>`
+  font-size: 1.8rem;
   font-weight: 800;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.8rem 0;
   color: ${props => props.theme.textPrimary};
   display: flex;
   align-items: center;
   gap: 1rem;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
   text-shadow: ${props => props.$isGlassMode 
     ? '0 2px 12px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 20px rgba(96, 165, 250, 0.1)' 
     : 'none'};
@@ -245,13 +150,10 @@ const WelcomeTitle = styled.h1<{ $isGlassMode?: boolean }>`
 `;
 
 const WelcomeSubtitle = styled.p<{ $isGlassMode?: boolean }>`
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: ${props => props.theme.textSecondary};
-  margin: 0 0 1.5rem 0;
+  margin: 0;
   line-height: 1.6;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
   text-shadow: ${props => props.$isGlassMode 
     ? '0 1px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 15px rgba(167, 139, 250, 0.08)' 
     : 'none'};
@@ -259,12 +161,6 @@ const WelcomeSubtitle = styled.p<{ $isGlassMode?: boolean }>`
   z-index: 2;
 `;
 
-const QuickActionsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-`;
 
 const QuickActionItem = styled(motion.div)<{ $isGlassMode?: boolean }>`
   background: ${props => props.$isGlassMode 
@@ -273,27 +169,15 @@ const QuickActionItem = styled(motion.div)<{ $isGlassMode?: boolean }>`
   border: ${props => props.$isGlassMode 
     ? '1px solid rgba(148, 163, 184, 0.15)' 
     : `1px solid ${props.theme.border}`};
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: ${props => props.$isGlassMode ? 'blur(16px)' : 'none'};
-  position: relative;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
-    pointer-events: none;
-    border-radius: 16px;
-  }
-  
-    
   &:hover {
     transform: translateY(-2px);
     box-shadow: ${props => props.$isGlassMode 
@@ -302,141 +186,41 @@ const QuickActionItem = styled(motion.div)<{ $isGlassMode?: boolean }>`
     background: ${props => props.$isGlassMode 
       ? 'rgba(51, 65, 85, 0.12)' 
       : props.theme.surfaceVariant};
-    
-      }
-  
-  `;
+  }
+`;
 
-const QuickActionItemIcon = styled.div<{ $color: string }>`
+const IconContainer = styled.div<{ $color: string }>`
   width: 48px;
   height: 48px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
   background: ${props => props.$color}20;
   color: ${props => props.$color};
 `;
 
-const QuickActionItemTitle = styled.h3`
+const QuickActionContent = styled.div`
+  flex: 1;
+`;
+
+const QuickActionTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.3rem 0;
 `;
 
-const QuickActionItemDescription = styled.p`
+const QuickActionDescription = styled.p`
   color: ${props => props.theme.textSecondary};
   font-size: 0.9rem;
   margin: 0;
   line-height: 1.4;
 `;
 
-const ActivitySection = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const ActivityHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-`;
-
-const ActivityTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0;
-`;
-
-const ActivityList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`;
-
-const ActivityItem = styled.div<{ $isGlassMode?: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: ${props => props.$isGlassMode 
-    ? 'rgba(30, 41, 59, 0.08)' 
-    : props.theme.surface};
-  border: ${props => props.$isGlassMode 
-    ? '1px solid rgba(148, 163, 184, 0.12)' 
-    : `1px solid ${props.theme.border}`};
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  backdrop-filter: ${props => props.$isGlassMode ? 'blur(12px)' : 'none'};
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
-    pointer-events: none;
-    border-radius: 12px;
-  }
-  
-    
-  &:hover {
-    background: ${props => props.$isGlassMode 
-      ? 'rgba(51, 65, 85, 0.12)' 
-      : props.theme.surfaceVariant};
-    box-shadow: ${props => props.$isGlassMode 
-      ? '0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1)' 
-      : '0 2px 8px rgba(0, 0, 0, 0.1)'};
-    
-      }
-  
-  `;
-
-const ActivityIcon = styled.div<{ $color: string }>`
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${props => props.$color}20;
-  color: ${props => props.$color};
-`;
-
-const ActivityContent = styled.div`
-  flex: 1;
-`;
-
-const ActivityText = styled.p`
-  font-size: 0.9rem;
-  color: ${props => props.theme.textPrimary};
-  margin: 0 0 0.25rem 0;
-`;
-
-const ActivityTime = styled.p`
-  font-size: 0.8rem;
-  color: ${props => props.theme.textTertiary};
-  margin: 0;
-`;
-
-
-const Footer = styled.div`
-  margin-top: auto;
-  text-align: center;
-  padding: ${({ theme }) => theme.spacing.lg} 0;
-  color: ${props => props.theme.textTertiary};
-  font-size: 0.9rem;
-`;
 
 const HomePage: React.FC = () => {
-  const { isDarkMode, toggleTheme, themeMode } = useTheme();
+  const { isDarkMode, themeMode } = useTheme();
   const { nickname } = useUser();
   const navigate = useNavigate();
   const isGlassMode = themeMode.includes('Glass');
@@ -605,87 +389,118 @@ const HomePage: React.FC = () => {
   ];
 
   return (
-    <GlassPageContainer $isGlassMode={isGlassMode}>
-      <WelcomeCard
-        $isDarkMode={isDarkMode}
-        $isGlassMode={isGlassMode}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <WelcomeContent>
-          <WelcomeTitle $isGlassMode={isGlassMode}>
-            {currentTime}
-            <User size={32} />
-          </WelcomeTitle>
-          <WelcomeSubtitle $isGlassMode={isGlassMode}>
-            今天准备好探索新的可能性了吗？让我们一起用 Catalyst 提升您的工作效率。
-          </WelcomeSubtitle>
-        </WelcomeContent>
-      </WelcomeCard>
-
-  
-      <QuickActionsGrid>
-        {quickActions.map((action, index) => (
-          <motion.div
-            key={action.title}
+    <HiddenScrollPageContainer>
+      <GridContainer>
+        <MainContent>
+          {/* 欢迎卡片 */}
+          <WelcomeCard
+            $isDarkMode={isDarkMode}
+            $isGlassMode={isGlassMode}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 * index + 0.3, duration: 0.5 }}
-            onClick={action.action}
+            transition={{ duration: 0.6 }}
           >
-            <QuickActionItem
-              $isGlassMode={isGlassMode}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              style={{ opacity: loading && action.title.includes('代理') ? 0.7 : 1 }}
-            >
-              <QuickActionItemIcon $color={action.color}>
-                {loading && action.title.includes('代理') ? (
-                  <div style={{ animation: 'spin 1s linear infinite' }}>
-                    <Wifi size={24} />
-                  </div>
-                ) : (
-                  <action.icon size={24} />
-                )}
-              </QuickActionItemIcon>
-              <QuickActionItemTitle>{action.title}</QuickActionItemTitle>
-              <QuickActionItemDescription>{action.description}</QuickActionItemDescription>
-            </QuickActionItem>
-          </motion.div>
-        ))}
-      </QuickActionsGrid>
+            <WelcomeContent>
+              <WelcomeTitle $isGlassMode={isGlassMode}>
+                <User size={32} />
+                {currentTime}
+              </WelcomeTitle>
+              <WelcomeSubtitle $isGlassMode={isGlassMode}>
+                今天准备好探索新的可能性了吗？让我们一起用 Catalyst 提升您的工作效率。
+              </WelcomeSubtitle>
+            </WelcomeContent>
+          </WelcomeCard>
 
-      <ActivitySection>
-        <ActivityHeader>
-          <ActivityTitle>最近活动</ActivityTitle>
-        </ActivityHeader>
-        <ActivityList>
-          {activities.map((activity, index) => (
-            <motion.div
-              key={activity.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * index + 0.5, duration: 0.4 }}
-            >
-              <ActivityItem $isGlassMode={isGlassMode}>
-                <ActivityIcon $color={activity.color}>
-                  <activity.icon size={20} />
-                </ActivityIcon>
-                <ActivityContent>
-                  <ActivityText>{activity.text}</ActivityText>
-                  <ActivityTime>{activity.time}</ActivityTime>
-                </ActivityContent>
-              </ActivityItem>
-            </motion.div>
-          ))}
-        </ActivityList>
-      </ActivitySection>
+          {/* 快速操作 */}
+          <CardGrid>
+            {quickActions.map((action, index) => (
+              <motion.div
+                key={action.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index + 0.3, duration: 0.5 }}
+                onClick={action.action}
+              >
+                <QuickActionItem
+                  $isGlassMode={isGlassMode}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{ opacity: loading && action.title.includes('代理') ? 0.7 : 1 }}
+                >
+                  <IconContainer $color={action.color}>
+                    {loading && action.title.includes('代理') ? (
+                      <div style={{ animation: 'spin 1s linear infinite' }}>
+                        <Wifi size={24} />
+                      </div>
+                    ) : (
+                      <action.icon size={24} />
+                    )}
+                  </IconContainer>
+                  <QuickActionContent>
+                    <QuickActionTitle>{action.title}</QuickActionTitle>
+                    <QuickActionDescription>{action.description}</QuickActionDescription>
+                  </QuickActionContent>
+                </QuickActionItem>
+              </motion.div>
+            ))}
+          </CardGrid>
 
-      <Footer>
-        © {new Date().getFullYear()} Catalyst - 为您的工作效率而生
-      </Footer>
-    </GlassPageContainer>
+
+          {/* 快捷工具 */}
+          <QuickTools />
+        </MainContent>
+
+        <Sidebar>
+          {/* 系统状态 */}
+          <SystemStatusCard />
+
+          {/* 使用统计 */}
+          <Card $variant="elevated">
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                系统概览
+              </h3>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                核心功能状态和统计
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+              <div style={{ 
+                padding: '12px', 
+                background: 'rgba(139, 92, 246, 0.1)', 
+                borderRadius: '8px',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#8B5CF6', marginBottom: '4px' }}>
+                  {proxyStatus?.isRunning ? '运行中' : '已停止'}
+                </div>
+                <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                  代理状态
+                </div>
+              </div>
+
+              <div style={{ 
+                padding: '12px', 
+                background: 'rgba(16, 185, 129, 0.1)', 
+                borderRadius: '8px',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#10B981', marginBottom: '4px' }}>
+                  {activities.length}
+                </div>
+                <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                  活动记录
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          </Sidebar>
+      </GridContainer>
+    </HiddenScrollPageContainer>
   );
 };
 

@@ -6,7 +6,6 @@ import { proxyService } from '../services/ProxyService';
 import ErrorBoundary from './common/ErrorBoundary';
 import ProxyOverview from './proxy/ProxyOverview';
 import ProxyStatus from './proxy/ProxyStatus';
-import WorkflowSteps from './proxy/WorkflowSteps';
 import ConfigManager from './proxy/ConfigManager';
 import AdvancedSettings from './proxy/AdvancedSettings';
 import EnhancedProxyGroupManager from './proxy/EnhancedProxyGroupManager';
@@ -15,7 +14,6 @@ import * as yaml from 'js-yaml';
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.lg};
   padding: ${({ theme }) => theme.spacing.md};
   max-width: 1400px;
   margin: 0 auto;
@@ -228,15 +226,7 @@ const RestructuredProxyManager: React.FC = () => {
           isLoading={state.isLoading}
         />
 
-        {/* 工作流步骤 */}
-        <SectionContainer
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <WorkflowSteps currentStep={state.currentStep} />
-        </SectionContainer>
-        
+          
         {/* 代理状态控制 */}
         <SectionContainer
           initial={{ opacity: 0, y: 20 }}
@@ -251,6 +241,7 @@ const RestructuredProxyManager: React.FC = () => {
             onTestLatency={testAllDelays}
             hasConfig={state.hasConfig}
             isValidConfig={state.isValidConfig}
+            lastError={state.lastError}
           />
         </SectionContainer>
         

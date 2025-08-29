@@ -19,6 +19,23 @@ export const IPC_EVENTS = {
   DEV_ENV_INSTALL_NODEJS: 'dev-env:install-nodejs',
   DEV_ENV_INSTALL_PYTHON: 'dev-env:install-python',
   
+  // 下载管理相关事件
+  DOWNLOAD_START_TOOL: 'download:start-tool',
+  DOWNLOAD_PAUSE: 'download:pause',
+  DOWNLOAD_RESUME: 'download:resume',
+  DOWNLOAD_CANCEL: 'download:cancel',
+  DOWNLOAD_REMOVE: 'download:remove',
+  DOWNLOAD_GET_LIST: 'download:get-list',
+  DOWNLOAD_GET_STATS: 'download:get-stats',
+  
+  // 工具管理相关事件
+  TOOL_CHECK_INSTALLATION: 'tool:check-installation',
+  TOOL_GET_VERSION: 'tool:get-version',
+  TOOL_INSTALL: 'tool:install',
+  TOOL_UNINSTALL: 'tool:uninstall',
+  TOOL_GET_LIST: 'tool:get-list',
+  TOOL_GET_CATEGORIES: 'tool:get-categories',
+  
   // LLM 相关事件
   LLM_GENERATE_COMPLETION: 'llm:generate-completion',
   LLM_SET_API_KEY: 'llm:set-api-key',

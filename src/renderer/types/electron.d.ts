@@ -57,6 +57,22 @@ export interface ILLMMessage {
   content: string;
 }
 
+// 聊天历史记录接口
+export interface IChatHistory {
+  id: string;
+  title: string;
+  messages: ILLMMessage[];
+  createdAt: string;
+  updatedAt: string;
+  lastMessage?: string;
+  messageCount: number;
+  config?: {
+    provider: string;
+    model: string;
+    systemPrompt: string;
+  };
+}
+
 export interface ILLMParams {
   temperature?: number;
   top_p?: number;

@@ -199,7 +199,7 @@ app.whenReady().then(() => {
         exec(`powershell -Command "${powershellCommand.replace(/"/g, '\\"')}"`, { 
           windowsHide: true,
           shell: true
-        }, (error: any, stdout: string, stderr: string) => {
+        }, (error: any, stdout: string, _stderr: string) => {
           if (error) {
             console.error('[TEST_INSTALL_WINGET] Installation error:', error);
             reject(error);

@@ -495,11 +495,11 @@ export const darkGlassTheme: Theme = {
     xxl: '48px', // 48px
   },
 
-  // 过渡动画 - 简化为无动画
+  // 过渡动画 - 暗色主题使用更快的动画
   transition: {
-    fast: '0ms',   // 无动画
-    normal: '0ms', // 无动画
-    slow: '0ms',   // 无动画
+    fast: '100ms',   // 快速动画
+    normal: '200ms', // 标准动画
+    slow: '300ms',   // 慢速动画
   },
 
   // 圆角系统
@@ -694,19 +694,19 @@ export const muiDarkGlassTheme = createTheme({
   spacing: 8,
   transitions: {
     duration: {
-      shortest: 0,
-      shorter: 0,
-      short: 0,
-      standard: 0,
-      complex: 0,
-      enteringScreen: 0,
-      leavingScreen: 0,
+      shortest: 100,
+      shorter: 150,
+      short: 200,
+      standard: 250,
+      complex: 300,
+      enteringScreen: 200,
+      leavingScreen: 150,
     },
     easing: {
-      easeInOut: 'linear',
-      easeOut: 'linear',
-      easeIn: 'linear',
-      sharp: 'linear',
+      easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
+      easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+      sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
     },
   },
 });

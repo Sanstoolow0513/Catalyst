@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
 import TitleBar from '../components/common/TitleBar';
+import { getAnimationConfig, pageTransitionVariants } from '../utils/animations';
 
 const LayoutContainer = styled(motion.div)`
   display: flex;
@@ -31,24 +32,30 @@ const Content = styled(motion.main)`
 `;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
-  // 在具体服务页面减少动画效果
-  const isServicePage = window.location.pathname.includes('/proxy-management') || 
-                        window.location.pathname.includes('/chat') || 
-                        window.location.pathname.includes('/dev-environment');
+  // 使用统一的动画配置
+  const animationConfig = React.useMemo(() => {
+    return getAnimationConfig(window.location.pathname);
+  }, []);
   
   return (
     <LayoutContainer
-      initial={isServicePage ? false : { opacity: 0 }}
-      animate={isServicePage ? false : { opacity: 1 }}
-      transition={isServicePage ? false : { duration: 0.3 }}
+      initial={animationConfig.disabled ? false : 'hidden'}
+      animate={animationConfig.disabled ? false : 'visible'}
+      variants={pageTransitionVariants}
+      transition={{
+        duration: animationConfig.disabled ? 0 : animationConfig.duration
+      }}
     >
       <TitleBar />
       <MainContent>
         <Sidebar />
         <Content
-          initial={isServicePage ? false : { opacity: 0, y: 20 }}
-          animate={isServicePage ? false : { opacity: 1, y: 0 }}
-          transition={isServicePage ? false : { delay: 0.2, duration: 0.4 }}
+          initial={animationConfig.disabled ? false : { opacity: 0, y: 20 }}
+          animate={animationConfig.disabled ? false : { opacity: 1, y: 0 }}
+          transition={{
+            duration: animationConfig.disabled ? 0 : animationConfig.duration,
+            delay: animationConfig.disabled ? 0 : 0.2
+          }}
         >
           {children}
         </Content>

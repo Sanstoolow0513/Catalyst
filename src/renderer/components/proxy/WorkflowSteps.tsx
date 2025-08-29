@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { CheckCircle, Settings, Download, Shield, Play } from 'lucide-react';
 
 const StepContainer = styled.div`
-  margin-bottom: 2rem;
   padding: 1.5rem;
   background: ${props => props.theme.surface};
   border-radius: ${props => props.theme.borderRadius.large};

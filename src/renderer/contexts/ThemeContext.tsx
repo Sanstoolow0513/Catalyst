@@ -35,7 +35,7 @@ type ThemeProviderProps = {
 export const CustomThemeProvider = ({ children }: ThemeProviderProps) => {
   const [theme, setTheme] = useState(lightGlassTheme);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [themeMode, setThemeModeState] = useState<ThemeMode>('lightGlass');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);

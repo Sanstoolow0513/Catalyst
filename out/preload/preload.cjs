@@ -18,6 +18,21 @@ const IPC_EVENTS = {
   DEV_ENV_INSTALL_VSCODE: "dev-env:install-vscode",
   DEV_ENV_INSTALL_NODEJS: "dev-env:install-nodejs",
   DEV_ENV_INSTALL_PYTHON: "dev-env:install-python",
+  // 下载管理相关事件
+  DOWNLOAD_START_TOOL: "download:start-tool",
+  DOWNLOAD_PAUSE: "download:pause",
+  DOWNLOAD_RESUME: "download:resume",
+  DOWNLOAD_CANCEL: "download:cancel",
+  DOWNLOAD_REMOVE: "download:remove",
+  DOWNLOAD_GET_LIST: "download:get-list",
+  DOWNLOAD_GET_STATS: "download:get-stats",
+  // 工具管理相关事件
+  TOOL_CHECK_INSTALLATION: "tool:check-installation",
+  TOOL_GET_VERSION: "tool:get-version",
+  TOOL_INSTALL: "tool:install",
+  TOOL_UNINSTALL: "tool:uninstall",
+  TOOL_GET_LIST: "tool:get-list",
+  TOOL_GET_CATEGORIES: "tool:get-categories",
   // LLM 相关事件
   LLM_GENERATE_COMPLETION: "llm:generate-completion",
   LLM_SET_API_KEY: "llm:set-api-key",
@@ -124,7 +139,61 @@ try {
     devEnvironment: {
       installVSCode: () => electron.ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_VSCODE),
       installNodeJS: () => electron.ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_NODEJS),
-      installPython: () => electron.ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_PYTHON)
+      installPython: () => electron.ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_PYTHON),
+      // 下载管理相关方法
+      download: {
+        startTool: (toolId, toolName, downloadUrl, category) => electron.ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_START_TOOL, toolId, toolName, downloadUrl, category),
+        pause: (downloadId) => electron.ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_PAUSE, downloadId),
+        resume: (downloadId) => electron.ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_RESUME, downloadId),
+        cancel: (downloadId) => electron.ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_CANCEL, downloadId),
+        remove: (downloadId) => electron.ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_REMOVE, downloadId),
+        getList: () => electron.ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_GET_LIST),
+        getStats: () => electron.ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_GET_STATS)
+      },
+      // 工具管理相关方法
+      tool: {
+        checkInstallation: (toolId) => electron.ipcRenderer.invoke(IPC_EVENTS.TOOL_CHECK_INSTALLATION, toolId),
+        getVersion: (toolId) => electron.ipcRenderer.invoke(IPC_EVENTS.TOOL_GET_VERSION, toolId),
+        install: (toolId, toolName, downloadUrl, category) => electron.ipcRenderer.invoke(IPC_EVENTS.TOOL_INSTALL, toolId, toolName, downloadUrl, category),
+        uninstall: (toolId) => electron.ipcRenderer.invoke(IPC_EVENTS.TOOL_UNINSTALL, toolId),
+        getList: () => electron.ipcRenderer.invoke(IPC_EVENTS.TOOL_GET_LIST),
+        getCategories: () => electron.ipcRenderer.invoke(IPC_EVENTS.TOOL_GET_CATEGORIES)
+      },
+      // 事件监听器
+      onDownloadUpdate: (callback) => {
+        const handler = (_, eventData) => {
+          console.log("[Preload] Received download-status-update event:", eventData);
+          if (eventData && eventData.downloadId && eventData.task) {
+            const { downloadId, task } = eventData;
+            callback(downloadId, task);
+          } else {
+            console.error("[Preload] Invalid download-status-update event data:", eventData);
+          }
+        };
+        electron.ipcRenderer.on("download-status-update", handler);
+        console.log("[Preload] Download update listener registered");
+        return () => {
+          electron.ipcRenderer.removeListener("download-status-update", handler);
+          console.log("[Preload] Download update listener removed");
+        };
+      },
+      onToolStatusUpdate: (callback) => {
+        const handler = (_, eventData) => {
+          console.log("[Preload] Received tool-status-update event:", eventData);
+          if (eventData && eventData.toolId && eventData.tool) {
+            const { toolId, tool } = eventData;
+            callback(toolId, tool);
+          } else {
+            console.error("[Preload] Invalid tool-status-update event data:", eventData);
+          }
+        };
+        electron.ipcRenderer.on("tool-status-update", handler);
+        console.log("[Preload] Tool status update listener registered");
+        return () => {
+          electron.ipcRenderer.removeListener("tool-status-update", handler);
+          console.log("[Preload] Tool status update listener removed");
+        };
+      }
     },
     test: {
       runInstaller: (installerPath) => electron.ipcRenderer.invoke(IPC_EVENTS.TEST_RUN_INSTALLER, installerPath),

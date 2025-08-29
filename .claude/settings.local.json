@@ -28,7 +28,12 @@
       "Bash(pnpm run dist:*)",
       "Bash(\"dist\\win-unpacked\\Catalyst.exe\")",
       "Bash(.Catalyst.exe)",
-      "Bash(npm run dist:*)"
+      "Bash(npm run dist:*)",
+      "Bash(taskkill:*)",
+      "Bash(pnpm dist:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(grep:*)",
+      "Bash(npm run)"
     ],
     "deny": [],
     "ask": []

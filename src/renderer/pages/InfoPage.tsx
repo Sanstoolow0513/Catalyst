@@ -17,8 +17,7 @@ import {
   Award as AwardIcon,
   TrendingUp as TrendingUpIcon,
   Terminal as TerminalIcon,
-  Package as PackageIcon,
-  Download as DownloadIcon
+  Package as PackageIcon
 } from 'lucide-react';
 
 const pulseAnimation = keyframes`
@@ -108,14 +107,14 @@ const StatCard = styled(motion.div)`
 `;
 
 const StatNumber = styled.div`
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: ${props => props.theme.primary};
   margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
 const StatLabel = styled.div`
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: ${props => props.theme.textSecondary};
   font-weight: 500;
 `;
@@ -170,7 +169,7 @@ const FeatureIcon = styled.div`
 `;
 
 const FeatureTitle = styled.h3`
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
   margin-bottom: ${({ theme }) => theme.spacing.md};
@@ -179,6 +178,7 @@ const FeatureTitle = styled.h3`
 const FeatureDescription = styled.p`
   color: ${props => props.theme.textSecondary};
   line-height: 1.6;
+  font-size: 0.95rem;
 `;
 
 const TimelineSection = styled.div`
@@ -221,7 +221,7 @@ const TimelineContent = styled.div`
 `;
 
 const TimelineDate = styled.div`
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: ${props => props.theme.primary};
   font-weight: 600;
   margin-bottom: ${({ theme }) => theme.spacing.sm};
@@ -237,6 +237,7 @@ const TimelineTitle = styled.h4`
 const TimelineDescription = styled.p`
   color: ${props => props.theme.textSecondary};
   line-height: 1.5;
+  font-size: 0.95rem;
 `;
 
 const WingetSection = styled(motion.section)`
@@ -251,7 +252,7 @@ const WingetCard = styled(Card)`
 `;
 
 const WingetTitle = styled.h3`
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
@@ -264,6 +265,7 @@ const WingetDescription = styled.p`
   color: ${props => props.theme.textSecondary};
   line-height: 1.6;
   margin-bottom: ${({ theme }) => theme.spacing.lg};
+  font-size: 0.95rem;
 `;
 
 const WingetCommands = styled.div`
@@ -306,7 +308,7 @@ const PageHeader = styled(motion.div)`
 `;
 
 const PageTitle = styled.h1`
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: ${props => props.theme.textPrimary};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
@@ -334,7 +336,7 @@ const Section = styled(motion.section)`
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: ${props => props.theme.textPrimary};
   margin-bottom: ${({ theme }) => theme.spacing.lg};

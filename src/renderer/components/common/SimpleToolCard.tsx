@@ -1,195 +1,134 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import { useTheme } from '../../contexts/ThemeContext';
+import { getAnimationConfig } from '../../utils/animations';
+import { FaDownload, FaExternalLinkAlt } from 'react-icons/fa';
 
 interface SimpleToolCardProps {
   icon: React.ReactNode;
   name: string;
+  description: string;
   officialUrl: string;
   downloadUrl: string;
   onDownload?: () => void;
   className?: string;
   isGlassMode?: boolean;
+  iconColor?: string;
 }
 
 const CardContainer = styled(motion.div)<{ $isGlassMode?: boolean }>`
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 24px 32px;
-  background: ${props => {
-    if (props.$isGlassMode) {
-      return 'rgba(30, 41, 59, 0.15)';
-    }
-    return props.theme?.name === 'dark' 
-      ? props.theme?.surface || '#1F2937' 
-      : props.theme?.surface || '#FFFFFF'
-  }};
-  border: ${props => {
-    if (props.$isGlassMode) {
-      return '1px solid rgba(148, 163, 184, 0.2)';
-    }
-    return `1px solid ${props.theme?.border || '#E5E7EB'}`;
-  }};
-  border-radius: ${props => props.theme?.borderRadius?.medium || '12px'};
-  box-shadow: ${props => {
-    if (props.$isGlassMode) {
-      return '0 4px 16px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1)';
-    }
-    return props.theme?.name === 'dark' 
-      ? '0 1px 2px 0 rgba(0, 0, 0, 0.1)' 
-      : '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
-  }};
-  transition: all ${props => props.theme?.transition?.normal || '0.2s'} ease;
+  background: ${props => props.$isGlassMode 
+    ? 'rgba(30, 41, 59, 0.08)' 
+    : props.theme?.surface || '#FFFFFF'};
+  border: ${props => props.$isGlassMode 
+    ? '1px solid rgba(148, 163, 184, 0.15)' 
+    : `1px solid ${props.theme?.border || '#E5E7EB'}`};
+  border-radius: 12px;
+  padding: 1.2rem;
   cursor: pointer;
-  backdrop-filter: ${props => props.$isGlassMode ? 'blur(20px)' : 'none'};
+  transition: all 0.3s ease;
+  backdrop-filter: ${props => props.$isGlassMode ? 'blur(16px)' : 'none'};
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
   position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
-    pointer-events: none;
-    border-radius: ${props => props.theme?.borderRadius?.medium || '12px'};
-  }
   
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: ${props => {
-      if (props.$isGlassMode) {
-        return '0 12px 40px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)';
-      }
-      return props.theme?.name === 'dark' 
-        ? '0 4px 12px 0 rgba(0, 0, 0, 0.15)' 
-        : '0 4px 12px 0 rgba(0, 0, 0, 0.08)';
-    }};
-    border-color: ${props => props.theme?.primary?.main || '#2563EB'};
-    background: ${props => {
-      if (props.$isGlassMode) {
-        return 'rgba(51, 65, 85, 0.2)';
-      }
-      return props.theme?.name === 'dark' 
-        ? props.theme?.surfaceVariant || '#374151' 
-        : props.theme?.surfaceVariant || '#F9FAFB';
-    }};
-  }
-  
-  &:active {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: ${props => props.$isGlassMode 
+      ? '0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)' 
+      : '0 8px 25px rgba(0, 0, 0, 0.1)'};
+    background: ${props => props.$isGlassMode 
+      ? 'rgba(51, 65, 85, 0.12)' 
+      : props.theme?.surfaceVariant || '#F9FAFB'};
   }
 `;
 
-const IconContainer = styled.div`
+const IconContainer = styled.div<{ $color?: string }>`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  margin-right: 24px;
-  color: ${props => props.theme?.primary?.main || '#2563EB'};
-  background: ${props => props.theme?.name === 'dark' 
+  background: ${props => props.$color ? `${props.$color}20` : props.theme?.name === 'dark' 
     ? 'rgba(59, 130, 246, 0.15)' 
-    : 'rgba(37, 99, 235, 0.12)'
-  };
-  border-radius: ${props => props.theme?.borderRadius?.medium || '12px'};
-  font-size: 1.4rem;
-  flex-shrink: 0;
+    : 'rgba(37, 99, 235, 0.12)'};
+  color: ${props => props.$color || props.theme?.primary?.main || '#2563EB'};
+  font-size: 1.2rem;
 `;
 
 const ContentContainer = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.3rem;
   min-width: 0;
 `;
 
-const ToolName = styled.h3<{ $isGlassMode?: boolean }>`
+const ToolName = styled.h3`
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: ${props => props.theme?.textPrimary || '#111827'};
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-  text-shadow: ${props => props.$isGlassMode 
-    ? '0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2)' 
-    : 'none'};
+  line-height: 1.3;
 `;
 
-const OfficialLink = styled.button<{ $isGlassMode?: boolean }>`
-  font-size: 1rem;
+const ToolDescription = styled.p`
   color: ${props => props.theme?.textSecondary || '#4B5563'};
-  text-decoration: none;
-  transition: color ${props => props.theme?.transition?.fast || '0.15s'} ease;
-  background: none;
-  border: none;
-  padding: 0;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.4;
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+`;
+
+const IconButton = styled(motion.button)<{ $isGlassMode?: boolean }>`
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: ${props => props.$isGlassMode 
+    ? '1px solid rgba(148, 163, 184, 0.15)' 
+    : `1px solid ${props.theme?.border || '#E5E7EB'}`};
+  background: ${props => props.$isGlassMode 
+    ? 'rgba(51, 65, 85, 0.12)' 
+    : props.theme?.surface || '#FFFFFF'};
+  color: ${props => props.theme?.textSecondary || '#4B5563'};
   cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  text-shadow: ${props => props.$isGlassMode 
-    ? '0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2)' 
-    : 'none'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
   
   &:hover {
-    color: ${props => props.theme?.primary?.main || '#2563EB'};
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
+    background: ${props => props.theme?.primary?.main || '#2563EB'};
+    color: ${props => props.theme?.primary?.contrastText || '#FFFFFF'};
+    border-color: ${props => props.theme?.primary?.main || '#2563EB'};
   }
 `;
 
-const DownloadButton = styled(motion.button)<{ $isGlassMode?: boolean }>`
-  padding: 12px 24px;
-  background: ${props => props.theme?.primary?.main || '#2563EB'};
-  color: ${props => props.theme?.primary?.contrastText || '#FFFFFF'};
-  border: none;
-  border-radius: ${props => props.theme?.borderRadius?.small || '8px'};
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all ${props => props.theme?.transition?.fast || '0.15s'} ease;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  text-shadow: ${props => props.$isGlassMode 
-    ? '0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2)' 
-    : 'none'};
-  flex-shrink: 0;
-  
-  &:hover {
-    background: ${props => props.theme?.name === 'dark' 
-      ? props.theme?.primary?.dark || '#1D4ED8' 
-      : props.theme?.primary?.dark || '#1E40AF'
-    };
-    transform: scale(1.05);
-    box-shadow: ${props => props.$isGlassMode 
-      ? '0 4px 12px rgba(37, 99, 235, 0.4)' 
-      : '0 2px 8px rgba(37, 99, 235, 0.3)'};
-  }
-  
-  &:active {
-    transform: scale(0.98);
-  }
-`;
 
 const SimpleToolCard: React.FC<SimpleToolCardProps> = ({
   icon,
   name,
+  description,
   officialUrl,
   downloadUrl,
   onDownload,
   className,
-  isGlassMode = false
+  isGlassMode = false,
+  iconColor
 }) => {
-  const theme = useTheme();
+  
+  // 使用统一的动画配置
+  const animationConfig = React.useMemo(() => {
+    return getAnimationConfig(window.location.pathname);
+  }, []);
 
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -210,34 +149,44 @@ const SimpleToolCard: React.FC<SimpleToolCardProps> = ({
     <CardContainer
       className={className}
       $isGlassMode={isGlassMode}
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
-      theme={theme}
+      whileHover={animationConfig.disabled ? undefined : { scale: 1.02 }}
+      whileTap={animationConfig.disabled ? undefined : { scale: 0.98 }}
+      transition={{
+        duration: animationConfig.hoverDuration
+      }}
     >
-      <IconContainer theme={theme}>
-        {icon}
-      </IconContainer>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <IconContainer $color={iconColor}>
+          {icon}
+        </IconContainer>
+        
+        <ContentContainer>
+          <ToolName>{name}</ToolName>
+          <ToolDescription>{description}</ToolDescription>
+        </ContentContainer>
+      </div>
       
-      <ContentContainer>
-        <ToolName $isGlassMode={isGlassMode} theme={theme}>{name}</ToolName>
-        <OfficialLink 
-          onClick={handleOfficialLink}
+      <ActionButtons>
+        <IconButton
           $isGlassMode={isGlassMode}
-          theme={theme}
+          onClick={handleOfficialLink}
+          whileHover={animationConfig.disabled ? undefined : { scale: 1.1 }}
+          whileTap={animationConfig.disabled ? undefined : { scale: 0.9 }}
+          title="访问官网"
         >
-          官网
-        </OfficialLink>
-      </ContentContainer>
-      
-      <DownloadButton
-        onClick={handleDownload}
-        $isGlassMode={isGlassMode}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        theme={theme}
-      >
-        下载
-      </DownloadButton>
+          <FaExternalLinkAlt size={14} />
+        </IconButton>
+        
+        <IconButton
+          $isGlassMode={isGlassMode}
+          onClick={handleDownload}
+          whileHover={animationConfig.disabled ? undefined : { scale: 1.1 }}
+          whileTap={animationConfig.disabled ? undefined : { scale: 0.9 }}
+          title="下载"
+        >
+          <FaDownload size={14} />
+        </IconButton>
+      </ActionButtons>
     </CardContainer>
   );
 };

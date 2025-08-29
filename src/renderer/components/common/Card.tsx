@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
+import { getAnimationConfig, cardVariants } from '../../utils/animations';
 
 interface CardProps {
   children: React.ReactNode;
@@ -145,11 +146,9 @@ const Card = React.memo<CardProps>(({
   className,
   ...props
 }) => {
-  // 使用更优雅的方式判断是否为具体服务页面
-  const isServicePage = React.useMemo(() => {
-    return ['/proxy-management', '/chat', '/dev-environment'].some(path => 
-      window.location.pathname.includes(path)
-    );
+  // 使用统一的动画配置
+  const animationConfig = React.useMemo(() => {
+    return getAnimationConfig(window.location.pathname);
   }, []);
   
   return (
@@ -163,15 +162,15 @@ const Card = React.memo<CardProps>(({
       $glassIntensity={$glassIntensity}
       onClick={onClick}
       className={className}
-      initial={isServicePage ? undefined : { opacity: 0, y: 20 }}
-      animate={isServicePage ? undefined : { opacity: 1, y: 0 }}
-      transition={isServicePage ? { duration: 0.15 } : { duration: 0.3 }}
-      whileHover={$hoverable && !isServicePage ? {
-        scale: 1.02,
-        y: -2,
-        zIndex: 1
-      } : undefined}
-      whileTap={$clickable ? { scale: 0.98, zIndex: 1 } : undefined}
+      initial={animationConfig.disabled ? undefined : 'hidden'}
+      animate={animationConfig.disabled ? undefined : 'visible'}
+      variants={cardVariants}
+      transition={{
+        duration: animationConfig.duration,
+        ease: 'easeOut'
+      }}
+      whileHover={$hoverable && !animationConfig.disabled ? 'hover' : undefined}
+      whileTap={$clickable && !animationConfig.disabled ? 'tap' : undefined}
       {...props}
     >
       {children}
@@ -179,4 +178,5 @@ const Card = React.memo<CardProps>(({
   );
 });
 
-export default Card;
+export { Card as default };
+export type { CardProps };

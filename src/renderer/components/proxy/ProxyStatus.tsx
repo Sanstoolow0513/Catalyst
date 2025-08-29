@@ -10,7 +10,7 @@ const StatusCard = styled(motion.div)`
   border: 1px solid ${props => props.theme.border};
   border-radius: ${props => props.theme.borderRadius.large};
   padding: 1.5rem;
-  margin-bottom: 2rem;
+  margin-top: ${({ theme }) => theme.spacing.lg};
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -43,6 +43,25 @@ const ControlButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
+`;
+
+const ErrorMessage = styled.div`
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: ${props => props.theme.error.main}10;
+  border: 1px solid ${props => props.theme.error.main}30;
+  border-radius: ${props => props.theme.borderRadius.medium};
+  color: ${props => props.theme.error.main};
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &::before {
+    content: '⚠️';
+    font-size: 0.9rem;
+  }
 `;
 
 const ControlButton = styled(motion.button)<{ $variant: 'primary' | 'danger' | 'outline' }>`
@@ -103,6 +122,7 @@ interface ProxyStatusProps {
   onTestLatency: () => void;
   hasConfig: boolean;
   isValidConfig: boolean;
+  lastError?: string | null;
 }
 
 const ProxyStatus: React.FC<ProxyStatusProps> = memo(({
@@ -112,14 +132,16 @@ const ProxyStatus: React.FC<ProxyStatusProps> = memo(({
   onStop,
   onTestLatency,
   hasConfig,
-  isValidConfig
+  isValidConfig,
+  lastError
 }) => {
   useTheme();
 
   const statusText = useMemo(() => {
     if (isLoading) return '🔄 正在检查状态...';
+    if (lastError) return `🔴 错误: ${lastError}`;
     return isRunning ? '🟢 Mihomo 代理服务正在运行' : '🔴 Mihomo 代理服务已停止';
-  }, [isLoading, isRunning]);
+  }, [isLoading, isRunning, lastError]);
   const startButtonTooltip = useMemo(() => {
     if (isRunning) return '代理正在运行中';
     if (isLoading) return '正在处理中，请稍候';
@@ -181,6 +203,12 @@ const ProxyStatus: React.FC<ProxyStatusProps> = memo(({
           测试延迟
         </ControlButton>
       </ControlButtonGroup>
+      
+      {lastError && (
+        <ErrorMessage>
+          {lastError}
+        </ErrorMessage>
+      )}
     </StatusCard>
   );
 });

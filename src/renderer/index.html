@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Electron App</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:5173 wss://localhost:5173; object-src 'none'; child-src 'none';">
     <style>
       @keyframes pulse {
         0%, 100% { opacity: 1; }

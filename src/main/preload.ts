@@ -66,6 +66,70 @@ try {
       installVSCode: () => ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_VSCODE),
       installNodeJS: () => ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_NODEJS),
       installPython: () => ipcRenderer.invoke(IPC_EVENTS.DEV_ENV_INSTALL_PYTHON),
+      
+      // 下载管理相关方法
+      download: {
+        startTool: (toolId: string, toolName: string, downloadUrl: string, category: string) => 
+          ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_START_TOOL, toolId, toolName, downloadUrl, category),
+        pause: (downloadId: string) => ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_PAUSE, downloadId),
+        resume: (downloadId: string) => ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_RESUME, downloadId),
+        cancel: (downloadId: string) => ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_CANCEL, downloadId),
+        remove: (downloadId: string) => ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_REMOVE, downloadId),
+        getList: () => ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_GET_LIST),
+        getStats: () => ipcRenderer.invoke(IPC_EVENTS.DOWNLOAD_GET_STATS),
+      },
+      
+      // 工具管理相关方法
+      tool: {
+        checkInstallation: (toolId: string) => ipcRenderer.invoke(IPC_EVENTS.TOOL_CHECK_INSTALLATION, toolId),
+        getVersion: (toolId: string) => ipcRenderer.invoke(IPC_EVENTS.TOOL_GET_VERSION, toolId),
+        install: (toolId: string, toolName: string, downloadUrl: string, category: string) => 
+          ipcRenderer.invoke(IPC_EVENTS.TOOL_INSTALL, toolId, toolName, downloadUrl, category),
+        uninstall: (toolId: string) => ipcRenderer.invoke(IPC_EVENTS.TOOL_UNINSTALL, toolId),
+        getList: () => ipcRenderer.invoke(IPC_EVENTS.TOOL_GET_LIST),
+        getCategories: () => ipcRenderer.invoke(IPC_EVENTS.TOOL_GET_CATEGORIES),
+      },
+      
+      // 事件监听器
+      onDownloadUpdate: (callback: (downloadId: string, task: any) => void) => {
+        const handler = (_: any, eventData: any) => {
+          console.log('[Preload] Received download-status-update event:', eventData);
+          
+          // 安全地解构数据
+          if (eventData && eventData.downloadId && eventData.task) {
+            const { downloadId, task } = eventData;
+            callback(downloadId, task);
+          } else {
+            console.error('[Preload] Invalid download-status-update event data:', eventData);
+          }
+        };
+        ipcRenderer.on('download-status-update', handler);
+        console.log('[Preload] Download update listener registered');
+        return () => {
+          ipcRenderer.removeListener('download-status-update', handler);
+          console.log('[Preload] Download update listener removed');
+        };
+      },
+      
+      onToolStatusUpdate: (callback: (toolId: string, tool: any) => void) => {
+        const handler = (_: any, eventData: any) => {
+          console.log('[Preload] Received tool-status-update event:', eventData);
+          
+          // 安全地解构数据
+          if (eventData && eventData.toolId && eventData.tool) {
+            const { toolId, tool } = eventData;
+            callback(toolId, tool);
+          } else {
+            console.error('[Preload] Invalid tool-status-update event data:', eventData);
+          }
+        };
+        ipcRenderer.on('tool-status-update', handler);
+        console.log('[Preload] Tool status update listener registered');
+        return () => {
+          ipcRenderer.removeListener('tool-status-update', handler);
+          console.log('[Preload] Tool status update listener removed');
+        };
+      },
     },
     
     test: {

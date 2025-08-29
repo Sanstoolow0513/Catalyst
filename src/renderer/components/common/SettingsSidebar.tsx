@@ -304,7 +304,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
       </SidebarSearch>
 
       <NavSection>
-        {filteredItems.map((item, index) => (
+        {filteredItems.map((item, _index) => (
           <NavItem
             key={item.id}
             $active={activeSection === item.id}

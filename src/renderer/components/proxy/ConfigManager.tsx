@@ -9,7 +9,6 @@ const ConfigCard = styled(motion.div)`
   border: 1px solid ${props => props.theme.border};
   border-radius: ${props => props.theme.borderRadius.large};
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
 `;
 
 const ConfigHeader = styled.div`

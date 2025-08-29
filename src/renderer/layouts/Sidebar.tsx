@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
@@ -8,37 +7,28 @@ import {
   Shield as ShieldIcon,
   Bot as BotIcon,
   Settings as SettingsIcon,
+  Settings as GearIcon,
   Code as CodeIcon,
   Info as InfoIcon,
   TestTube as TestIcon,
+  Download as DownloadIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon
 } from 'lucide-react';
 
-const SidebarContainer = styled(motion.aside)<{ $collapsed: boolean }>`
+const SidebarContainer = styled.aside<{ $collapsed: boolean }>`
   width: ${props => props.$collapsed ? '80px' : '220px'};
-  max-width: ${props => props.$collapsed ? '80px' : '18vw'};
-  min-width: ${props => props.$collapsed ? '80px' : '200px'};
-  position: relative;
+  min-width: ${props => props.$collapsed ? '80px' : '220px'};
+  height: 100vh;
   background-color: ${props => props.theme.sidebar.background};
-  border: 1px solid ${props => props.theme.sidebar.border};
-  border-radius: 16px;
-  margin: 8px;
+  border-right: 1px solid ${props => props.theme.border};
   display: flex;
   flex-direction: column;
   padding: 16px 0;
   overflow-y: auto;
   transition: width 0.3s ease;
   flex-shrink: 0;
-  z-index: 100;
-  box-shadow: ${props => props.theme.shadow.sidebar};
-  backdrop-filter: blur(16px);
   
-  &:hover {
-    box-shadow: ${props => props.theme.shadow.sidebarHover};
-  }
-  
-    
   /* 自定义滚动条 */
   &::-webkit-scrollbar {
     width: 6px;
@@ -51,188 +41,71 @@ const SidebarContainer = styled(motion.aside)<{ $collapsed: boolean }>`
   &::-webkit-scrollbar-thumb {
     background: ${props => props.theme.border};
     border-radius: 3px;
-    
-    &:hover {
-      background: ${props => props.theme.textTertiary};
-    }
-  }
-  
-  @media (min-width: 1920px) {
-    width: ${props => props.$collapsed ? '80px' : '240px'};
-  }
-  
-  @media (max-width: 1200px) {
-    width: ${props => props.$collapsed ? '80px' : '200px'};
   }
 `;
 
-const LogoButton = styled(motion.button)<{ $collapsed: boolean }>`
-  background: none;
+
+const CollapseButton = styled.button`
+  background: transparent;
   border: none;
   cursor: pointer;
   padding: 12px 16px;
   border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  margin-bottom: 16px;
-  transition: all ${props => props.theme.transition.fast} ease;
+  justify-content: center;
+  width: calc(100% - 32px);
+  margin: 0 16px 16px 16px;
+  transition: background-color 0.2s ease;
   color: ${props => props.theme.sidebar.text};
   
   &:hover {
-    background-color: ${props => props.theme.sidebar.itemHover};
-    color: ${props => props.theme.sidebar.textActive};
-  }
-  
-  ${props => props.$collapsed && `
-    justify-content: center;
-    padding: 12px 16px;
-    gap: 0;
-  `}
-`;
-
-const Logo = styled.div`
-  width: 40px;
-  height: 40px;
-  background: ${props => props.theme.gradient.logo};
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 18px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(8px);
-  position: relative;
-  overflow: hidden;
-  
-  `;
-
-const LogoText = styled.div<{ $collapsed: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  ${props => props.$collapsed && `
-    display: none;
-  `}
-`;
-
-const AppName = styled.h1`
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0;
-  line-height: 1.2;
-`;
-
-const AppVersion = styled.p`
-  font-size: 12px;
-  color: ${props => props.theme.textTertiary};
-  margin: 0;
-  line-height: 1;
-`;
-
-const CollapseButton = styled.button`
-  background: none;
-  border: none;
-  color: ${props => props.theme.textTertiary};
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all ${props => props.theme.transition.fast} ease;
-  
-  &:hover {
-    color: ${props => props.theme.textPrimary};
     background-color: ${props => props.theme.sidebar.itemHover};
   }
 `;
 
 const NavSection = styled.nav<{ $collapsed: boolean }>`
   flex: 1;
-  padding: 0 12px;
+  padding: 0 16px;
   ${props => props.$collapsed && `
-    padding: 0 6px;
+    padding: 0 8px;
   `}
 `;
 
-const NavGroup = styled.div<{ $collapsed: boolean }>`
-  margin-bottom: 8px;
-  ${props => props.$collapsed && `
-    margin-bottom: 8px;
-  `}
+const NavGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
 
-
-const NavItemContainer = styled(motion.div)`
-  display: block;
-  margin-bottom: 8px;
-`;
 
 const NavItem = styled(Link)<{ $isActive: boolean; $collapsed: boolean }>`
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: ${props => props.$collapsed ? 'center' : 'flex-start'};
+  gap: ${props => props.$collapsed ? '0' : '12px'};
   padding: 12px 16px;
   border-radius: 8px;
   text-decoration: none;
   color: ${props => props.$isActive ? props.theme.sidebar.textActive : props.theme.sidebar.text};
   background-color: ${props => props.$isActive ? props.theme.sidebar.itemActive : 'transparent'};
-  transition: all ${props => props.theme.transition.fast} ease;
+  transition: background-color 0.2s ease;
   font-weight: 500;
-  font-size: 15px;
-  overflow: hidden;
-  border: 1px solid transparent;
-  position: relative;
-  backdrop-filter: blur(8px);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
-    pointer-events: none;
-    border-radius: 8px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
+  font-size: 14px;
   
   &:hover {
-    background-color: ${props => props.$isActive ? props.theme.sidebar.itemActive : props.theme.sidebar.itemHover};
-    color: ${props => props.$isActive ? props.theme.sidebar.textActive : props.theme.sidebar.textActive};
-    border-color: ${props => props.theme.border};
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    
-    &::before {
-      opacity: 1;
-    }
+    background-color: ${props => props.theme.sidebar.itemHover};
+    color: ${props => props.theme.sidebar.textActive};
   }
   
   & .nav-icon {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     color: ${props => props.$isActive ? props.theme.primary.main : props.theme.textTertiary};
-    transition: color ${props => props.theme.transition.fast} ease;
     flex-shrink: 0;
   }
   
-  &:hover .nav-icon {
-    color: ${props => props.theme.primary.main};
-  }
-  
   ${props => props.$collapsed && `
-    justify-content: center;
-    padding: 12px 16px;
-    
     & span {
       display: none;
     }
@@ -241,18 +114,17 @@ const NavItem = styled(Link)<{ $isActive: boolean; $collapsed: boolean }>`
 
 const Tooltip = styled.div`
   position: fixed;
-  background-color: ${props => props.theme.sidebar.background};
-  color: ${props => props.theme.sidebar.text};
-  padding: 8px 12px;
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.textPrimary};
+  padding: 6px 10px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   pointer-events: none;
   white-space: nowrap;
   border: 1px solid ${props => props.theme.border};
-  backdrop-filter: blur(8px);
 `;
 
 const navigationItems = [
@@ -264,7 +136,7 @@ const navigationItems = [
       { path: '/test', label: '测试页面', icon: TestIcon },
       { path: '/llm-config', label: 'LLM 配置', icon: SettingsIcon },
       { path: '/dev-environment', label: '开发环境', icon: CodeIcon },
-      { path: '/settings', label: '设置', icon: SettingsIcon },
+        { path: '/settings', label: '设置', icon: GearIcon },
       { path: '/info', label: '关于', icon: InfoIcon },
     ]
   }
@@ -292,73 +164,45 @@ const Sidebar = () => {
 
   return (
     <>
-      <SidebarContainer
-        $collapsed={isSidebarCollapsed}
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
-      >
+      <SidebarContainer $collapsed={isSidebarCollapsed}>
         <NavSection $collapsed={isSidebarCollapsed}>
-          <LogoButton
-            $collapsed={isSidebarCollapsed}
-            onClick={toggleSidebar}
-            whileHover={{ scale: 1.01, zIndex: 1 }}
-            whileTap={{ scale: 0.99, zIndex: 1 }}
-          >
-            <Logo>C</Logo>
-            {!isSidebarCollapsed && (
-              <LogoText $collapsed={isSidebarCollapsed}>
-                <AppName>Catalyst</AppName>
-                <AppVersion>v1.0.0</AppVersion>
-              </LogoText>
-            )}
-            {!isSidebarCollapsed && (
-              <ChevronLeftIcon size={16} style={{ marginLeft: 'auto' }} />
-            )}
-          </LogoButton>
+          <CollapseButton onClick={toggleSidebar}>
+            {isSidebarCollapsed ? <ChevronRightIcon size={16} /> : <ChevronLeftIcon size={16} />}
+          </CollapseButton>
           {navigationItems.map((group, groupIndex) => (
-            <NavGroup key={groupIndex} $collapsed={isSidebarCollapsed}>
-              {group.items.map((item, itemIndex) => {
+            <NavGroup key={groupIndex}>
+              {group.items.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
-                  <NavItemContainer
+                  <NavItem 
                     key={item.path}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.05 * itemIndex, duration: 0.2 }}
-                    whileHover={{ scale: 1.02, zIndex: 1 }}
-                    whileTap={{ scale: 0.98, zIndex: 1 }}
+                    to={item.path} 
+                    $isActive={isActive} 
+                    $collapsed={isSidebarCollapsed}
+                    onMouseEnter={(e) => handleMouseEnter(e, item.label)}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    <NavItem 
-                      to={item.path} 
-                      $isActive={isActive} 
-                      $collapsed={isSidebarCollapsed}
-                      onMouseEnter={(e) => handleMouseEnter(e, item.label)}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      <item.icon className="nav-icon" size={22} />
-                      <span>{item.label}</span>
-                    </NavItem>
-                  </NavItemContainer>
+                    <item.icon className="nav-icon" size={20} />
+                    <span>{item.label}</span>
+                  </NavItem>
                 );
               })}
             </NavGroup>
           ))}
         </NavSection>
-        
-        {isSidebarCollapsed && (
-          <div style={{ padding: '0 10px', marginTop: 'auto' }}>
-            <CollapseButton onClick={toggleSidebar} style={{ position: 'static', width: '100%', borderRadius: '8px' }}>
-              <ChevronRightIcon size={16} />
-            </CollapseButton>
-          </div>
-        )}
       </SidebarContainer>
       
       {tooltip && (
-        <Tooltip style={{ top: tooltip.y, left: tooltip.x }}>
-          {tooltip.text}
-        </Tooltip>
+        <div style={{ 
+          position: 'fixed',
+          top: tooltip.y, 
+          left: tooltip.x,
+          zIndex: 1000
+        }}>
+          <Tooltip>
+            {tooltip.text}
+          </Tooltip>
+        </div>
       )}
     </>
   );

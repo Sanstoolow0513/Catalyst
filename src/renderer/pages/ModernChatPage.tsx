@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 
 // 定义 pulse 动画
@@ -23,8 +23,9 @@ import {
   Loader2,
   Download,
 } from 'lucide-react';
-import { ILLMMessage, ILLMParams } from '../types/electron';
-import { useConfig } from '../contexts/ConfigContext';
+import { ILLMMessage, ILLMParams, IChatHistory } from '@types/electron';
+import { useConfig } from '@contexts/ConfigContext';
+import ChatHistorySidebar from '@components/chat/ChatHistorySidebar';
 
 
 
@@ -44,8 +45,8 @@ const MainLayout = styled.div`
   position: relative;
   z-index: 1;
   margin: 0;
-  padding: 24px;
-  gap: 24px;
+  padding: 0;
+  gap: 0;
   width: 100%;
   box-sizing: border-box;
 `;
@@ -56,10 +57,10 @@ const ChatArea = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: ${props => props.theme.surface};
-  border: 1px solid ${props => props.theme.border};
-  border-radius: ${props => props.theme.borderRadius.large};
-  box-shadow: ${props => props.theme.card.shadow};
+  background: ${props => props.theme.background};
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -74,6 +75,7 @@ const ChatHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-top: 1px solid ${props => props.theme.border};
 `;
 
 // 聊天标题 - 简洁设计
@@ -441,11 +443,59 @@ const LoadingDots = styled.div`
 `;
 
 const ModernChatPage: React.FC = () => {
-  const { isConfigValid, getLLMRequestConfig, isLoading: configLoading } = useConfig();
+  const { isConfigValid, getLLMRequestConfig, createChatHistory, updateChatHistory, autoSaveChatHistory, chatHistories } = useConfig();
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ILLMMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // 初始化 - 如果没有当前聊天，创建一个新的
+  useEffect(() => {
+    const initializeChat = async () => {
+      if (!isInitialized && chatHistories.length > 0 && !currentChatId) {
+        // 加载最近的聊天
+        const recentChat = chatHistories[0];
+        setCurrentChatId(recentChat.id);
+        setMessages(recentChat.messages);
+        setIsInitialized(true);
+      } else if (!isInitialized && chatHistories.length === 0 && !currentChatId) {
+        // 创建新的聊天
+        const newChat = await createChatHistory();
+        setCurrentChatId(newChat.id);
+        setMessages([]);
+        setIsInitialized(true);
+      }
+    };
+
+    initializeChat();
+  }, [chatHistories, currentChatId, isInitialized, createChatHistory]);
+
+  // 切换聊天
+  const handleChatSelect = useCallback(async (chatId: string) => {
+    const selectedChat = chatHistories.find(chat => chat.id === chatId);
+    if (selectedChat) {
+      setCurrentChatId(chatId);
+      setMessages(selectedChat.messages);
+      setError(null);
+    }
+  }, [chatHistories]);
+
+  // 创建新聊天
+  const handleNewChat = useCallback(async () => {
+    const newChat = await createChatHistory();
+    setCurrentChatId(newChat.id);
+    setMessages([]);
+    setError(null);
+  }, [createChatHistory]);
+
+  // 自动保存聊天历史
+  const saveChatHistory = useCallback(async (messagesToSave: ILLMMessage[]) => {
+    if (currentChatId) {
+      await autoSaveChatHistory(currentChatId, messagesToSave);
+    }
+  }, [currentChatId, autoSaveChatHistory]);
 
   // 发送消息
   const handleSendMessage = useCallback(async () => {
@@ -458,10 +508,14 @@ const ModernChatPage: React.FC = () => {
     }
 
     const userMessage: ILLMMessage = { role: 'user', content: inputMessage };
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInputMessage('');
     setIsLoading(true);
     setError(null);
+
+    // 自动保存用户消息
+    await saveChatHistory(updatedMessages);
 
     try {
       // 获取配置
@@ -499,9 +553,15 @@ const ModernChatPage: React.FC = () => {
 
       if (result.success && result.data) {
         const assistantMessage: ILLMMessage = { role: 'assistant', content: result.data };
-        setMessages(prev => [...prev, assistantMessage]);
+        const finalMessages = [...updatedMessages, assistantMessage];
+        setMessages(finalMessages);
+        
+        // 自动保存完整对话
+        await saveChatHistory(finalMessages);
       } else {
         setError(result.error || 'Failed to get response from LLM');
+        // 恢复消息状态
+        setMessages(messages);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -514,10 +574,13 @@ const ModernChatPage: React.FC = () => {
   }, [inputMessage, isLoading, isConfigValid, messages]);
 
   // 清空消息
-  const clearMessages = useCallback(() => {
+  const clearMessages = useCallback(async () => {
     setMessages([]);
     setError(null);
-  }, []);
+    if (currentChatId) {
+      await saveChatHistory([]);
+    }
+  }, [currentChatId, saveChatHistory]);
 
   // 处理键盘事件
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
@@ -530,6 +593,13 @@ const ModernChatPage: React.FC = () => {
   return (
     <ModernChatContainer>
       <MainLayout>
+        {/* 历史对话侧边栏 */}
+        <ChatHistorySidebar
+          activeChatId={currentChatId || undefined}
+          onChatSelect={handleChatSelect}
+          onNewChat={handleNewChat}
+        />
+        
         {/* 聊天区域 */}
         <ChatArea
           initial={{ opacity: 0, y: 50 }}

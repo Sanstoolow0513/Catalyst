@@ -8,4 +8,5 @@ export * from './StatusIndicator';
 export * from './FormControl';
 export * from './PageContentLayout';
 export * from './TitleBar';
+export * from './CommonPageStyles';
 

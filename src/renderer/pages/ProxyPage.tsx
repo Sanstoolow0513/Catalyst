@@ -1,43 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { PageContainer } from '../components/common/PageContainer';
 import RestructuredProxyManager from '../components/RestructuredProxyManager';
-import { Wifi, Shield, Moon, Sun } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xxl};
-  padding: 0 ${({ theme }) => theme.spacing.xl};
-`;
 
-const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${props => props.theme.textPrimary};
-  margin: 0;
-`;
+// const Title = styled.h1`
+//   font-size: 2rem;
+//   font-weight: 700;
+//   color: ${props => props.theme.textPrimary};
+//   margin: 0;
+// `;
 
-const ThemeToggle = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  background: ${props => props.theme.surfaceVariant};
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: ${props => props.theme.textPrimary};
-  transition: all ${props => props.theme.transition.fast} ease;
+// const ThemeToggle = styled.button`
+//   width: 40px;
+//   height: 40px;
+//   border-radius: ${({ theme }) => theme.borderRadius.large};
+//   background: ${props => props.theme.surfaceVariant};
+//   border: none;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   cursor: pointer;
+//   color: ${props => props.theme.textPrimary};
+//   transition: all ${props => props.theme.transition.fast} ease;
   
-  &:hover {
-    background: ${props => props.theme.border};
-  }
-`;
+//   &:hover {
+//     background: ${props => props.theme.border};
+//   }
+// `;
 
 const WelcomeCard = styled(motion.div)<{ $isDarkMode?: boolean; $isGlassMode?: boolean }>`
   background: ${props => {
@@ -141,107 +134,84 @@ const WelcomeSubtitle = styled.p<{ $isGlassMode?: boolean }>`
   z-index: 2;
 `;
 
-const ProxyStatusCard = styled(motion.div)<{ $isGlassMode?: boolean }>`
-  background: ${props => props.$isGlassMode 
-    ? 'rgba(30, 41, 59, 0.08)' 
-    : props.theme.surface};
-  border: ${props => props.$isGlassMode 
-    ? '1px solid rgba(148, 163, 184, 0.15)' 
-    : `1px solid ${props.theme.border}`};
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
-  backdrop-filter: ${props => props.$isGlassMode ? 'blur(16px)' : 'none'};
-  position: relative;
-  overflow: hidden;
+// const ProxyStatusCard = styled(motion.div)<{ $isGlassMode?: boolean }>`
+//   background: ${props => props.$isGlassMode 
+//     ? 'rgba(30, 41, 59, 0.08)' 
+//     : props.theme.surface};
+//   border: ${props => props.$isGlassMode 
+//     ? '1px solid rgba(148, 163, 184, 0.15)' 
+//     : `1px solid ${props.theme.border}`};
+//   border-radius: 12px;
+//   padding: 1.5rem;
+//   margin-bottom: ${({ theme }) => theme.spacing.lg};
+//   display: flex;
+//   align-items: center;
+//   gap: 1rem;
+//   transition: all 0.3s ease;
+//   backdrop-filter: ${props => props.$isGlassMode ? 'blur(16px)' : 'none'};
+//   position: relative;
+//   overflow: hidden;
   
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
-    pointer-events: none;
-    border-radius: 12px;
-  }
+//   &::before {
+//     content: '';
+//     position: absolute;
+//     top: 0;
+//     left: 0;
+//     right: 0;
+//     bottom: 0;
+//     background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+//     pointer-events: none;
+//     border-radius: 12px;
+//   }
   
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${props => props.$isGlassMode 
-      ? '0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)' 
-      : '0 8px 25px rgba(0, 0, 0, 0.1)'};
-    background: ${props => props.$isGlassMode 
-      ? 'rgba(51, 65, 85, 0.12)' 
-      : props.theme.surfaceVariant};
-  }
-`;
+//   &:hover {
+//     transform: translateY(-2px);
+//     box-shadow: ${props => props.$isGlassMode 
+//       ? '0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)' 
+//       : '0 8px 25px rgba(0, 0, 0, 0.1)'};
+//     background: ${props => props.$isGlassMode 
+//       ? 'rgba(51, 65, 85, 0.12)' 
+//       : props.theme.surfaceVariant};
+//   }
+// `;
 
-const StatusIcon = styled.div<{ $color: string }>`
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${props => props.$color}20;
-  color: ${props => props.$color};
-`;
+// const StatusIcon = styled.div<{ $color: string }>`
+//   width: 48px;
+//   height: 48px;
+//   border-radius: 12px;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   background: ${props => props.$color}20;
+//   color: ${props => props.$color};
+// `;
 
-const StatusContent = styled.div`
-  flex: 1;
-`;
+// const StatusContent = styled.div`
+//   flex: 1;
+// `;
 
-const StatusTitle = styled.h3`
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 0 0 0.5rem 0;
-`;
+// const StatusTitle = styled.h3`
+//   font-size: 1.1rem;
+//   font-weight: 600;
+//   color: ${props => props.theme.textPrimary};
+//   margin: 0 0 0.5rem 0;
+// `;
 
-const StatusDescription = styled.p`
-  color: ${props => props.theme.textSecondary};
-  font-size: 0.9rem;
-  margin: 0;
-`;
+// const StatusDescription = styled.p`
+//   color: ${props => props.theme.textSecondary};
+//   font-size: 0.95rem;
+//   margin: 0;
+// `;
 
 const ContentSection = styled(motion.div)`
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const ProxyPage: React.FC = () => {
-  const { isDarkMode, toggleTheme, themeMode } = useTheme();
-  const [isProxyRunning, setIsProxyRunning] = useState(false);
+  const { isDarkMode, themeMode } = useTheme();
   const isGlassMode = themeMode.includes('Glass');
 
-  // Check proxy status periodically
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        if (window.electronAPI?.mihomo) {
-          const status = await window.electronAPI.mihomo.status();
-          setIsProxyRunning(status.isRunning);
-        }
-      } catch (error) {
-        console.error('Error checking proxy status:', error);
-      }
-    };
-
-    // Check status immediately
-    checkStatus();
-
-    // Set up interval to check status every 5 seconds
-    const interval = setInterval(checkStatus, 5000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(interval);
-  }, []);
-
+  
   return (
     <PageContainer>
       <WelcomeCard
